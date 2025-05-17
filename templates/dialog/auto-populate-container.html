@@ -1,0 +1,20 @@
+<form>
+    <div class="container-section">
+        <h3>{{localize "BG3.Settings.ContainerAutoPopulate.Name"}}</h3>
+        <p class="notes">{{localize "BG3.Settings.ContainerAutoPopulate.Hint"}}</p>
+        <div class="container-chips" data-container="container1">
+            {{#each itemTypes}}
+            <div class="chip {{#if (includes ../containerSettings value)}}active{{/if}}" data-value="{{this.value}}">{{localize this.label}}</div>
+            {{/each}}
+        </div>
+    </div>
+</form>
+
+<div class="dialog-buttons">
+    {{#each buttons as |button id|}}
+    <button class="dialog-button" data-button="{{id}}">
+        {{{button.icon}}}
+        {{button.label}}
+    </button>
+    {{/each}}
+</div> 

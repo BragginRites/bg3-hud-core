@@ -1,0 +1,80 @@
+{
+  "id": "bg3-hud-core",
+  "title": "BG3 Inspired HUD - CORE",
+  "description": "A custom, persistent, token-specific HUD inspired by Baldur's Gate 3's interface. Provides an intuitive and modern way to manage abilities, spells, and effects for your tokens.",
+  "version": "1.0.0",
+  "authors": [
+    {
+      "name": "BragginRites",
+      "discord": "Braggin#1205",
+      "flags": {}
+    },
+    {
+      "name": "Dapoulp",
+      "discord": "Poulp#3418",
+      "flags": {}
+    }
+  ],
+  "compatibility": {
+    "minimum": "12",
+    "verified": "12"
+  },
+  "esmodules": [
+    "scripts/module.js"
+  ],
+  "styles": [
+    "styles/index.css"
+  ],
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json",
+      "flags": {}
+    },
+    {
+      "lang": "pl",
+      "name": "Polski",
+      "path": "lang/pl.json",
+      "flags": {}
+    },
+    {
+      "lang": "fr",
+      "name": "Français",
+      "path": "lang/fr.json",
+      "flags": {}
+    },
+    {
+      "lang": "nl",
+      "name": "Nederlands",
+      "path": "lang/nl.json",
+      "flags": {}
+    },
+    {
+      "lang": "ru",
+      "name": "Русский",
+      "path": "lang/ru.json",
+      "flags": {}
+    }
+  ],
+  "relationships": {
+    "requires": [
+      {
+        "id": "lib-wrapper",
+        "type": "module",
+        "compatibility": {}
+      },
+      {
+        "id": "colorsettings",
+        "type": "module",
+        "compatibility": {}
+      }
+    ]
+  },
+  "persistentStorage": true,
+  "url": "https://github.com/BragginRites/bg3-hud-core",
+  "manifest": "https://github.com/BragginRites/bg3-hud-core/releases/download/v1.0.0/module.json",
+  "download": "https://github.com/BragginRites/bg3-hud-core/releases/download/v1.0.0/bg3-hud-core.zip",
+  "readme": "README.md",
+  "bugs": "https://github.com/BragginRites/bg3-hud-core/issues"
+}

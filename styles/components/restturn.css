@@ -1,0 +1,140 @@
+
+
+#bg3-hotbar-container  .bg3-restturn-container {
+    position: relative;
+    display: flex;
+    /* min-height: 184px;
+    min-width: 80px; */
+    width: calc(var(--bg3-hotbar-cell-size) * 1.5 + 16px);
+    /* flex-direction: column; */
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    /* justify-content: flex-start; */
+    margin-left: 20px;
+    padding-bottom: 29px;
+    align-self: stretch;
+    justify-content: flex-end;
+}
+
+#bg3-hotbar-container  .bg3-restturn-container i {
+    font-size: calc(var(--bg3-hotbar-cell-size) / 2);
+}
+
+#bg3-hotbar-container  .bg3-restturn-container .turn-button i {
+    font-size: calc(var(--bg3-hotbar-cell-size) * 2 / 3);
+}
+
+#bg3-hotbar-container  .rest-turn-button, #bg3-hotbar-container  .button-hud-button {
+    background: var(--bg3-rest-background-color) center no-repeat;
+    background-origin: content-box;
+    background-size: contain;
+    /* border: 1px solid var(--bg3-rest-border-color); */
+    color: var(--bg3-rest-text-color);
+    cursor: pointer;
+}
+
+#bg3-hotbar-container  .rest-turn-button:hover, #bg3-hotbar-container  .button-hud-button:hover, #bg3-hotbar-container  .rest-turn-button:active, #bg3-hotbar-container  .rest-turn-button.active {
+    background-color: var(--bg3-rest-background-color-hover);
+    border-color: var(--bg3-rest-border-color-hover);
+    color: var(--bg3-rest-text-color-hover);
+}
+
+#bg3-hotbar-container  .rest-turn-button {
+    display: flex;
+    /* padding: 0.5rem 1rem 1.9rem; */
+    /* padding: 0 8px; */
+    padding: 4px 8px;
+    position: relative;
+    transition: all .3s ease-in-out;
+    border-radius: 8px;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    border: var(--bg3-rest-border-size) solid var(--bg3-rest-border-color);
+    flex-direction: column-reverse;
+    /* flex: 1; */
+    justify-content: space-evenly;
+    /* height: calc(var(--bg3-hotbar-cell-size)* 1.5 - 8px); */
+    flex: 1;
+}
+
+#bg3-hotbar-container  .rest-turn-button.end-turn {
+    background-color: var(--bg3-turn-background-color);
+    border-color: var(--bg3-turn-border-color);
+    color: var(--bg3-turn-text-color);
+}
+
+#bg3-hotbar-container  .rest-turn-button.end-turn:hover, #bg3-hotbar-container  .rest-turn-button.end-turn:active, #bg3-hotbar-container  .rest-turn-button.end-turn.active {
+    background-color: var(--bg3-turn-background-color-hover);
+    border-color: var(--bg3-turn-border-color-hover);
+    color: var(--bg3-turn-text-color-hover);
+}
+
+#bg3-hotbar-container  .turn-button {
+    /* height: calc(var(--bg3-hotbar-cell-size)* 3 - 12px); */
+}
+
+#bg3-hotbar-container  .rest-turn-label {
+    align-items: center;
+    /* bottom: 0px; */
+    display: flex;
+    /* height: 2rem; */
+    justify-content: center;
+    /* left: 0px;
+    position: absolute; */
+    text-transform: uppercase;
+    width: 100%;
+    text-align: center;
+    overflow: hidden;
+    font-size: calc(var(--bg3-hotbar-cell-size) / 4);
+}
+
+#bg3-hotbar-container .btn-toggle {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 25px;
+    z-index: 90;
+    background: var(--bg3-background-color);
+    border: var(--bg3-border-size) solid var(--bg3-border-color);
+    color: var(--bg3-text-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: var(--font-size-20);
+    transition: all .3s ease-in-out;
+}
+
+#bg3-hotbar-container .btn-toggle:hover {
+    background: var(--bg3-background-color-hover);
+    border-color: var(--bg3-hotbar-drag-color);
+}
+
+#bg3-hotbar-container.slidedown {
+    transform: translateY(calc(100% + 5px));
+}
+
+#bg3-hotbar-container.slidedown label.btn-toggle {
+    /* bottom: calc(100% + 15px); */
+}
+
+#bg3-hotbar-container.slidedown .bg3-filter-subcontainer, #bg3-hotbar-container.slidedown .bg3-passives-container, #bg3-hotbar-container.slidedown .bg3-actives-container, #bg3-hotbar-container.slidedown .bg3-weapon-container, #bg3-hotbar-container.slidedown .bg3-portrait-container {
+    transition: all .3s ease-in-out !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+#bg3-hotbar-container.slidedown .rest-turn-button {
+    pointer-events: none;
+}
+
+#bg3-hotbar-container.slidedown .btn-toggle {
+    bottom: calc(100% + 5px);
+}
+
+#bg3-hotbar-container.slidedown .btn-toggle::before {
+    -webkit-transform: scaleY(-1);
+    transform: scaleY(-1);
+}

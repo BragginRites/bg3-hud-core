@@ -1,0 +1,376 @@
+/* ==========================================================================
+   Auto-Populate Dialog
+   ========================================================================== */
+
+.auto-populate-dialog .container-section,
+#bg3-hotbar-auto-populate-defaults .container-section,
+#bg3-inspired-hotbar-extradatas-settings .container-section,
+#bg3-inspired-hotbar-portrait-settings .container-section {
+  margin-bottom: 1.5em;
+  padding: 1em;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 8px;
+}
+
+#bg3-inspired-hotbar-portrait-settings .dialog-container {
+  max-width: 600px;
+}
+
+#bg3-inspired-hotbar-extradatas-settings .dialog-container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  font-size: var(--font-size-12);
+}
+
+.auto-populate-dialog .container-section h3,
+#bg3-hotbar-auto-populate-defaults .container-section h3,
+#bg3-inspired-hotbar-extradatas-settings .container-section h3 {
+  margin-bottom: 0.5em;
+  border-bottom: 2px solid var(--color-border-light-primary);
+  padding-bottom: 0.5em;
+  color: var(--color-text-dark-primary);
+  font-weight: bold;
+}
+
+#bg3-inspired-hotbar-extradatas-settings .container-section h3 {
+  border: unset;
+  padding: 0;
+  margin: 0;
+}
+
+#bg3-inspired-hotbar-extradatas-settings .container-section .form-group {
+  position: relative;
+}
+
+.auto-populate-dialog .container-chips,
+#bg3-hotbar-auto-populate-defaults .container-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75em;
+  margin-top: 1em;
+}
+
+.auto-populate-dialog .chip,
+#bg3-hotbar-auto-populate-defaults .chip {
+  background: var(--color-bg-btn-minor);
+  border: 1px solid var(--color-border-light-primary);
+  border-radius: 20px;
+  padding: 0.5em 1em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9em;
+  color: var(--color-text-dark-primary);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.auto-populate-dialog .chip:hover,
+#bg3-hotbar-auto-populate-defaults .chip:hover {
+  background: var(--color-bg-btn-minor-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+.auto-populate-dialog .chip.active,
+#bg3-hotbar-auto-populate-defaults .chip.active {
+  background: #3e7bff;
+  color: #ffffff;
+  border-color: #2461e6;
+  box-shadow: 0 2px 5px rgba(62, 123, 255, 0.3);
+}
+
+.auto-populate-dialog .chip.active:hover,
+#bg3-hotbar-auto-populate-defaults .chip.active:hover {
+  background: #2461e6;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 7px rgba(62, 123, 255, 0.4);
+}
+
+.auto-populate-dialog .notes,
+#bg3-hotbar-auto-populate-defaults .notes,
+#bg3-inspired-hotbar-extradatas-settings .notes {
+  color: var(--color-text-dark-secondary);
+  font-size: 0.9em;
+  margin: 0.25em 0;
+  font-style: italic;
+  font-weight: normal;
+}
+
+#bg3-inspired-hotbar-extradatas-settings .list-attr {
+  max-width: 1.3rem;
+  border: none;
+  background: transparent;
+  position: absolute;
+  right: 0;
+  cursor: pointer;
+  box-shadow: none !important;
+}
+
+.auto-populate-dialog .form-group,
+#bg3-hotbar-auto-populate-defaults .form-group {
+  margin: 1em 0;
+}
+
+.auto-populate-dialog .dialog-buttons,
+#bg3-hotbar-auto-populate-defaults .dialog-buttons {
+  margin-top: 1em;
+  border-top: 2px groove #f0f0e0;
+  padding: 5px 0;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.auto-populate-dialog .dialog-button,
+#bg3-hotbar-auto-populate-defaults .dialog-button {
+  background: rgba(0, 0, 0, 0.1);
+  border: 1px solid #999;
+  border-radius: 3px;
+  margin: 0 5px;
+  padding: 5px 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  color: #191813;
+}
+
+.auto-populate-dialog .dialog-button:hover,
+#bg3-hotbar-auto-populate-defaults .dialog-button:hover {
+  background: var(--color-shadow-primary);
+  color: white;
+  text-shadow: 0 0 4px var(--color-shadow-primary);
+  border: 1px solid var(--color-border-highlight);
+  box-shadow: 0 0 8px var(--color-shadow-primary);
+}
+
+.auto-populate-dialog .dialog-button i,
+#bg3-hotbar-auto-populate-defaults .dialog-button i {
+  margin-right: 5px;
+  font-size: 14px;
+}
+
+.auto-populate-dialog .sheet-footer,
+#bg3-hotbar-auto-populate-defaults .sheet-footer {
+  margin-top: 1em;
+  padding-top: 1em;
+  border-top: 2px groove #eeede0;
+}
+
+.auto-populate-dialog .sheet-footer button,
+#bg3-hotbar-auto-populate-defaults .sheet-footer button {
+  background: #3e7bff;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  padding: 0.5em 1em;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  margin: 0 auto;
+}
+
+.auto-populate-dialog .sheet-footer button:hover,
+#bg3-hotbar-auto-populate-defaults .sheet-footer button:hover {
+  background: #2461e6;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 5px rgba(62, 123, 255, 0.3);
+}
+
+.auto-populate-dialog .sheet-footer button i,
+#bg3-hotbar-auto-populate-defaults .sheet-footer button i {
+  margin-right: 0.5em;
+}
+
+/* ==========================================================================
+   Theme Settings Dialog
+   ========================================================================== */
+#bg3-inspired-hotbar-theme-settings .form-group {
+  margin-bottom: 0.25rem;
+}
+
+#bg3-inspired-hotbar-theme-settings form [name="details-color"] .form-group label {
+  flex: 1.5;
+}
+
+#bg3-inspired-hotbar-theme-settings form details > div {
+  padding: 0.5em 5px 1em;
+}
+
+#bg3-inspired-hotbar-theme-settings form details > div > div {
+  margin-bottom: 1em;
+}
+
+#bg3-inspired-hotbar-theme-settings form .form-group .form-fields > input[type="number"] {
+  max-width: 93px;
+  text-align: right;
+}
+
+#bg3-inspired-hotbar-theme-settings form .form-group .form-fields .input-unit {
+  text-align: left;
+}
+
+#bg3-inspired-hotbar-theme-settings .dialog-buttons {
+  display: flex;
+}
+
+#bg3-inspired-hotbar-theme-settings .color-setting-header {
+  text-align: center;
+  font-style: italic;
+}
+
+#bg3-inspired-hotbar-theme-settings .notes {
+  margin-bottom: 0.5rem;
+}
+
+#bg3-inspired-hotbar-theme-settings details, section[data-tab="bg3-hud-core"] details {
+  position: relative;
+  border-top: 1px solid rgba(0, 0, 0, .1);
+  /* padding-top: 1em; */
+}
+
+section[data-tab="bg3-hud-core"] details > div {
+  padding: 3px 0.5rem;
+  margin: 0 3px;
+  box-shadow: 0 0 3px rgba(0, 0, 0, 1);
+}
+
+section[data-tab="bg3-hud-core"] details div.form-group.group-header {
+  margin: 0 -0.5rem 0.5rem;;
+}
+
+#bg3-inspired-hotbar-theme-settings details summary, section[data-tab="bg3-hud-core"] details summary {
+  /* margin-bottom: 1rem; */
+  font-weight: 600;
+  cursor: pointer;
+  padding: 1em 0 1em 5px;
+}
+
+.package-configuration section[data-tab="bg3-hud-core"] .form-group {
+  margin-bottom: 0.5rem;
+  margin-top: 0;
+}
+
+.package-configuration section[data-tab="bg3-hud-core"] details > div > .form-group:not(.group-header):first-child {
+  margin-top: 0.5rem;
+}
+
+section[data-tab="bg3-hud-core"] p.notes:empty {
+  display: none;
+}
+
+section[data-tab="bg3-hud-core"] details summary {
+  border-radius: 3px;
+  font-size: var(--font-size-14);
+  font-family: var(--font-primary);
+  cursor: pointer;
+  background-color: rgba(0, 0, 0, 0.05);
+  border: 2px groove var(--color-border-light-highlight);
+  background: url(../../../../ui/parchment.jpg) repeat;
+  color: var(--color-text-dark-primary);
+}
+
+/* section[data-tab="bg3-hud-core"] :nth-child(odd) summary {
+  background-color: rgba(0, 0, 0, 0.4);
+} */
+
+#bg3-inspired-hotbar-theme-settings details summary:hover, section[data-tab="bg3-hud-core"] details summary:hover, #bg3-inspired-hotbar-theme-settings details[open] summary, section[data-tab="bg3-hud-core"] details[open] summary {
+  background-color: rgba(0, 0, 0, .1);
+}
+
+#bg3-inspired-hotbar-theme-settings details[open] summary, section[data-tab="bg3-hud-core"] details[open] summary {
+  border-bottom-color: var(--color-text-dark-primary);
+}
+
+#bg3-inspired-hotbar-theme-settings details summary::after, section[data-tab="bg3-hud-core"] details summary::after {
+  content: "\f139";
+  position: absolute;
+  font-family: "Font Awesome 6 Pro";
+  font-weight: 900;
+  font-size: larger;
+  right: 0;
+  margin-right: 0.5em;
+}
+
+#bg3-inspired-hotbar-theme-settings details[open] summary::after, section[data-tab="bg3-hud-core"] details[open] summary::after {
+  content: "\f13a";
+}
+
+#bg3-inspired-hotbar-theme-settings details summary::marker,
+#bg3-inspired-hotbar-theme-settings :is(::-webkit-details-marker), section[data-tab="bg3-hud-core"] details summary::marker, section[data-tab="bg3-hud-core"] :is(::-webkit-details-marker) {
+  content: '';
+  /* content: "+ ";
+  font-family: monospace;
+  color: red;
+  font-weight: bold; */
+}
+
+#bg3-inspired-hotbar-theme-settings details[open] summary::marker {
+  /* content: "- "; */
+}
+
+#bg3-inspired-hotbar-theme-settings ::placeholder, #bg3-inspired-hotbar-setting-dialog ::placeholder {
+  opacity: 0.5 !important;
+}
+
+#bg3-inspired-hotbar-theme-settings ::-ms-input-placeholder, #bg3-inspired-hotbar-setting-dialog ::-ms-input-placeholder {
+  opacity: 0.5 !important;
+}
+
+#bg3-inspired-hotbar-theme-settings .window-content, #bg3-inspired-hotbar-setting-dialog .window-content {
+  overflow: visible;
+}
+
+#bg3-inspired-hotbar-theme-settings select, #bg3-inspired-hotbar-setting-dialog select {
+  text-transform: capitalize;
+}
+
+#bg3-inspired-hotbar-setting-dialog .package-configuration {
+  padding: 0 .5rem;
+}
+
+#bg3-inspired-hotbar-setting-dialog .dialog-container {
+  width: 650px;
+}
+
+#bg3-inspired-hotbar-setting-dialog .form-group:not(.group-header) {
+  padding: 0 .25rem;
+}
+
+#bg3-inspired-hotbar-setting-dialog .form-group > *:not(.notes):not(.hint), #bg3-inspired-hotbar-setting-dialog .submenu button {
+  flex: 2;
+}
+
+#bg3-inspired-hotbar-setting-dialog .form-group > label {
+  flex: 3;
+}
+
+#bg3-inspired-hotbar-setting-dialog .form-group > img {
+  height: 35px;
+  flex: unset !important;
+  margin-right: 1rem;
+}
+
+#bg3-inspired-hotbar-setting-dialog .grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0 1rem;
+}
+
+#bg3-inspired-hotbar-setting-dialog .grid-2 .form-group {
+  cursor: pointer;
+  padding: 0;
+}
+
+#bg3-inspired-hotbar-setting-dialog .grid-2 .form-group > * {
+  cursor: pointer;
+}
+
+#bg3-inspired-hotbar-setting-dialog .grid-2 .form-group:hover {
+  background-color: rgba(0,0,0,.1);
+}
+
+#bg3-inspired-hotbar-setting-dialog .grid-2[data-selected="6"] .form-group:not(:has(input:checked)) {
+  pointer-events: none;
+  opacity: .5;
+}

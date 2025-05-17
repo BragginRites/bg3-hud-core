@@ -1,0 +1,20 @@
+{
+    "--bg3-hotbar-border-color": "#161616",
+    "--bg3-hotbar-sub-background-color": "#222222f2",
+    "--bg3-hotbar-background-color": "#333333",
+    "--bg3-weapon-background-color": "#2a2a2a",
+    "--bg3-filter-border-size": "1px",
+    "--bg3-passive-border-size": "1px",
+    "--bg3-passive-border-color": "#000000",
+    "--bg3-active-border-size": "1px",
+    "--bg3-active-border-color": "#000000",
+    "--bg3-rest-background-color": "#333333",
+    "--bg3-rest-text-color": "#B4D2DCFF",
+    "--bg3-rest-background-color-hover": "#747e88e6",
+    "--bg3-rest-text-color-hover": "#B4D2DCFF",
+    "--bg3-turn-background-color": "#333333",
+    "--bg3-turn-text-color": "#B4D2DCFF",
+    "--bg3-turn-background-color-hover": "#849889e6",
+    "--bg3-turn-text-color-hover": "#B4D2DCFF",
+    "--bg3-tooltip-border-size": "1px"
+}

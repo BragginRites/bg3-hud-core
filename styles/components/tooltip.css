@@ -1,0 +1,78 @@
+:is(#tooltip, .locked-tooltip).dnd5e-tooltip.bg3-tooltip {
+    /* background-color: var(--bg3-background-color);
+    color: var(--bg3-text-color);
+    border-color: var(--bg3-border-color);
+    border-width: var(--bg3-border-size); */
+}
+
+body[data-show-materials="false"] :is(#tooltip, .locked-tooltip).dnd5e-tooltip.bg3-tooltip .spell-block .materials {
+    display: none;
+}
+
+/** Tooltip w/o Description **/
+
+body[data-light-tooltip="nodesc"] :is(#tooltip, .locked-tooltip).dnd5e-tooltip.bg3-tooltip .content > .description {
+    display: none;
+}
+
+body[data-light-tooltip="nodesc"] :is(#tooltip, .locked-tooltip).dnd5e-tooltip.bg3-tooltip .content > .pills {
+    margin-top: .5rem;
+}
+
+
+/** Tooltip Light **/
+
+body[data-light-tooltip="light"] :is(#tooltip, .locked-tooltip).dnd5e-tooltip.bg3-tooltip {
+    width: auto;
+}
+
+body[data-light-tooltip="light"] :is(#tooltip, .locked-tooltip).dnd5e-tooltip.bg3-tooltip .content > *:not(.header), body[data-light-tooltip="light"] :is(#tooltip, .locked-tooltip).dnd5e-tooltip.bg3-tooltip .content > .header > *:not(.top), body[data-light-tooltip="light"] :is(#tooltip, .locked-tooltip).dnd5e-tooltip.bg3-tooltip .content > .header > .top > img {
+    display: none;
+}
+
+/** Locked Tooltip **/
+
+.locked-tooltip.dnd5e-tooltip.bg3-tooltip .content::after {
+    content: "Right-click to dismiss.";
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 0 0;
+    margin-bottom: -4px;
+    font-size: var(--font-size-10);
+    color: var(--color-text-dark-5);
+}
+
+.locked-tooltip.dnd5e-tooltip.bg3-tooltip {
+    cursor: move;
+    /* bottom: unset !important; */
+}
+
+/* .locked-tooltip.dnd5e-tooltip.bg3-tooltip::before {
+    content: "pouet";
+    position: absolute;
+    bottom: 100%;
+    font-family: var(--dnd5e-font-roboto);
+    font-size: var(--font-size-13);
+    text-align: start;
+    color: var(--color-text-dark-primary);
+    border-radius: 5px;
+    padding: 6px 8px;
+    background: url(ui/texture-gray1.webp) no-repeat top left, url(ui/texture-gray2.webp) no-repeat bottom right, var(--dnd5e-color-parchment);
+    border: var(--dnd5e-border-gold);
+    border-width: 2px;
+    left: 0;
+    right: 0;
+} */
+
+:is(#tooltip, .locked-tooltip).no-wrap {
+    white-space: nowrap;
+    max-width: unset;
+}
+
+:is(#tooltip, .locked-tooltip).bg3-tooltip .unlist {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}

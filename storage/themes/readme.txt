@@ -1,0 +1,1 @@
+Custom themes folder. Delete a file will remove the theme from the list of choices. You can paste a exported theme file here to add it.

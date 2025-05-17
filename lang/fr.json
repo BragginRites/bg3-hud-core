@@ -1,0 +1,170 @@
+{
+    "BG3.Hotbar": {
+        "Errors": {
+            "InvalidDrop": "Données de dépôt invalides : JSON non valide.",
+            "InvalidItem": "Données d'objet invalides. Seuls les objets avec un UUID valide peuvent être placés dans la barre de raccourcis.",
+            "ItemNotFound": "Impossible de récupérer l'objet à partir de l'UUID. Non placé dans la barre de raccourcis.",
+            "WrongToken": "Vous ne pouvez pas déposer d'objets d'un autre jeton dans cette barre de raccourcis.",
+            "UnableToRetrieve": "Impossible de récupérer les données de l'objet.",
+            "MacroNotFound": "Macro non trouvée",
+            "NoActor": "Aucun acteur trouvé",
+            "NoUIReference": "Référence UI introuvable. Veuillez essayer d'actualiser la page."
+        },
+        "ContextMenu": {
+            "EditItem": "Modifier l'objet",
+            "ConfigureActivities": "Configurer les activités",
+            "Remove": "Supprimer"
+        },
+        "UI": {
+            "AddRow": "Ajouter une ligne",
+            "RemoveRow": "Supprimer la ligne"
+        },
+        "SettingsMenu": {
+            "ResetLayout": "Réinitialiser la disposition",
+            "ClearAllItems": "Effacer tous les objets",
+            "ImportLayout": "Importer la disposition",
+            "ExportLayout": "Exporter la disposition"
+        },
+        "Tooltips": {
+            "Action": "Action",
+            "Range": "Portée",
+            "Target": "Cible",
+            "Duration": "Durée",
+            "Description": "Description",
+            "LoadingDescription": "Chargement de la description...",
+            "NoDescription": "Aucune description disponible.",
+            "Permanent": "Permanent",
+            "RoundsRemaining": "{count} Tour(s) restant(s)",
+            "TurnsRemaining": "{count} Tour(s) restant(s)",
+            "SecondsRemaining": "{count} Seconde(s) restante(s)",
+            "Status": "Statut",
+            "Active": "Actif",
+            "Disabled": "Désactivé"
+        }
+    },
+    "BG3.Settings": {
+        "EnableUI": {
+            "Name": "Activer l'interface de la barre de raccourcis BG3",
+            "Hint": "Activer ou désactiver l'interface de la barre de raccourcis de style BG3. Désactivez ceci si vous préférez utiliser un autre module de barre de raccourcis ou la barre de raccourcis par défaut de Foundry."
+        },
+        "ShowDamageRanges": {
+            "Name": "Afficher les dégâts sous forme de plages",
+            "Hint": "Afficher les dégâts des sorts sous forme de plages min-max au lieu de la notation en dés (par exemple, '1-8 feu' au lieu de '1d8 feu')"
+        },
+        "ShowMaterialDescription": {
+            "Name": "Afficher la description des composants matériels",
+            "Hint": "Afficher la description complète des composants matériels dans les infobulles des sorts (par exemple, 'diamants d'une valeur de 300 po, que le sort consomme')"
+        },
+        "BypassSpellPreparationCheck": {
+            "Name": "Inclure les sorts non préparés",
+            "Hint": "Si activé, tous les sorts seront inclus dans la barre de raccourcis, quel que soit leur état de préparation"
+        },
+        "EnforceSpellPreparationPC": {
+            "Name": "Forcer la préparation des sorts (Jetons liés)",
+            "Hint": "Si activé, les jetons liés (y compris les personnages joueurs) n'afficheront que les sorts préparés et les sorts spéciaux (innés, à volonté, pacte, rituel, toujours). Si désactivé, tous les sorts apparaîtront."
+        },
+        "EnforceSpellPreparationNPC": {
+            "Name": "Forcer la préparation des sorts (Jetons non liés)",
+            "Hint": "Si activé, les jetons non liés n'afficheront que les sorts préparés et les sorts spéciaux (innés, à volonté, pacte, rituel, toujours). Si désactivé, tous les sorts apparaîtront."
+        },
+        "CollapseFoundryMacrobar": {
+            "Name": "Réduire la barre de macros Foundry",
+            "Hint": "Réduire automatiquement la barre de macros par défaut de Foundry"
+        },
+        "ShowPassiveFeaturesContainer": {
+            "Name": "Afficher le conteneur des caractéristiques passives",
+            "Hint": "Afficher le conteneur des caractéristiques passives au-dessus du portrait"
+        },
+        "TooltipDelay": {
+            "Name": "Délai de l'infobulle",
+            "Hint": "Temps d'attente avant d'afficher les infobulles (en millisecondes)"
+        },
+        "FadeOutDelay": {
+            "Name": "Délai de fondu",
+            "Hint": "Secondes à attendre avant de faire disparaître la barre de raccourcis"
+        },
+        "NormalOpacity": {
+            "Name": "Opacité normale",
+            "Hint": "Opacité de la barre de raccourcis lorsque la souris est dessus (0.1 à 1.0)"
+        },
+        "FadedOpacity": {
+            "Name": "Opacité estompée",
+            "Hint": "Opacité de la barre de raccourcis lorsque la souris n'est pas dessus (0.0 à 1.0). Mettre à 1 pour désactiver complètement le fondu."
+        },
+        "AutoPopulateUnlinkedTokens": {
+            "Name": "Remplissage automatique des jetons non liés",
+            "Hint": "Remplir automatiquement la barre de raccourcis pour les jetons non liés nouvellement créés en fonction des paramètres ci-dessous"
+        },
+        "Container1AutoPopulate": {
+            "Name": "Remplissage automatique du conteneur 1",
+            "Hint": "Quels types d'objets remplir automatiquement dans le premier conteneur (index 0)"
+        },
+        "Container2AutoPopulate": {
+            "Name": "Remplissage automatique du conteneur 2",
+            "Hint": "Quels types d'objets remplir automatiquement dans le deuxième conteneur (index 1)"
+        },
+        "Container3AutoPopulate": {
+            "Name": "Remplissage automatique du conteneur 3",
+            "Hint": "Quels types d'objets remplir automatiquement dans le troisième conteneur (index 2)"
+        },
+        "AutoPopulateOverflow": {
+            "Name": "Lorsque le conteneur est plein",
+            "Hint": "Choisissez comment gérer les objets lorsque le conteneur manque d'espace.",
+            "Expand": "Continuer à ajouter des lignes",
+            "NextContainer": "Déborder vers le conteneur suivant"
+        },
+        "AutoPopulateFillDirection": {
+            "Name": "Direction de remplissage automatique",
+            "Hint": "Remplir d'abord les lignes (de gauche à droite, puis vers le bas) ou d'abord les colonnes (de haut en bas, puis vers la droite)",
+            "RowFirst": "Lignes d'abord (de gauche à droite, puis vers le bas)",
+            "ColumnFirst": "Colonnes d'abord (de haut en bas, puis vers la droite)"
+        },
+        "ContainerAutoPopulate": {
+            "DialogTitle": "Remplissage automatique du conteneur",
+            "DefaultsTitle": "Configurer les paramètres par défaut du remplissage automatique du conteneur",
+            "Name": "Sélectionner les types d'objets",
+            "Hint": "Choisissez les types d'objets à ajouter automatiquement à ce conteneur.",
+            "Weapons": "Armes",
+            "Features": "Caractéristiques",
+            "Spells": "Sorts",
+            "Consumables": "Consommables",
+            "Equipment": "Équipement",
+            "Tools": "Outils",
+            "Loot": "Butin",
+            "Populate": "Remplir",
+            "Cancel": "Annuler",
+            "Save": "Enregistrer les modifications",
+            "SaveSuccess": "Paramètres de remplissage automatique du conteneur enregistrés avec succès",
+            "Configure": "Configurer le remplissage automatique du conteneur"
+        },
+        "HighlightStyle": {
+            "Name": "Style de surbrillance",
+            "Hint": "Choisissez comment les objets sont mis en surbrillance lorsqu'ils sont filtrés",
+            "Bottom": "Bordure inférieure",
+            "Border": "Bordure complète"
+        },
+        "DefaultPortraitPreferences": {
+            "Name": "Affichage par défaut du portrait",
+            "Hint": "Choisissez d'afficher les images de jeton ou les portraits de personnage par défaut. Cela peut être remplacé par jeton. La première fois que vous activez ce paramètre, il s'appliquera à tous les jetons qui n'ont pas de portrait défini.",
+            "Token": "Toujours utiliser l'image du jeton",
+            "Portrait": "Toujours utiliser le portrait du personnage"
+        },
+        "SettingsCategories": {
+            "HotbarContainer": "Boutons de la barre de raccourcis",
+            "CombatContainer": "Conteneur d'actions communes",
+            "Global": "Général",
+            "Portrait": "Portrait du personnage",
+            "Tooltip": "Infobulle",
+            "AutoPopulating": "Remplissage automatique"
+        },
+        "PlayerListVisibility": {
+            "Name": "Visibilité de la liste des joueurs",
+            "Hint": "Contrôlez la visibilité de la liste des joueurs par défaut de Foundry dans le coin inférieur gauche.",
+            "Choices": {
+                "always": "Toujours visible",
+                "hover": "Afficher au survol",
+                "hidden": "Masquer complètement"
+            }
+        }
+    }
+} 

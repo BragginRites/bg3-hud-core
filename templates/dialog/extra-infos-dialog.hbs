@@ -1,0 +1,40 @@
+<form>
+    <p>Blank attributes won't be displayed.</p>
+    <div class="dialog-container">
+        {{#each extraInfos}}
+        <div class="container-section">
+            <h3>
+                <p class="notes">{{pos}}</p>
+                <div class="form-group">
+                    <label for="attr{{@index}}">Attribute</label>
+                    <input type="text" class="attr" name="attr{{@index}}" value="{{attr}}">
+                    <select class="list-attr">
+                        <option></option>
+                        {{#each ../listAttrChoices as |attrs|}}
+                        <option value="{{attrs.value}}" {{#if (eq attrs.value ../attr)}}selected{{/if}}>{{attrs.value}}</option>
+                        {{/each}}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="icon{{@index}}">Icon</label>
+                    <input type="text" class="icon" name="icon{{@index}}" value="{{icon}}">
+                </div>
+                <div class="form-group">
+                    <label for="color{{@index}}">Color</label>
+                    <div class="form-fields">
+                        <input type="text" class="color" name="color{{@index}}" data-dtype="String" value="{{color}}">
+                        <input type="color" data-edit="color{{@index}}" value="{{color}}">
+                    </div>
+                </div>
+            </h3>
+        </div>
+        {{/each}}
+    </div>
+
+    <div class="dialog-buttons">
+        <button type="submit" class="dialog-button">
+            <i class="fas fa-save"></i>
+            {{localize "BG3.Settings.ContainerAutoPopulate.Save"}}
+        </button>
+    </div>
+</form>

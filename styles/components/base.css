@@ -1,0 +1,151 @@
+:root {    
+    /* Colors */
+    --bg3-background: #222222f2;
+    --bg3-border: #161616;
+    --bg3-border-width: 1px;
+    --primary-border-width: 2px;
+    --primary-border-color: #444;
+    --bg3-text: #ddd;
+    --bg3-background-highlight: #3a3a3a;
+    --shadow-text-stroke: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+
+    /* Cells */
+    --bg3-cell-border-width: 2px;
+    
+    /* Action Colors */
+    --bg3-action: var(--color-action, #2ecc71);
+    --bg3-bonus: var(--color-bonus, #e67e22);
+    --bg3-reaction: var(--color-reaction, #fe85f6);
+    --bg3-spell: var(--color-spell, #3498db);
+    --bg3-pact: var(--color-pact, #8e44ad);
+    --bg3-apothecary: var(--color-apothecary, #285348);
+    --bg3-feature-default: var(--color-feature, #808080);
+    --bg3-feature-class: var(--color-feature, #7b68ee);
+    --bg3-feature-race: var(--color-feature, #20b2aa);
+    --bg3-feature-feat: var(--color-feature, #ff6347);
+    --bg3-feature-monster: var(--color-feature, #4682b4);
+    --bg3-feature-subclass: var(--color-feature, #808080);
+    
+    /* Z-indices */
+    --bg3-z-base: 70;
+    --bg3-z-grid: 20;
+    --bg3-z-filter-container: 100;
+    
+    /* Sizing */
+    --bg3-cell-size: 50px;
+    --bg3-filter-button-size: 32px;
+    --bg3-portrait-size: 175px;
+    --portrait-right: calc(2*(var(--bg3-weapon-cell-size) + 11px));
+}
+
+/* ==========================================================================
+   Base Container Styles
+   ========================================================================== */
+   
+#bg3-hotbar-container {
+    position: fixed;
+    display: flex;
+    align-self: end;
+    align-items: end;
+    justify-content: center;
+    align-items: end;
+    z-index: var(--bg3-z-grid);
+    font-family: "Signika", sans-serif;
+    scale: var(--bg3-scale-ui, 1);
+    gap: 0.25rem;
+    padding: 0;
+    padding-bottom: var(--position-bottom, 10px);
+    transition: transform .3s ease-in-out, opacity .3s ease-in-out var(--bg3-faded-delay);
+    width: fit-content;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    opacity: var(--bg3-faded-opacity, var(--bg3-normal-opacity));
+}
+
+#bg3-hotbar-container[data-under-pause="true"] {
+    z-index: var(--z-index-canvas);
+}
+
+#bg3-hotbar-container[data-position="center"] {
+    transform-origin: bottom;
+    margin: 0 auto;
+    padding-right: var(--position-padding);
+}
+
+#bg3-hotbar-container[data-position="left"] {
+  transform-origin: bottom left;
+  margin: 0 auto 0 calc(var(--bg3-portrait-size) + 35px + var(--position-padding));
+  /* padding-left: calc(var(--bg3-portrait-size) + 15px + var(--position-padding)); */
+}
+
+#bg3-hotbar-container[data-position="right"] {
+  /* justify-content: flex-end; */
+  transform-origin: bottom right;
+  margin: 0 0 0 auto;
+  padding-right: var(--position-padding, 0);
+}
+
+#bg3-hotbar-container .hidden {
+    display: none !important;
+}
+
+#bg3-hotbar-container img {
+    border: unset;
+}
+
+aside[role="tooltip"] .notes {
+    flex: 0 0 100%;
+    font-size: var(--font-size-12);
+    line-height: var(--line-height-16);
+    color: var(--color-text-light-primary);
+    margin: 3px 0;
+}
+  
+aside[role="tooltip"] .custom-tooltip i {
+    margin: 0 1em;
+    color: var(--data-color);
+}
+
+/* ==========================================================================
+   Opacity Settings Handler
+   ========================================================================== */
+   
+#bg3-hotbar-container:hover, #bg3-hotbar-container:has(div.locked[data-key="controlLock"])[data-lock-settings*="opacity"] {
+    transition-delay: 0s;
+    opacity: var(--bg3-normal-opacity);
+}
+
+/* ==========================================================================
+   Player List Visibility
+   ========================================================================== */
+
+body[data-player-list="hidden"] #players {
+    display: none !important;
+}
+
+body[data-player-list="hover"] #players {
+    transition: opacity 0.3s ease, transform 0.3s ease; /* Add transitions for smoothness */
+    transform-origin: bottom left;
+    opacity: 0;
+    transform: translateY(10px);
+}
+
+body[data-player-list="hover"] #players:hover {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* ==========================================================================
+   Settings
+   ========================================================================== */
+
+.group-header {
+    font-weight: bold;
+    padding: 8px 20px;
+    background-color: rgba(255, 255, 255, 0.4);
+}
+
+section[data-tab="bg3-hud-core"] > div.form-group:not(.submenu) {
+    /* display: none !important; */
+}

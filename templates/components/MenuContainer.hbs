@@ -1,0 +1,19 @@
+<div>
+    {{#each buttons}}
+        {{#unless visibility}}
+            {{#if (eq label 'divider')}}
+                <div class="menu-divider"></div>
+            {{else}}
+                <div class="menu-item{{#if class}} {{class}}{{/if}}" data-key="{{@key}}">
+                    <div class="menu-item-content" data-tooltip="{{tooltip}}" style="{{style}}">
+                        {{!-- <span class="ability-label{{#if mod.prof}} proficient{{/if}}">{{label}}</span>
+                        <span class="ability-value{{#if mod.prof}} proficient{{/if}}">{{mod.value}}</span> --}}
+                        {{#if label}}<span class="menu-item-label">{{#if icon}}<i class="{{icon}}"></i>{{/if}}{{label}}</span>{{/if}}
+                        {{#if value}}<span class="menu-item-value">{{value}}</span>{{/if}}
+                        {{#if custom}}<span class="menu-item-special">{{{custom}}}</span>{{/if}}
+                    </div>
+                </div>
+            {{/if}}
+        {{/unless}}
+    {{/each}}
+</div>

@@ -1,0 +1,226 @@
+#bg3-hotbar-container .bg3-menu-container {
+  position: absolute;
+  min-width: 180px;
+  /* max-width: calc(100vw - 20px);
+  max-height: calc(100vh - 20px); */
+  background: #2a2a2a;
+  border: 1px solid #444;
+  border-radius: 4px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 110;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+  color: #dddddd;
+  z-index: 1000;
+  /* overflow-y: auto;
+  overflow-x: hidden; */
+}
+
+#bg3-hotbar-container .bg3-menu-container[data-menu-position="top"] {
+  bottom: 100%;
+  margin-bottom: 5px;
+}
+
+#bg3-hotbar-container .bg3-menu-container[data-menu-position="topright"] {
+  left: 100%;
+  margin-left: 10px;
+  top: 0;
+}
+
+#bg3-hotbar-container .bg3-menu-container[data-menu-position="topright2"] {
+  left: 100%;
+  /* margin-left: 10px; */
+  bottom: 100%;
+}
+
+#bg3-hotbar-container .bg3-menu-container[data-menu-position="bottomright"] {
+  left: 100%;
+  margin-left: 10px;
+  bottom: 0;
+}
+
+#bg3-hotbar-container .bg3-menu-container[data-menu-position="topleft"] {
+  right: 100%;
+  margin-right: 10px;
+  top: 0;
+}
+
+#bg3-hotbar-container .bg3-menu-container[data-menu-position="target"] {
+  transform: translateY(-100%);
+}
+
+#bg3-hotbar-container .bg3-menu-container[data-menu-position="mouse"] {
+  transform: translateY(-50%);
+}
+
+#bg3-hotbar-container .bg3-menu-container[data-menu-position="center"] {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+#bg3-hotbar-container .menu-item {
+  padding: 2px 8px;
+  cursor: pointer;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #2a2a2a;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 4px;
+  background: #333;
+  border-color: #cc3333;
+}
+
+#bg3-hotbar-container .menu-item:has(> .bg3-menu-container.hidden), #bg3-hotbar-container .menu-item:not(:has(> .bg3-menu-container)) {
+  background: #2a2a2a;
+  border-color: transparent;
+}
+
+/* #bg3-hotbar-container .menu-item.expanded {
+  background: #333;
+  border-color: #cc3333;
+} */
+
+#bg3-hotbar-container .menu-item:hover {
+  background-color: #333;
+}
+
+#bg3-hotbar-container .menu-item-content {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  align-items: center;
+  padding: 4px 8px;
+  transition: all 0.2s ease;display: flex;
+  justify-content: space-between;
+  width: 100%;
+  color: #dddddd;
+  font-size: 14px;
+}
+
+#bg3-hotbar-container .menu-item-content span {
+  white-space: nowrap;
+}
+
+#bg3-hotbar-container .menu-item-content .menu-item-label i {
+  margin-right: 8px;
+  width: 16px;
+  text-align: center;
+  color: #cc3333;
+}
+
+#bg3-hotbar-container .menu-divider {
+  height: 1px;
+  background: #444;
+  margin: 4px 0;
+  pointer-events: none;
+}
+
+#bg3-hotbar-container .bg3-menu-container[data-item="false"] .menu-item[data-key="edit"] {
+  display: none;
+}
+
+#bg3-hotbar-container .bg3-menu-container[data-item="false"] .menu-item[data-key="activity"] {
+  display: none;
+}
+
+#bg3-hotbar-container .bg3-menu-container[data-item="false"] .menu-item[data-key="remove"] {
+  display: none;
+}
+
+#bg3-hotbar-container .bg3-menu-container[data-item="false"] .menu-divider {
+  display: none;
+}
+
+/** SubMenu **/
+#bg3-hotbar-container .bg3-menu-container .bg3-menu-container {
+  padding: 8px 4px;
+  min-width: 140px;
+}
+
+#bg3-hotbar-container .bg3-menu-container .bg3-menu-container .menu-item {
+  padding: 0;
+}
+
+#bg3-hotbar-container .bg3-menu-container .bg3-menu-container .menu-item-content {
+  padding: 2px 8px;
+}
+
+#bg3-hotbar-container .bg3-menu-container .menu-item-content .menu-item-label {
+  display: flex;
+  align-items: center;
+}
+
+#bg3-hotbar-container .bg3-menu-container .bg3-menu-container .menu-item-content > .menu-item-value {
+  min-width: 32px;
+  text-align: right;
+}
+
+#bg3-hotbar-container .bg3-menu-container .menu-item-content > .menu-item-special {
+  margin-left: 10px;
+}
+
+#bg3-hotbar-container .menu-item-checkbox {
+  width: 16px;
+  height: 16px;
+  text-align: center;
+  color: #cc3333;
+  opacity: 0.8;
+  transition: all 0.2s ease;
+  border: 2px solid #cc3333;
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+#bg3-hotbar-container .menu-item.checked .menu-item-checkbox {
+  background: #cc3333;
+}
+
+#bg3-hotbar-container .menu-item .menu-item-checkbox i {
+  display: none;
+}
+
+#bg3-hotbar-container .menu-item.checked .menu-item-checkbox i {
+  display: inline-block;
+}
+
+#bg3-hotbar-container .menu-item-checkbox i {
+  color: #2a2a2a;
+  font-size: 10px;
+  opacity: 1;
+  position: relative;
+  z-index: 1;
+}
+
+#bg3-hotbar-container .menu-item[data-key="token"] .menu-item-content .menu-item-special {
+  display: flex;
+  align-items: center;
+}
+
+#bg3-hotbar-container .menu-item[data-key="token"] .menu-item-content .menu-item-special input {
+  display: none;
+}
+
+#bg3-hotbar-container .menu-item[data-key="token"] .menu-item-content .menu-item-special label {
+  cursor: pointer;
+  margin: 0 0 0 10px;
+}
+
+#bg3-hotbar-container .menu-item[data-key="token"] .menu-item-content .menu-item-special label i {
+  pointer-events: none;
+}
+
+#bg3-hotbar-container .menu-item select {
+  background: url(../../../../ui/parchment.jpg) repeat;
+}

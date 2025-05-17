@@ -1,0 +1,302 @@
+/* ==========================================================================
+   Grid Layout
+   ========================================================================== */
+   
+#bg3-hotbar-container .bg3-hotbar-container {
+    position: relative;
+    display: flex;
+    background: var(--bg3-background-color);
+    border: var(--bg3-border-size) solid var(--bg3-border-color);
+    border-radius: var(--bg3-border-radius);
+    padding: 2px 6px;
+    align-items: stretch;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    margin-left: 2px;
+}
+
+#bg3-hotbar-container .bg3-hotbar-subcontainer {
+    display: grid;
+    grid-template-columns: repeat(var(--cols), var(--bg3-hotbar-cell-size));
+    grid-template-rows: repeat(var(--rows), var(--bg3-hotbar-cell-size));
+    gap: 1px;
+    padding: 4px;
+    background: var(--bg3-hotbar-sub-background-color);
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    transition: width 0.1s ease;
+    /* width: calc(var(--cols) * (var(--bg3-hotbar-cell-size) + 4px) + 8px); */
+}
+
+/* ==========================================================================
+   Drag Bar
+   ========================================================================== */
+
+#bg3-hotbar-container .bg3-drag-bar {
+    width: 4px;
+    background: var(--bg3-hotbar-drag-color);
+    cursor: ew-resize;
+    align-self: stretch;
+    border-radius: 2px;
+    transition: background-color 0.2s ease;
+    z-index: var(--bg3-z-grid);
+    margin: 4px;
+    position: relative;
+}
+
+#bg3-hotbar-container .bg3-drag-bar:hover, 
+#bg3-hotbar-container .bg3-drag-bar.dragging {
+    background: var(--bg3-hotbar-drag-color-hover);
+}
+
+#bg3-hotbar-container .drag-indicator {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #ff6400;
+    box-shadow: 0 0 8px rgba(255, 100, 0, 0.8);
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    will-change: transform;
+}
+
+#bg3-hotbar-container .drag-indicator.visible {
+    opacity: 1;
+}
+
+/* ==========================================================================
+   Grid Cells
+   ========================================================================== */
+
+#bg3-hotbar-container .hotbar-cell {
+    background: var(--bg3-hotbar-background-color);
+    border: var(--bg3-cell-border-width) solid var(--bg3-hotbar-border-color);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--bg3-hotbar-text-color);
+    font-size: 0.8em;
+    /* overflow: hidden; */
+    position: relative;
+    transition: all 0.2s ease;
+    padding: 0;
+    box-sizing: border-box;
+    user-select: none;
+    opacity: 1;
+}
+
+#bg3-hotbar-container[data-cell-highlight="bottom"] .bg3-hotbar-container .hotbar-cell {
+  border-top-color: var(--bg3-hotbar-border-color) !important;
+  border-left-color: var(--bg3-hotbar-border-color) !important;
+  border-right-color: var(--bg3-hotbar-border-color) !important;
+}
+
+#bg3-hotbar-container .hotbar-cell.has-item {
+    cursor: pointer;
+}
+
+#bg3-hotbar-container .hotbar-cell.used, #bg3-hotbar-container .hotbar-cell[data-highlight="excluded"] {
+  opacity: .25;
+}
+
+#bg3-hotbar-container .hotbar-cell.has-item[data-action-type="action"][data-highlight="highlight"] {
+    border-color: var(--bg3-action);
+}
+
+#bg3-hotbar-container .hotbar-cell[data-action-type="bonus"][data-highlight="highlight"] {
+    border-color: var(--bg3-bonus);
+}
+
+#bg3-hotbar-container .hotbar-cell[data-action-type="reaction"][data-highlight="highlight"] {
+    border-color: var(--bg3-reaction);
+}
+
+#bg3-hotbar-container .hotbar-cell[data-item-type="feat"][data-feat-type="default"][data-highlight="highlight"] {
+    border-color: var(--bg3-feature-default);
+}
+
+#bg3-hotbar-container .hotbar-cell[data-item-type="feat"][data-feat-type="class"][data-highlight="highlight"] {
+    border-color: var(--bg3-feature-class);
+}
+
+#bg3-hotbar-container .hotbar-cell[data-item-type="feat"][data-feat-type="race"][data-highlight="highlight"] {
+    border-color: var(--bg3-feature-race);
+}
+
+#bg3-hotbar-container .hotbar-cell[data-item-type="feat"][data-feat-type="feat"][data-highlight="highlight"] {
+    border-color: var(--bg3-feature-feat);
+}
+
+#bg3-hotbar-container .hotbar-cell[data-item-type="feat"][data-feat-type="monster"][data-highlight="highlight"] {
+    border-color: var(--bg3-feature-monster);
+}
+
+#bg3-hotbar-container .hotbar-cell[data-item-type="feat"][data-feat-type="subclass"][data-highlight="highlight"] {
+    border-color: var(--bg3-feature-subclass);
+}
+
+#bg3-hotbar-container .hotbar-cell[data-item-type="spell"][data-highlight="highlight"] {
+    border-color: var(--bg3-spell);
+}
+
+#bg3-hotbar-container .hotbar-cell[data-item-type="spell"][data-preparation-mode="pact"][data-highlight="highlight"] {
+    border-color: var(--bg3-pact);
+}
+
+#bg3-hotbar-container .hotbar-cell[data-item-type="spell"][data-preparation-mode="apothecary"][data-highlight="highlight"] {
+    border-color: var(--bg3-apothecary);
+}
+
+#bg3-hotbar-container .hotbar-cell:hover {
+    border-color: var(--bg3-hotbar-border-color-hover);
+    background: var(--bg3-hotbar-background-color-hover);
+}
+
+#bg3-hotbar-container .hotbar-cell.dragover {
+    background: var(--bg3-border-color);
+    border-color: #888;
+}
+
+#bg3-hotbar-container .hotbar-cell.dragging {
+    opacity: 0.5;
+}
+
+/* ==========================================================================
+   Hotbar Items
+   ========================================================================== */
+
+#bg3-hotbar-container .hotbar-item {
+    /* width: calc(100% - 4px);
+    height: calc(100% - 4px); */
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center;
+    display: block;
+    margin: 0;
+    padding: 0;
+    border-radius: 2px;
+    transition: filter 0.2s ease;
+    /* pointer-events: none; */
+}
+
+#bg3-hotbar-container .hotbar-item.depleted {
+    filter: grayscale(100%) brightness(60%);
+}
+
+#bg3-hotbar-container .hotbar-item-name {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: none;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 2px;
+    font-size: 0.7em;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    z-index: 10;
+    pointer-events: none;
+}
+
+#bg3-hotbar-container[data-item-name="true"] .hotbar-item-name {
+    display: block;
+}
+
+#bg3-hotbar-container .hotbar-item-uses {
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: none;
+    color: #fff;
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-size: 0.8em;
+    font-weight: bold;
+    z-index: 11;
+    pointer-events: none;
+    text-shadow: var(--shadow-text-stroke);
+}
+
+#bg3-hotbar-container .hotbar-item-uses.depleted {
+    color: #ff4444;
+} 
+
+#bg3-hotbar-container[data-item-use="true"] .bg3-hotbar-container .hotbar-item-uses {
+    display: block;
+}
+
+#bg3-hotbar-container[data-item-use="true"] .bg3-hotbar-container .hotbar-item-uses::before {
+    border-top: 1.5rem solid rgba(0, 0, 0, 0);
+    border-left: 1.5rem solid rgba(0, 0, 0, 0);
+    content: "";
+    height: 0;
+    right: 0;
+    position: absolute;
+    top: 0;
+    width: 0;
+    border-top-color: rgba(255,255,255,.5);
+    z-index: -1;
+}
+
+#bg3-hotbar-container .bg3-adv-container {
+    display: flex;
+    flex-direction: column;
+    margin: 1px 0;
+    align-self: stretch;
+    gap: 5px;
+}
+
+#bg3-hotbar-container .bg3-adv-container > * {
+    background: var(--bg3-hotbar-background-color);
+    border: var(--bg3-border-size) solid var(--bg3-border-color);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--bg3-hotbar-text-color);
+    font-size: 0.8em;
+    /* overflow: hidden; */
+    position: relative;
+    transition: all 0.2s ease;
+    padding: 0;
+    box-sizing: border-box;
+    user-select: none;
+    opacity: 1;
+    flex: 1;
+    writing-mode: vertical-rl;
+    padding: 5px;
+    cursor: pointer;
+    text-orientation: upright;
+    margin-right: 1px;
+}
+
+#bg3-hotbar-container .bg3-adv-container > :first-child:hover, #bg3-hotbar-container .bg3-adv-container[data-state="advBtn"][data-once="true"] > :first-child {
+    border-color: green;
+}
+
+#bg3-hotbar-container .bg3-adv-container[data-state="advBtn"][data-once="true"] > :first-child {
+    color: green;
+}
+
+#bg3-hotbar-container .bg3-adv-container[data-state="advBtn"][data-once="false"] > :first-child {
+    background-color: green;
+}
+
+#bg3-hotbar-container .bg3-adv-container > :last-child:hover, #bg3-hotbar-container .bg3-adv-container[data-state="disBtn"][data-once="true"] > :last-child {
+    border-color: red;
+}
+
+#bg3-hotbar-container .bg3-adv-container[data-state="disBtn"][data-once="true"] > :last-child {
+    color: red;
+}
+
+#bg3-hotbar-container .bg3-adv-container[data-state="disBtn"][data-once="false"] > :last-child {
+    background-color: red;
+}

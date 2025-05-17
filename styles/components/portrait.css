@@ -1,0 +1,481 @@
+/* ==========================================================================
+   Portrait Components
+   ========================================================================== */
+
+#bg3-hotbar-container .bg3-portrait-container {
+    position: absolute;
+    right: 100%;
+    bottom: var(--position-bottom, 10px);
+    width: var(--bg3-portrait-size);
+    min-width: 80px;
+    height: var(--bg3-portrait-size);
+    min-height: 80px;
+    overflow: visible;
+    display: block;
+    --img-background-color: transparent;
+    margin-right: 8px;
+    z-index: 200;
+}
+
+#bg3-hotbar-container .portrait-image-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  cursor: pointer;
+  border: none;
+  outline: none;
+  box-shadow: none;
+  /* border-radius: 50%; */
+  background-color: var(--img-background-color);
+}
+
+#bg3-hotbar-container .portrait-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  border: none;
+  outline: none;
+  box-shadow: none;
+}
+
+/* ==========================================================================
+   Health Components
+   ========================================================================== */
+
+#bg3-hotbar-container .health-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  /* border-radius: 50%; */
+  overflow: hidden;
+  pointer-events: none;
+}
+
+#bg3-hotbar-container .health-overlay .damage-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  transition: height 0.3s ease-out, opacity 0.3s ease-out;
+  background: rgba(255, 0, 0, 0.4);
+}
+
+#bg3-hotbar-container .hp-text {
+  position: absolute;
+  bottom: 25px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #fff;
+  text-shadow: var(--shadow-text-stroke);
+  font-size: 1.2em;
+  font-weight: bold;
+  /* pointer-events: none; */
+  text-align: center;
+  width: 100%;
+  z-index: 20;
+}
+
+#bg3-hotbar-container .temp-hp-text {
+  color: #7bb3e8;
+  font-size: 1.2em;
+  margin-bottom: 0;
+  text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+}
+
+/* ==========================================================================
+   HP Controls
+   ========================================================================== */
+
+#bg3-hotbar-container .hp-label {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#bg3-hotbar-container .hp-label, #bg3-hotbar-container .hp-controls {
+  height: 1.75em;
+}
+
+#bg3-hotbar-container .hp-controls {
+  align-items: center;
+  justify-content: center;
+  margin: 0 1rem;
+  display: none;
+}
+
+#bg3-hotbar-container .bg3-portrait-container:has(.hp-controls):has(.portrait-image-container:hover) .hp-label, #bg3-hotbar-container .hp-text:hover .hp-label, #bg3-hotbar-container .hp-text[data-hp-locked="true"] .hp-label {
+  display: none;
+}
+
+#bg3-hotbar-container .bg3-portrait-container:has(.hp-controls):has(.portrait-image-container:hover) .hp-controls, #bg3-hotbar-container .hp-text:hover .hp-controls, #bg3-hotbar-container .hp-text[data-hp-locked="true"] .hp-controls {
+  display: flex;
+}
+
+#bg3-hotbar-container .hp-controls > * {
+  flex: 1;
+}
+
+#bg3-hotbar-container .hp-controls i {
+  font-size: larger;
+}
+
+#bg3-hotbar-container .hp-controls > .hp-control-death {
+  cursor: pointer;
+  padding-right: 0.25rem;
+}
+
+#bg3-hotbar-container .hp-controls > .hp-control-full {
+  cursor: pointer;
+  padding-left: 0.25rem;
+}
+
+#bg3-hotbar-container .hp-controls > .hp-control-death, #bg3-hotbar-container .hp-controls > .hp-control-minus {
+  color: red;
+}
+
+#bg3-hotbar-container .hp-controls > .hp-control-full, #bg3-hotbar-container .hp-controls > .hp-control-plus {
+  color: #74cf00;
+}
+
+#bg3-hotbar-container .hp-controls input {
+  background: url(../../../../ui/parchment.jpg) repeat;
+  flex: 2;
+  text-align: center;
+  color: var(--color-text-dark-primary);
+}
+
+/* ==========================================================================
+   Death Saves Container
+   ========================================================================== */
+
+#bg3-hotbar-container .bg3-death-saves-container {
+  position: absolute;
+  left: -30px;
+  /* top: 50%;
+  transform: translateY(-50%); */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  z-index: 1;
+  bottom: 0;
+}
+
+#bg3-hotbar-container .death-saves-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+#bg3-hotbar-container .death-save-box {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #666;
+  border-radius: 4px;
+  background-color: rgba(80, 80, 80, 0.3);
+  transition: all 0.2s ease;
+}
+
+#bg3-hotbar-container .death-save-box.clickable {
+  cursor: pointer;
+}
+
+#bg3-hotbar-container .death-save-box.clickable:hover {
+  transform: scale(1.1);
+  border-color: #888;
+  box-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+}
+
+#bg3-hotbar-container .death-save-box.success.marked {
+  background-color: rgba(0, 255, 0, 0.3);
+  border-color: #00ff00;
+  box-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+}
+
+#bg3-hotbar-container .death-save-box.success.clickable:hover {
+  border-color: #00ff00;
+  box-shadow: 0 0 8px rgba(0, 255, 0, 0.7);
+}
+
+#bg3-hotbar-container .death-save-box.failure.marked {
+  background-color: rgba(255, 0, 0, 0.3);
+  border-color: #ff0000;
+  box-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
+}
+
+#bg3-hotbar-container .death-save-box.failure.clickable:hover {
+  border-color: #ff0000;
+  box-shadow: 0 0 8px rgba(255, 0, 0, 0.7);
+}
+
+#bg3-hotbar-container .death-saves-skull {
+  color: #666;
+  font-size: 1.2em;
+  margin: 4px 0;
+  cursor: default;
+  transition: all 0.2s ease;
+}
+
+#bg3-hotbar-container .death-saves-skull.clickable {
+  cursor: pointer;
+}
+
+#bg3-hotbar-container .death-saves-skull.clickable:hover {
+  color: #fff;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+  transform: scale(1.1);
+}
+
+#bg3-hotbar-container .death-saves-skull.clickable:active {
+  transform: scale(0.95);
+}
+
+#bg3-hotbar-container .bg3-death-saves-container.death-only-skull {
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+#bg3-hotbar-container .bg3-death-saves-container.death-only-skull .death-saves-group {
+  display: none;
+}
+
+#bg3-hotbar-container .bg3-death-saves-container.death-only-skull .death-saves-skull {
+  color: rgba(255, 255, 255, .8);
+}
+
+#bg3-hotbar-container .bg3-death-saves-container.death-only-skull .death-saves-skull i {
+  font-size: xx-large;
+}
+
+
+/* ==========================================================================
+   Extra Infos
+   ========================================================================== */
+
+#bg3-hotbar-container .extra-infos-container {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    pointer-events: none;
+  }
+
+#bg3-hotbar-container .extra-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+  position: absolute;
+  z-index: 20;
+  text-shadow: var(--shadow-text-stroke);
+  color: #fff;
+  font-size: 1.5em;
+  font-weight: bold;
+  transform: unset;
+}
+
+#bg3-hotbar-container .extra-info span {
+  z-index: 1;
+  line-height: 1.5em;
+}
+
+#bg3-hotbar-container .extra-info::before {
+  font-size: xx-large;
+  position: absolute;
+  z-index: 0;
+  font-family: "Font Awesome 6 Pro";
+  color: var(--icon-color);
+}
+
+#bg3-hotbar-container .extra-info-0, #bg3-hotbar-container .extra-info-1 {
+  top: 5px;
+}
+
+#bg3-hotbar-container .extra-info-4, #bg3-hotbar-container .extra-info-5 {
+  bottom: 5px;
+}
+
+#bg3-hotbar-container .extra-info-0, #bg3-hotbar-container .extra-info-4 {
+  left: 25px;
+}
+
+#bg3-hotbar-container .extra-info-1, #bg3-hotbar-container .extra-info-5 {
+  right: 25px;
+}
+
+#bg3-hotbar-container .extra-info-2, #bg3-hotbar-container .extra-info-3 {
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+#bg3-hotbar-container .extra-info-2 {
+  left: 5px;
+}
+
+#bg3-hotbar-container .extra-info-3 {
+  right: 5px;
+}
+
+/** Ability Button **/
+#bg3-hotbar-container .ability-button {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 40px;
+  background: rgba(34, 34, 34, 0.95);
+  border: 1px solid #444;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 74;
+  font-size: var(--font-size-20);
+  color: #ffffff;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  transition: all 0.2s ease;
+}
+
+#bg3-hotbar-container .ability-button i {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#bg3-hotbar-container .ability-button > i:hover {
+  font-size: large;
+}
+
+/** Portrait Hidden **/
+
+#bg3-hotbar-container .bg3-portrait-container.portrait-hidden {
+    width: 20px;
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: center;
+    gap: 5px;
+    width: auto;
+    min-width: unset;
+    height: unset;
+    /* min-height: 100%; */
+  }
+  
+  #bg3-hotbar-container .bg3-portrait-container.portrait-hidden .ability-button {
+    position: unset;
+    transform: unset;
+  }
+  
+  #bg3-hotbar-container .bg3-portrait-container.portrait-hidden .bg3-death-saves-container {
+    top: unset;
+    bottom: 0;
+    transform: unset;
+  }
+  
+  #bg3-hotbar-container .bg3-portrait-container.portrait-hidden .portrait-image-container {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    height: unset;
+  }
+  
+  #bg3-hotbar-container .bg3-portrait-container.portrait-hidden .portrait-image, #bg3-hotbar-container .bg3-portrait-container.portrait-hidden .health-overlay, #bg3-hotbar-container .bg3-portrait-container.portrait-hidden .hp-text {
+    display: none;
+  }
+  
+  #bg3-hotbar-container .bg3-portrait-container.portrait-hidden .extra-info, #bg3-hotbar-container .bg3-portrait-container.portrait-hidden .extra-infos-container {
+    position: unset;
+    transform: unset;
+  }
+  
+  #bg3-hotbar-container .bg3-portrait-container.portrait-hidden .extra-infos-container {
+    display: grid;
+    grid-template-rows: repeat(3, 35px);
+    grid-auto-flow: column;
+    column-gap: 20px;
+  }
+
+  
+
+/** Border setting **/
+
+/** Square Shape Override */
+#bg3-hotbar-container .bg3-portrait-container .portrait-image-container::before, #bg3-hotbar-container .bg3-portrait-container .portrait-image-container::after {
+  pointer-events: none;
+}
+
+#bg3-hotbar-container .bg3-portrait-container:not([data-border="none"]) .portrait-image-container::before {
+    content: '';
+    position: absolute;
+      -webkit-box-shadow: inset 0px 0px 15px 5px #000000;
+      box-shadow: inset 0px 0px 10px 5px #000000;
+  
+  }
+  
+  #bg3-hotbar-container .bg3-portrait-container[data-border="simple"] .portrait-image-container::before {
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }
+  
+  #bg3-hotbar-container .bg3-portrait-container[data-shape="round"][data-border="styled"] .portrait-image-container::before {
+      top: 10px;
+      bottom: 10px;
+      left: 10px;
+      right: 10px;
+  }
+  
+  #bg3-hotbar-container .bg3-portrait-container:not([data-border="none"]) .portrait-image-container::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }
+  
+  #bg3-hotbar-container .bg3-portrait-container[data-shape="round"][data-border="styled"] .portrait-image-container::after {
+    background-image: url(../../img/token_border_styled.png);
+    background-size: contain;
+  }
+  
+  #bg3-hotbar-container .bg3-portrait-container[data-border="simple"] .portrait-image-container::after {
+    border: calc(var(--primary-border-width)*2) solid var(--primary-border-color);
+  }
+  
+  #bg3-hotbar-container .bg3-portrait-container[data-shape="round"]:not([data-border="none"]) .portrait-image-container, #bg3-hotbar-container .bg3-portrait-container[data-shape="round"] .health-overlay, #bg3-hotbar-container .bg3-portrait-container[data-shape="round"] .portrait-image-container::before, #bg3-hotbar-container .bg3-portrait-container[data-shape="round"] .portrait-image-container::after {
+    border-radius: 50%;
+  }
+  
+  #bg3-hotbar-container .bg3-portrait-container[data-shape="square"] .extra-info-0, #bg3-hotbar-container .bg3-portrait-container[data-shape="square"] .extra-info-2, #bg3-hotbar-container .bg3-portrait-container[data-shape="square"] .extra-info-4 {
+    left: 10px;
+  }
+  
+  #bg3-hotbar-container .bg3-portrait-container[data-shape="square"] .extra-info-1, #bg3-hotbar-container .bg3-portrait-container[data-shape="square"] .extra-info-3, #bg3-hotbar-container .bg3-portrait-container[data-shape="square"] .extra-info-5 {
+    right: 10px;
+  }
+  
+  #bg3-hotbar-container .bg3-portrait-container[data-shape="square"] .extra-info-4, #bg3-hotbar-container .bg3-portrait-container[data-shape="square"] .extra-info-5 {
+    bottom: 5px;
+  }
+  
+  .portrait-image-subcontainer[data-bend-mode="true"] {
+    mask-image: var(--bend-img);
+    -webkit-mask-image: var(--bend-img);
+    mask-mode: alpha;
+    -webkit-mask-mode: alpha;
+    mask-repeat: no-repeat;
+    -webkit-mask-repeat: no-repeat;
+    position: relative;
+    mask-size: 100% 100%;
+  }

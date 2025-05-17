@@ -1,0 +1,78 @@
+<form class="package-configuration">
+    <div class="dialog-container" style="width: 600px; min-height: 900px;">
+        <div class="form-group group-header">Theme settings</div>
+        {{#unless (eq themeList false)}}
+        <div class="form-group" data-setting-id="bg3-inspired-hotbar.themeOption" style="margin-top: 1em;">
+            <label>{{localize "BG3.Settings.MenuTheme.Name"}}</label>
+            <div class="form-fields">
+                <select name="bg3-inspired-hotbar.themeOption" data-dtype="String" data-exclude="true">
+                    {{{themeList}}}
+                </select>
+            </div>
+            <p class="notes">{{localize "BG3.Settings.MenuTheme.Hint"}}</p>
+        </div>
+        {{/unless}}
+        {{#if (isdefined configData.scopeTheme)}}
+        <div class="form-group" data-setting-id="bg3-inspired-hotbar.scopeTheme" style="margin-top: 1em;">
+            <label>{{localize "BG3.Settings.scopeTheme.Name"}}</label>
+            <div class="form-fields">
+                <input type="checkbox" name="bg3-inspired-hotbar.scopeTheme" data-dtype="Boolean" {{#if configData.scopeTheme}}checked{{/if}}>
+            </div>
+            <p class="notes">{{localize "BG3.Settings.scopeTheme.Hint"}}</p>
+        </div>
+        {{/if}}
+        {{#each dataInput}}
+        <div>
+            <details name="details-color">
+                <summary>{{name}}</summary>
+                <div>
+                {{#if hint}}<p class="notes">{{hint}}</p>{{/if}}
+                {{#each categories}}
+                    {{#if headers}}<div class="form-group color-setting-header">{{#each headers}}<div>{{this}}</div>{{/each}}</div>{{/if}}
+                    <div>
+                    {{#each fields}}
+                        <div class="form-group">
+                            <label>{{label}}</label>
+                            <div class="form-fields">
+                                {{#switch field.type}}
+                                    {{#case 'color'}}
+                                        <div class="color-picker-container"><input type="text" class="css-var" name="{{id}}" is="colorpicker-input2" data-responsive-color value="{{field.value}}" style="background-color: {{field.value}};"></div>
+                                        {{#if hasHover}}
+                                            <div class="color-picker-container"><input type="text" class="css-var" name="{{id}}-hover" is="colorpicker-input2" data-responsive-color value="{{field.value2}}" style="background-color: {{field.value}};"></div>
+                                        {{/if}}
+                                    {{/case}}
+                                    {{#case 'select'}}
+                                        <select class="css-var" name="{{id}}" data-dtype="String">
+                                            {{#each field.choices}}<option value="{{value}}" {{#if (eq ../field.value value)}}selected{{/if}}>{{label}}</option>{{/each}}
+                                        </select>
+                                    {{/case}}
+                                    {{#case 'number'}}
+                                        <input type="number" class="number css-var" name="{{id}}" data-dtype="Number" value="{{field.value}}" {{#if field.min}}min="{{field.min}}"{{/if}} {{#if field.max}}max="{{field.max}}"{{/if}} {{#if field.unit}}data-unit="{{field.unit}}"{{/if}} {{#if field.placeholder}}placeholder="{{field.placeholder}}"{{/if}}>{{#if field.unit}}<label class="input-unit">{{field.unit}}</label>{{/if}}
+                                    {{/case}}
+                                    {{#default}}
+                                        <input type="text" name="{{id}}" data-dtype="String" value="{{field.value}}" {{#if field.placeholder}}placeholder="{{field.placeholder}}"{{/if}}>
+                                    {{/default}}
+                                {{/switch}}
+                            </div>
+                        </div>
+                    {{/each}}
+                    </div>
+                {{/each}}
+                </div>
+            </details>
+        </div>
+        {{/each}}
+    </div>
+    <div class="dialog-buttons">
+        {{#if canExport}}
+        <button data-type="export" class="dialog-button">
+            <i class="fas fa-file-export"></i>
+            {{localize "BG3.Settings.ContainerAutoPopulate.Export"}}
+        </button>
+        {{/if}}
+        <button type="submit" class="dialog-button">
+            <i class="fas fa-save"></i>
+            {{localize "BG3.Settings.ContainerAutoPopulate.Save"}}
+        </button>
+    </div>
+</form>

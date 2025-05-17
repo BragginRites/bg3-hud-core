@@ -1,0 +1,112 @@
+<form class="package-configuration">
+    <div class="dialog-container">
+        <div class="form-group group-header">Show/Hide settings</div>
+        <div class="form-group" data-setting-id="bg3-inspired-hotbar.hidePortraitImage">
+            <label>Show character portrait image</label>
+            <div class="form-fields">
+                <input type="checkbox" name="bg3-inspired-hotbar.hidePortraitImage" data-dtype="Boolean" {{#if configData.hidePortraitImage}}checked{{/if}}>
+            </div>
+            <p class="notes">Also control health overlay and HP text display.</p>
+        </div>
+        <div class="form-group" data-setting-id="bg3-inspired-hotbar.showHealthOverlay">
+            <label>{{localize "BG3.Settings.ShowHealthOverlay.Name"}}</label>
+            <div class="form-fields">
+                <input type="checkbox" name="bg3-inspired-hotbar.showHealthOverlay" data-dtype="Boolean" {{#if configData.showHealthOverlay}}checked{{/if}}>
+            </div>
+            {{!-- <p class="notes">{{localize "BG3.Settings.ShowHealthOverlay.Hint"}}</p> --}}
+        </div>
+        <div class="form-group" data-setting-id="bg3-inspired-hotbar.showHPText">
+            <label>{{localize "BG3.Settings.ShowHPText.Name"}}</label>
+            <div class="form-fields">
+                <input type="checkbox" name="bg3-inspired-hotbar.showHPText" data-dtype="Boolean" {{#if configData.showHPText}}checked{{/if}}>
+            </div>
+            {{!-- <p class="notes">{{localize "BG3.Settings.ShowHPText.Hint"}}</p> --}}
+        </div>
+        <div class="form-group" data-setting-id="bg3-inspired-hotbar.showExtraInfo">
+            <label>Show extra datas on character portrait</label>
+            <div class="form-fields">
+                <input type="checkbox" name="bg3-inspired-hotbar.showExtraInfo" data-dtype="Boolean" {{#if configData.showExtraInfo}}checked{{/if}}>
+            </div>
+            {{!-- <p class="notes"></p> --}}
+        </div>
+        <div class="form-group" data-setting-id="bg3-inspired-hotbar.showDeathSavingThrow">
+            <label>{{localize "BG3.Settings.ShowDeathSavingThrow.Name"}}</label>
+            <div class="form-fields">
+                <select name="bg3-inspired-hotbar.showDeathSavingThrow" data-dtype="String">
+                    <option value="show" {{#if (eq configData.showDeathSavingThrow 'show')}}selected{{/if}}>{{localize "BG3.Settings.ShowDeathSavingThrow.Choices.show"}}</option>
+                    <option value="hide" {{#if (eq configData.showDeathSavingThrow 'hide')}}selected{{/if}}>{{localize "BG3.Settings.ShowDeathSavingThrow.Choices.hide"}}</option>
+                    <option value="only" {{#if (eq configData.showDeathSavingThrow 'only')}}selected{{/if}}>{{localize "BG3.Settings.ShowDeathSavingThrow.Choices.only"}}</option>
+                </select>
+            </div>
+        
+            <p class="notes">{{localize "BG3.Settings.ShowDeathSavingThrow.Hint"}}</p>
+        </div>
+        <div class="form-group group-header">Portrait settings</div>
+        <div class="form-group" data-setting-id="bg3-inspired-hotbar.defaultPortraitPreferences">
+            <label>{{localize "BG3.Settings.DefaultPortraitPreferences.Name"}}</label>
+            <div class="form-fields">
+                <select name="bg3-inspired-hotbar.defaultPortraitPreferences" data-dtype="String">
+                    <option value="token" {{#if (eq configData.defaultPortraitPreferences 'token')}}selected{{/if}}>{{localize "BG3.Settings.DefaultPortraitPreferences.Token"}}</option>
+                    <option value="portrait" {{#if (eq configData.defaultPortraitPreferences 'portrait')}}selected{{/if}}>{{localize "BG3.Settings.DefaultPortraitPreferences.Portrait"}}</option>
+                </select>
+            </div>
+        
+            <p class="notes">{{localize "BG3.Settings.DefaultPortraitPreferences.Hint"}}</p>
+        </div>
+        <div class="form-group" data-setting-id="bg3-inspired-hotbar.shapePortraitPreferences">
+            <label>{{localize "BG3.Settings.ShapePortraitPreferences.Name"}}</label>
+            <div class="form-fields">
+                <select name="bg3-inspired-hotbar.shapePortraitPreferences" data-dtype="String">
+                    <option value="round" {{#if (eq configData.shapePortraitPreferences 'round')}}selected{{/if}}>{{localize "BG3.Settings.ShapePortraitPreferences.Round"}}</option>
+                    <option value="square" {{#if (eq configData.shapePortraitPreferences 'square')}}selected{{/if}}>{{localize "BG3.Settings.ShapePortraitPreferences.Square"}}</option>
+                </select>
+            </div>
+        
+            <p class="notes">{{localize "BG3.Settings.ShapePortraitPreferences.Hint"}}</p>
+        </div>
+        <div class="form-group" data-setting-id="bg3-inspired-hotbar.borderPortraitPreferences">
+            <label>{{localize "BG3.Settings.BorderPortraitPreferences.Name"}}</label>
+            <div class="form-fields">
+                <select name="bg3-inspired-hotbar.borderPortraitPreferences" data-dtype="String">
+                    <option value="none" {{#if (eq configData.borderPortraitPreferences 'none')}}selected{{/if}}>{{localize "BG3.Settings.BorderPortraitPreferences.None"}}</option>
+                    <option value="simple" {{#if (eq configData.borderPortraitPreferences 'simple')}}selected{{/if}}>{{localize "BG3.Settings.BorderPortraitPreferences.Simple"}}</option>
+                    <option value="styled" {{#if (eq configData.borderPortraitPreferences 'styled')}}selected{{/if}}>{{localize "BG3.Settings.BorderPortraitPreferences.Styled"}}</option>
+                </select>
+            </div>
+        
+            <p class="notes">{{localize "BG3.Settings.BorderPortraitPreferences.Hint"}}</p>
+        </div>
+        <div class="form-group" data-setting-id="bg3-inspired-hotbar.backgroundPortraitPreferences">
+            <label>{{localize "BG3.Settings.BackgroundPortraitPreferences.Name"}}</label>
+            <div class="form-fields">
+                <input type="text" class="color" name="bg3-inspired-hotbar.backgroundPortraitPreferences" data-dtype="String" value="{{configData.backgroundPortraitPreferences}}">
+                <input type="color" data-exclude="true" data-edit="bg3-inspired-hotbar.backgroundPortraitPreferences" value="{{configData.backgroundPortraitPreferences}}">
+            </div>
+        
+            <p class="notes">{{localize "BG3.Settings.BackgroundPortraitPreferences.Hint"}}</p>
+        </div>
+        <div class="form-group" data-setting-id="bg3-inspired-hotbar.overlayModePortrait">
+            <label>{{localize "BG3.Settings.OverlayModePortrait.Name"}}</label>
+            <div class="form-fields">
+                <input type="checkbox" name="bg3-inspired-hotbar.overlayModePortrait" data-dtype="Boolean" {{#if configData.overlayModePortrait}}checked{{/if}}>
+            </div>
+        
+            <p class="notes">{{localize "BG3.Settings.OverlayModePortrait.Hint"}}</p>
+        </div>
+        <div class="form-group group-header">Other settings</div>
+        <div class="form-group" data-setting-id="bg3-inspired-hotbar.showSheetSimpleClick">
+            <label>Open character sheet on click</label>
+            <div class="form-fields">
+                <input type="checkbox" name="bg3-inspired-hotbar.showSheetSimpleClick" data-dtype="Boolean" {{#if configData.showSheetSimpleClick}}checked{{/if}}>
+            </div>
+        
+            <p class="notes">Open the character sheet with a single click on portrait instead of double click.</p>
+        </div>
+    </div>
+    <div class="dialog-buttons">
+        <button type="submit" class="dialog-button">
+            <i class="fas fa-save"></i>
+            {{localize "BG3.Settings.ContainerAutoPopulate.Save"}}
+        </button>
+    </div>
+</form>

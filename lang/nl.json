@@ -1,0 +1,170 @@
+{
+    "BG3.Hotbar": {
+        "Errors": {
+            "InvalidDrop": "Ongeldige drop-gegevens: geen geldige JSON.",
+            "InvalidItem": "Ongeldige itemgegevens. Alleen items met een geldige UUID kunnen op de snelbalk worden geplaatst.",
+            "ItemNotFound": "Kon item niet ophalen van UUID. Niet op snelbalk plaatsen.",
+            "WrongToken": "U kunt geen items van een andere token naar deze snelbalk slepen.",
+            "UnableToRetrieve": "Kan itemgegevens niet ophalen.",
+            "MacroNotFound": "Macro niet gevonden",
+            "NoActor": "Geen actor gevonden",
+            "NoUIReference": "UI-referentie niet gevonden. Probeer de pagina te vernieuwen."
+        },
+        "ContextMenu": {
+            "EditItem": "Item bewerken",
+            "ConfigureActivities": "Activiteiten configureren",
+            "Remove": "Verwijderen"
+        },
+        "UI": {
+            "AddRow": "Rij toevoegen",
+            "RemoveRow": "Rij verwijderen"
+        },
+        "SettingsMenu": {
+            "ResetLayout": "Layout resetten",
+            "ClearAllItems": "Alle items wissen",
+            "ImportLayout": "Layout importeren",
+            "ExportLayout": "Layout exporteren"
+        },
+        "Tooltips": {
+            "Action": "Actie",
+            "Range": "Bereik",
+            "Target": "Doelwit",
+            "Duration": "Duur",
+            "Description": "Beschrijving",
+            "LoadingDescription": "Beschrijving laden...",
+            "NoDescription": "Geen beschrijving beschikbaar.",
+            "Permanent": "Permanent",
+            "RoundsRemaining": "{count} Ronde(n) resterend",
+            "TurnsRemaining": "{count} Beurt(en) resterend",
+            "SecondsRemaining": "{count} Seconde(n) resterend",
+            "Status": "Status",
+            "Active": "Actief",
+            "Disabled": "Uitgeschakeld"
+        }
+    },
+    "BG3.Settings": {
+        "EnableUI": {
+            "Name": "BG3 Hotbar UI inschakelen",
+            "Hint": "Schakel de BG3-stijl snelbalkinterface in of uit. Schakel dit uit als u liever een andere snelbalkmodule of de standaard Foundry-snelbalk gebruikt."
+        },
+        "ShowDamageRanges": {
+            "Name": "Schade als bereiken weergeven",
+            "Hint": "Toon spreukschade als min-max bereiken in plaats van dobbelsteennotatie (bijv. '1-8 vuur' in plaats van '1d8 vuur')"
+        },
+        "ShowMaterialDescription": {
+            "Name": "Beschrijving van materiële componenten weergeven",
+            "Hint": "Toon de volledige beschrijving van materiële componenten in spreuktooltips (bijv. 'diamanten ter waarde van 300gp, die de spreuk verbruikt')"
+        },
+        "BypassSpellPreparationCheck": {
+            "Name": "Niet-voorbereide spreuken opnemen",
+            "Hint": "Indien ingeschakeld, worden alle spreuken opgenomen in de snelbalk, ongeacht hun voorbereidingsstatus"
+        },
+        "EnforceSpellPreparationPC": {
+            "Name": "Spreukvoorbereiding afdwingen (Gekoppelde tokens)",
+            "Hint": "Indien ingeschakeld, tonen gekoppelde tokens (inclusief spelerpersonages) alleen voorbereide spreuken en speciale spreuken (aangeboren, naar believen, pact, ritueel, altijd). Indien uitgeschakeld, verschijnen alle spreuken."
+        },
+        "EnforceSpellPreparationNPC": {
+            "Name": "Spreukvoorbereiding afdwingen (Niet-gekoppelde tokens)",
+            "Hint": "Indien ingeschakeld, tonen niet-gekoppelde tokens alleen voorbereide spreuken en speciale spreuken (aangeboren, naar believen, pact, ritueel, altijd). Indien uitgeschakeld, verschijnen alle spreuken."
+        },
+        "CollapseFoundryMacrobar": {
+            "Name": "Foundry Macrobar samenvouwen",
+            "Hint": "Vouw de standaard Foundry-macrobalk automatisch samen"
+        },
+        "ShowPassiveFeaturesContainer": {
+            "Name": "Container voor passieve kenmerken weergeven",
+            "Hint": "Toon de container met passieve kenmerken boven het portret"
+        },
+        "TooltipDelay": {
+            "Name": "Tooltip-vertraging",
+            "Hint": "Hoe lang te wachten voordat tooltips worden weergegeven (in milliseconden)"
+        },
+        "FadeOutDelay": {
+            "Name": "Uitfade-vertraging",
+            "Hint": "Seconden wachten voordat de snelbalk uitfadet"
+        },
+        "NormalOpacity": {
+            "Name": "Normale dekking",
+            "Hint": "Dekking van de snelbalk wanneer de muis eroverheen beweegt (0.1 tot 1.0)"
+        },
+        "FadedOpacity": {
+            "Name": "Vervagende dekking",
+            "Hint": "Dekking van de snelbalk wanneer de muis er niet overheen beweegt (0.0 tot 1.0). Stel in op 1 om vervagen volledig uit te schakelen."
+        },
+        "AutoPopulateUnlinkedTokens": {
+            "Name": "Niet-gekoppelde tokens automatisch vullen",
+            "Hint": "Vul de snelbalk automatisch voor nieuw aangemaakte niet-gekoppelde tokens op basis van de onderstaande instellingen"
+        },
+        "Container1AutoPopulate": {
+            "Name": "Container 1 automatisch vullen",
+            "Hint": "Welke itemtypen automatisch vullen in de eerste container (index 0)"
+        },
+        "Container2AutoPopulate": {
+            "Name": "Container 2 automatisch vullen",
+            "Hint": "Welke itemtypen automatisch vullen in de tweede container (index 1)"
+        },
+        "Container3AutoPopulate": {
+            "Name": "Container 3 automatisch vullen",
+            "Hint": "Welke itemtypen automatisch vullen in de derde container (index 2)"
+        },
+        "AutoPopulateOverflow": {
+            "Name": "Wanneer container vol is",
+            "Hint": "Kies hoe om te gaan met items wanneer de container geen ruimte meer heeft.",
+            "Expand": "Doorgaan met rijen toevoegen",
+            "NextContainer": "Overlopen naar volgende container"
+        },
+        "AutoPopulateFillDirection": {
+            "Name": "Automatisch vullen richting",
+            "Hint": "Eerst rijen vullen (van links naar rechts, dan naar beneden) of eerst kolommen vullen (van boven naar beneden, dan naar rechts)",
+            "RowFirst": "Eerst rijen (van links naar rechts, dan naar beneden)",
+            "ColumnFirst": "Eerst kolommen (van boven naar beneden, dan naar rechts)"
+        },
+        "ContainerAutoPopulate": {
+            "DialogTitle": "Container automatisch vullen",
+            "DefaultsTitle": "Standaardinstellingen voor automatisch vullen van container configureren",
+            "Name": "Selecteer itemtypen",
+            "Hint": "Kies welke itemtypen automatisch aan deze container moeten worden toegevoegd.",
+            "Weapons": "Wapens",
+            "Features": "Kenmerken",
+            "Spells": "Spreuken",
+            "Consumables": "Verbruiksartikelen",
+            "Equipment": "Uitrusting",
+            "Tools": "Gereedschap",
+            "Loot": "Buit",
+            "Populate": "Vullen",
+            "Cancel": "Annuleren",
+            "Save": "Wijzigingen opslaan",
+            "SaveSuccess": "Container auto-populate instellingen succesvol opgeslagen",
+            "Configure": "Container automatisch vullen configureren"
+        },
+        "HighlightStyle": {
+            "Name": "Markeerstijl",
+            "Hint": "Kies hoe items worden gemarkeerd wanneer gefilterd",
+            "Bottom": "Onderste rand",
+            "Border": "Volledige rand"
+        },
+        "DefaultPortraitPreferences": {
+            "Name": "Standaard portretweergave",
+            "Hint": "Kies of standaard tokenafbeeldingen of personageportretten worden weergegeven. Dit kan per token worden overschreven. De eerste keer dat u deze instelling inschakelt, is deze van toepassing op alle tokens die geen portret hebben ingesteld.",
+            "Token": "Altijd tokenafbeelding gebruiken",
+            "Portrait": "Altijd personageportret gebruiken"
+        },
+        "SettingsCategories": {
+            "HotbarContainer": "Snelbalk knoppen",
+            "CombatContainer": "Container voor algemene acties",
+            "Global": "Globaal",
+            "Portrait": "Personageportret",
+            "Tooltip": "Tooltip",
+            "AutoPopulating": "Automatisch vullen"
+        },
+        "PlayerListVisibility": {
+            "Name": "Zichtbaarheid spelerslijst",
+            "Hint": "Bepaal de zichtbaarheid van de standaard Foundry-spelerslijst linksonder.",
+            "Choices": {
+                "always": "Altijd zichtbaar",
+                "hover": "Toon bij zweven",
+                "hidden": "Volledig verbergen"
+            }
+        }
+    }
+} 

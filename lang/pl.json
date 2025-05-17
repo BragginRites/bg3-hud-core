@@ -1,0 +1,347 @@
+{
+    "BG3.Hotbar": {
+        "Errors": {
+            "InvalidDrop": "Nieprawidłowe dane zrzutu: nieprawidłowy JSON.",
+            "InvalidItem": "Nieprawidłowe dane przedmiotu. Tylko przedmioty z prawidłowym identyfikatorem UUID mogą być umieszczane na pasku skrótów.",
+            "ItemNotFound": "Nie można pobrać przedmiotu z identyfikatorem UUID. Nie można umieścić na pasku skrótów.",
+            "WrongToken": "Nie można upuszczać przedmiotów z innego tokena na ten pasek skrótów.",
+            "UnableToRetrieve": "Nie można pobrać danych przedmiotu.",
+            "MacroNotFound": "Nie znaleziono makra",
+            "NoActor": "Nie znaleziono aktora",
+            "NoUIReference": "Nie znaleziono odniesienia do UI. Spróbuj odświeżyć stronę."
+        },
+        "ContextMenu": {
+            "EditItem": "Edytuj przedmiot",
+            "ConfigureActivities": "Konfiguracja aktywności",
+            "Remove": "Usuń"
+        },
+        "UI": {
+            "AddRow": "Dodaj rząd",
+            "RemoveRow": "Usuń rząd"
+        },
+        "SettingsMenu": {
+            "ResetLayout": "Zresetuj układ",
+            "ClearAllItems": "Wyczyść wszystkie przedmioty",
+            "ImportLayout": "Importuj układ",
+            "ExportLayout": "Eksportuj układ"
+        },
+        "Tooltips": {
+            "Action": "Akcja",
+            "Range": "Zasięg",
+            "Target": "Cel",
+            "Duration": "Czas trwania",
+            "Description": "Opis",
+            "LoadingDescription": "Ładowanie opisu...",
+            "NoDescription": "Brak dostępnego opisu.",
+            "Permanent": "Permanentne",
+            "RoundsRemaining": "Pozostałe rundy {count}",
+            "TurnsRemaining": "Pozostałe tury {count}",
+            "SecondsRemaining": "Pozostałe sekundy {count}",
+            "Status": "Status",
+            "Active": "Aktywny",
+            "Disabled": "Wyłączony"
+        },
+        "Ability": {
+            "Tooltip": "Kliknij lewym przyciskiem myszy, aby wyświetlić testy umiejętności i rzuty obronne.<br>Kliknij prawym przyciskiem myszy, aby rzucić inicjatywę (ALT: Ułatw./ CTRL: Utrudn.)."
+        }
+    },
+    "BG3.Portrait": {
+        "HP": {
+            "Death": "Martwy!",
+            "Full": "Pełen zdrowia"
+        }
+    },
+    "BG3.Settings": {
+        "EnableUI": {
+            "Name": "Włącz interfejs BG3 Hotbar",
+            "Hint": "Włączenie lub wyłączenie interfejsu paska skrótów w stylu BG3. Wyłącz tę opcję, jeśli wolisz używać innego modułu paska skrótów lub domyślnego paska skrótów Foundry."
+        },
+        "ShowDamageRanges": {
+            "Name": "Pokaż obrażenia jako zakresy",
+            "Hint": "Wyświetlanie obrażeń od zaklęć jako minimalnych i maksymalnych zakresów zamiast notacji kości (np. „1-8 ognia” zamiast „1k8 ognia”)."
+        },
+        "ShowMaterialDescription": {
+            "Name": "Pokaż opis materialnych komponentów",
+            "Hint": "Wyświetlanie pełnego opisu materialnych komponentów w podpowiedziach zaklęć (np. „diamenty o wartości 300 sz, które wykorzystuje zaklęcie”)."
+        },
+        "EnableLightTooltip": {
+            "Name": "Konfiguracja wyświetlania podpowiedzi",
+            "Hint": "Wybierz, co ma być wyświetlane w podpowiedzi pozycji",
+            "Choices": {
+                "Full": "Całość",
+                "Light": "Pokaż tylko nazwę i typ pozycji",
+                "NoDesc": "Ukryj tylko opis"
+            }
+        },
+        "BypassSpellPreparationCheck": {
+            "Name": "Uwzględnij nieprzygotowane zaklęcia",
+            "Hint": "Po włączeniu tej opcji wszystkie zaklęcia zostaną uwzględnione na pasku skrótów, niezależnie od stanu ich przygotowania."
+        },
+        "EnforceSpellPreparationPC": {
+            "Name": "Wymuszenie przygotowania zaklęć (połączone tokeny)",
+            "Hint": "Gdy opcja ta jest włączona, połączone tokeny (w tym postacie graczy) będą wyświetlać tylko przygotowane zaklęcia i zaklęcia specjalne (wrodzone, na życzenie, pakt, rytuał, zawsze). Po wyłączeniu wyświetlane będą wszystkie zaklęcia."
+        },
+        "EnforceSpellPreparationNPC": {
+            "Name": "Wymuszenie przygotowania zaklęć (niepowiązane tokeny)",
+            "Hint": "Po włączeniu, niepołączone tokeny będą wyświetlać tylko przygotowane zaklęcia i zaklęcia specjalne (wrodzone, na życzenie, pakt, rytuał, zawsze). Gdy opcja ta jest wyłączona, wyświetlane są wszystkie zaklęcia."
+        },
+        "CollapseFoundryMacrobar": {
+            "Name": "Zwiń pasek makr Foundry",
+            "Hint": "Automatycznie zwijaj domyślny pasek makr Foundry. W Foundry V13 lub nowszych wersjach opcje „Zawsze” i „Całkowicie ukryte” działają tak samo."
+        },
+        "ShowPassiveFeaturesContainer": {
+            "Name": "Pokaż kontener pasywnych cech",
+            "Hint": "Wyświetl pojemnik pasywnych cech nad portretem"
+        },
+        "TooltipDelay": {
+            "Name": "Opóźnienie podpowiedzi",
+            "Hint": "Jak długo czekać przed wyświetleniem podpowiedzi (w milisekundach)?"
+        },
+        "FadeOutDelay": {
+            "Name": "Opóźnienie zanikania",
+            "Hint": "Sekundy oczekiwania przed wygaszeniem paska skrótów"
+        },
+        "NormalOpacity": {
+            "Name": "Normalna przezroczystość",
+            "Hint": "Przezroczystość paska skrótów, gdy znajduje się nad nim mysz (od 0,1 do 1,0)"
+        },
+        "FadedOpacity": {
+            "Name": "Przezroczystość zanikania",
+            "Hint": "Przezroczystość paska skrótów, gdy mysz nie znajduje się nad nim (od 0,0 do 1,0). Ustaw na 1, aby całkowicie wyłączyć zanikanie."
+        },
+        "AutoPopulateUnlinkedTokens": {
+            "Name": "Automatyczne wypełnianie niepowiązanych tokenów",
+            "Hint": "Automatycznie wypełnia pasek skrótów dla nowo utworzonych niepowiązanych tokenów na podstawie poniższych ustawień"
+        },
+        "Container1AutoPopulate": {
+            "Name": "Automatyczne wypełnianie kontenera 1",
+            "Hint": "Jakie typy elementów mają być automatycznie wypełniane w pierwszym kontenerze (indeks 0)?"
+        },
+        "Container2AutoPopulate": {
+            "Name": "Automatyczne wypełnianie kontenera 2",
+            "Hint": "Jakie typy elementów mają być automatycznie wypełniane w drugim kontenerze (indeks 1)?"
+        },
+        "Container3AutoPopulate": {
+            "Name": "Automatyczne wypełnianie kontenera 3",
+            "Hint": "Jakie typy elementów mają być automatycznie wypełniane w trzecim kontenerze (indeks 2)?"
+        },
+        "AutoPopulateOverflow": {
+            "Name": "Gdy kontener jest pełny",
+            "Hint": "Wybierz sposób postępowania z przedmiotami, gdy w kontenerze zabraknie miejsca.",
+            "Expand": "Kontynuuj dodawanie rzędów",
+            "NextContainer": "Przepełnienie do następnego kontenera"
+        },
+        "AutoPopulateFillDirection": {
+            "Name": "Kierunek automatycznego wypełniania",
+            "Hint": "Czy najpierw wypełniane mają być rzędy (od lewej do prawej, a następnie w dół), czy kolumny (od góry do dołu, a następnie w prawo)?",
+            "RowFirst": "Najpierw rzędy (od lewej do prawej, następnie w dół)",
+            "ColumnFirst": "Najpierw kolumny (od góry do dołu, a następnie w prawo)"
+        },
+        "ContainerAutoPopulate": {
+            "DialogTitle": "Automatyczne wypełnianie kontenera",
+            "DefaultsTitle": "Konfigurowanie domyślnych ustawień automatycznego wypełniania kontenera",
+            "Name": "Wybierz typy przedmiotów",
+            "Hint": "Wybierz typy przedmiotów, które mają być automatycznie dodawane do tego kontenera.",
+            "Weapons": "Bronie",
+            "Features": "Zdolności",
+            "Spells": "Zaklęcia",
+            "Consumables": "Materiały eksploatacyjne",
+            "Equipment": "Ekwipunek",
+            "Tools": "Narzędzia",
+            "Loot": "Zdobycz",
+            "Populate": "Wypełnij",
+            "Cancel": "Anuluj",
+            "Save": "Zapisz Zmiany",
+            "SaveSuccess": "Ustawienia automatycznego wypełniania kontenera zostały pomyślnie zapisane",
+            "Configure": "Konfiguracja automatycznego wypełniania kontenera",
+            "Export": "Wyeksportuj Motyw"
+        },
+        "HighlightStyle": {
+            "Name": "Styl podświetlenia",
+            "Hint": "Wybierz sposób podświetlania przedmiotów podczas filtrowania",
+            "Bottom": "Dolne obramowanie",
+            "Border": "Pełne obramowanie"
+        },
+        "DefaultPortraitPreferences": {
+            "Name": "Domyślny widok portretu",
+            "Hint": "Wybierz, czy domyślnie mają być wyświetlane obrazy tokenów czy portrety postaci. Można to zmienić dla każdego tokena. Po pierwszym włączeniu tego ustawienia będzie ono stosowane do wszystkich tokenów, które nie mają ustawionego portretu.",
+            "Token": "Zawsze używaj obrazu tokena",
+            "Portrait": "Zawsze używaj portretu postaci"
+        },
+        "ShapePortraitPreferences": {
+            "Name": "Kształt widoku portretu",
+            "Hint": "Wybierz kształt portretów postaci.",
+            "Round": "Zaokrąglony",
+            "Square": "Kwadrat"
+        },
+        "BorderPortraitPreferences": {
+            "Name": "Obramowanie widoku portretu",
+            "Hint": "Wybierz obramowanie portretów postaci.",
+            "None": "Brak",
+            "Simple": "Proste",
+            "Styled": "Stylowy (tylko zaokrąglony kształt)"
+        },
+        "BackgroundPortraitPreferences": {
+            "Name": "Tło obrazu portretowego",
+            "Hint": "Wybierz kolor tła portretów postaci."
+        },
+        "ShowHealthOverlay": {
+            "Name": "Wyświetl nakładkę stanu zdrowia",
+            "Hint": ""
+        },
+        "ShowHPText": {
+            "Name": "Wyświetl tekst PW",
+            "Hint": ""
+        },
+        "ShowRestTurnButton": {
+            "Name": "Pokaż przyciski odpoczynku/tury",
+            "Hint": ""
+        },
+        "OverlayModePortrait": {
+            "Name": "Nakładka zdrowia jako maska",
+            "Hint": "Jeśli ta opcja jest zaznaczona, nakładka zdrowia nie będzie zakrywać przezroczystej części portretu postaci. Zaznacz to, jeśli używasz Dynamicznego Pierścienia Tokena."
+        },
+        "SettingsCategories": {
+            "HotbarContainer": "Przyciski paska skrótów",
+            "CombatContainer": "Wspólne działania kontenera",
+            "Global": "Ogólne",
+            "Portrait": "Portret postaci",
+            "Tooltip": "Podpowiedź",
+            "AutoPopulating": "Automatyczne wypełnianie",
+            "FoundryUI": "Poprawki interfejsu Foundry",
+            "MidiQoL": "Synchronizacja MidiQoL"
+        },
+        "MenuTheme": {
+            "Name": "Konfiguracja motywu",
+            "Hint": "Wybierz jeden z dostępnych motywów lub stwórz własny.",
+            "Label": "Konfiguracja motywu"
+        },
+        "scopeTheme": {
+            "Name": "Zasięg motywu",
+            "Hint": "Jeśli opcja zostanie zaznaczona, każdy gracz będzie mógł wybrać własny motyw. W przeciwnym razie motyw wybrany przez MG będzie taki sam dla wszystkich."
+        },
+        "PlayerListVisibility": {
+            "Name": "Widoczność listy graczy",
+            "Hint": "Kontroluj widoczność domyślnej listy graczy Foundry w lewym dolnym rogu.",
+            "Choices": {
+                "always": "Zawsze widoczny",
+                "hover": "Pokaż po najechaniu kursorem",
+                "hidden": "Ukryj całkowicie"
+            }
+        },
+        "ShowDeathSavingThrow": {
+            "Name": "Wyświetl rzut obronny przed śmiercią",
+            "Hint": "Kontroluj sposób wyświetlania rzutu obronnego przed śmiercią.",
+            "Choices": {
+                "show": "Domyślne",
+                "hide": "Nigdy",
+                "only": "Wyświetlaj klikalną czaszkę tylko na portrecie"
+            }
+        },
+        "EnableHPControls": {
+            "Name": "Włącz sterowanie PW",
+            "Hint": "Dodano dodatkowe elementy sterujące dla PW podczas najechania kursorem na portret."
+        },
+        "synchroMidiQoL": {
+            "BR": {
+                "Name": "Efekty aktywne bonusów i reakcji",
+                "Hint": "Ustaw akcję i reakcję bonusu zgodnie z aktywnymi efektami MidiQoL."
+            },
+            "ADV": {
+                "Name": "Dodaj przyciski ułatwienia/utrudnienia",
+                "Hint": "Dodaj źródło ułatwienia lub utrudnienia. Wymaga włączenia funkcji szybkiego przewijania MidiQoL."
+            }
+        },
+        "GamePause": {
+            "Name": "„Gra wstrzymana” ponad interfejsem",
+            "Hint": "Jeśli opcja zostanie zaznaczona, interfejs użytkownika zostanie wyświetlony pod etykietą „Gra wstrzymana”."
+        },
+        "AutoScale": {
+            "Name": "Automatyczna skala interfejsu użytkownika",
+            "Hint": "Automatycznie skaluj interfejs użytkownika w zależności od przeglądarki. Wyłącz poniższy parametr skalowania interfejsu użytkownika."
+        },
+        "EnableGMHotbar": {
+            "Name": "Włącz pasek skrótów MG",
+            "Hint": "Pokaż specjalny pasek MG, gdy nie wybrano żadnego tokenu lub wybrano wiele tokenów."
+        },
+        "EnableWeaponAutoEquip": {
+            "Name": "Włącz automatyczne wyposażanie zestawów broni",
+            "Hint": "Jeśli opcja jest zaznaczona, wybranie tokenu lub przełączenie między zestawami broni spowoduje automatyczne wyposażenie lub wyjęcie przedmiotów."
+        },
+        "HoverFilterShow": {
+            "Name": "Filtr paska szybkiego dostępu po najechaniu kursorem",
+            "Hint": "Jeśli opcja jest zaznaczona, filtr paska szybkiego dostępu będzie wyświetlany tylko po najechaniu na niego kursorem."
+        },
+        "ShowExtendedFilter": {
+            "Name": "Pokaż rozszerzone filtry",
+            "Hint": "Jeśli zaznaczone, pokaż elementy o ograniczonym zastosowaniu jako filtr (bez podświetlenia/szarego tła)."
+        },
+        "Menu": {
+            "Global": {
+                "Name": "Ustawienia ogólne",
+                "Hint": "Elementy natywne Foundry lub ogólne ustawienia interfejsu użytkownika BG3.",
+                "Label": "Konfiguracja ogólna",
+                "Sub": {
+                    "Foundry": "Foundry UI",
+                    "Scale": "Skala i pozycja",
+                    "Opacity": "Nieprzezroczystość i ukrycie"
+                }
+            },
+            "Theme": {
+                "Name": "Ustawienia motywu",
+                "Hint": "Wybierz jeden z dostępnych motywów lub stwórz własny.",
+                "Label": "Konfiguracja motywu"
+            },
+            "Portrait": {
+                "Name": "Ustawienia portretu",
+                "Hint": "Zaawansowane ustawienia portretu postaci.",
+                "Label": "Konfiguracja portretu",
+                "Sub": {
+                    "Show": "Pokaż/Ukryj ustawienia",
+                    "Portrait": "Ustawienia portretu",
+                    "Other": "Inne ustawienia"
+                }
+            },
+            "Hotbar": {
+                "Name": "Ustawienia paska skrótów",
+                "Hint": "Zaawansowane ustawienia paska skrótów.",
+                "Label": "Konfiguracja paska skrótów",
+                "Sub": {
+                    "General": "Ogólne",
+                    "Weapon": "Zestawy broni",
+                    "Common": "Wspólne działania",
+                    "Other": "Inne"
+                }
+            },
+            "Filter": {
+                "Name": "Ustawienia filtra"
+            },
+            "Combat": {
+                "Name": "Ustawienia wspólnych działań",
+                "Hint": "Zaawansowane ustawienia wspólnych czynności.",
+                "Label": "Konfiguracja wspólnych działań"
+            },
+            "Populate": {
+                "Name": "Ustawienia automatycznego wypełniania",
+                "Hint": "Zaawansowane ustawienia funkcji automatycznego wypełniania.",
+                "Label": "Konfiguracja automatycznego wypełniania"
+            },
+            "Tooltip": {
+                "Name": "Ustawienia podpowiedzi",
+                "Hint": "Zaawansowane ustawienia podpowiedzi.",
+                "Label": "Konfiguracja podpowiedzi"
+            },
+            "Midi": {
+                "Name": "Synchronizacja ustawień MidiQoL",
+                "Hint": "Synchronizacja z funkcjami MidiQoL. Wymagany moduł MidiQoL.",
+                "Label": "Konfiguracja synchronizacji MidiQoL"
+            },
+            "CPR": {
+                "Name": "Wybierz czynności RKO",
+                "Hint": "Wybierz czynności RKO, które mają być automatycznie wypełniane w kontenerze wspólnych czynności.",
+                "Label": "Wybierz czynności RKO",
+                "UpTo6": "Wybierz czynności RKO, które mają być automatycznie wypełniane w kontenerze wspólnych czynności. Maksymalnie 6."
+            }
+        }
+    }
+} 

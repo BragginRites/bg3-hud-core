@@ -1,0 +1,46 @@
+#bg3-hotbar-container .bg3-actives-container {
+    position: absolute;
+    bottom: calc(100% + var(--bg3-hotbar-border-size));
+    right: 0;
+    min-width: var(--bg3-active-cell-size);
+    max-width: calc(var(--bg3-active-cell-size) * 10);
+    display: flex;
+    align-items: center;
+    padding: 0;
+    box-sizing: border-box;
+    z-index: var(--bg3-z-base);
+    cursor: pointer;
+    flex-wrap: wrap;
+    gap: 0;
+    flex-direction: row-reverse;
+    margin-bottom: 0; /* Add some space between the container and the hotbar */
+}
+
+#bg3-hotbar-container .active-effect-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px;
+    border-radius: 2px;
+}
+
+#bg3-hotbar-container .active-effect-icon img {
+    width: var(--bg3-active-cell-size);
+    height: var(--bg3-active-cell-size);
+    display: block;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    border: var(--bg3-active-border-size) solid var(--bg3-active-border-color);
+    background-color: var(--bg3-active-background-color);
+}
+
+#bg3-hotbar-container .active-effect-icon.disabled img {
+    filter: grayscale(100%) brightness(50%);
+    opacity: 0.7;
+}
+
+#bg3-hotbar-container .active-effect-icon:not(.disabled) img {
+    filter: none;
+    opacity: 1;
+} 

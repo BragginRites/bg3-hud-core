@@ -1,0 +1,113 @@
+#bg3-hotbar-container .bg3-passives-container {
+    position: absolute;
+    bottom: calc(100% + var(--bg3-hotbar-border-size));
+    left: 0;
+    min-width: var(--bg3-passive-cell-size);
+    min-height: var(--bg3-passive-cell-size);
+    max-width: calc(var(--bg3-passive-cell-size) * 10);
+    display: flex;
+    align-items: center;
+    padding: 0;
+    box-sizing: border-box;
+    z-index: var(--bg3-z-base);
+    cursor: pointer;
+    flex-wrap: wrap;
+    gap: 0;
+    margin-bottom: 0; /* Add some space between the container and the hotbar */
+}
+
+#bg3-hotbar-container .bg3-passives-container:hover {
+    transition: background-color .2s ease-in-out;
+    background-color: rgba(0, 0, 0, .25);
+}
+
+#bg3-hotbar-container .passive-feature-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px;
+    border-radius: 2px;
+}
+
+#bg3-hotbar-container .passive-feature-icon img {
+    width: var(--bg3-passive-cell-size);
+    height: var(--bg3-passive-cell-size);
+    display: block;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    border: var(--bg3-passive-border-size) solid var(--bg3-passive-border-color);
+    background-color: var(--bg3-passive-background-color);
+}
+
+#bg3-hotbar-container .passive-feature-icon:hover img {
+    filter: brightness(1.2);
+}
+
+#bg3-hotbar-container .passive-feature-icon:hover {
+    background: var(--bg3-passive-background-color-hover);
+}
+
+#bg3-hotbar-container .passive-feature-icon:not(:hover) {
+    background: transparent;
+}
+
+/* Dialog styles */
+.bg3-hud-dialog.configure-passives {
+    min-width: 500px !important;
+}
+
+.bg3-hud-dialog.configure-passives .passives-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px;
+    cursor: pointer;
+    border-radius: 3px;
+    border: 1px solid transparent;
+    transition: border-color 0.2s ease;
+}
+
+.bg3-hud-dialog.configure-passives .passives-row img {
+    width: 48px !important;
+    height: 48px !important;
+    display: block;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.bg3-hud-dialog.configure-passives .passives-row:hover {
+    border-color: #3498db;
+}
+
+.bg3-hud-dialog.configure-passives .passives-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 800px;
+    overflow-y: auto;
+    padding-right: 8px;
+}
+
+.bg3-hud-dialog.configure-passives .dialog-content {
+    padding: 8px;
+}
+
+/* Scrollbar styling */
+.bg3-hud-dialog.configure-passives .passives-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.bg3-hud-dialog.configure-passives .passives-list::-webkit-scrollbar-track {
+    background: var(--bg3-background-color);
+    border-radius: 6px;
+}
+
+.bg3-hud-dialog.configure-passives .passives-list::-webkit-scrollbar-thumb {
+    background: var(--bg3-border-color);
+    border-radius: 4px;
+}
+
+.bg3-hud-dialog.configure-passives .passives-list::-webkit-scrollbar-thumb:hover {
+    background: var(--bg3-background-color-hover);
+} 

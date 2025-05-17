@@ -1,0 +1,155 @@
+:root {
+    --weapon-opacity: 0.6;
+    --weapon-scale: 0.6;
+    --weapon-translate: 50%;
+    --weapon-translate2: -50%;
+}
+
+#bg3-hotbar-container .bg3-weapon-container {
+    /* height: 168px; */
+    display: flex;
+    height: 100%;
+    padding-top: var(--bg3-weapon-cell-size);
+    min-height: calc(var(--bg3-weapon-cell-size) * 1.6);
+    /* transform-style: preserve-3d; */
+    position: relative;
+    /* height: 86px; */
+    width: calc(2*(var(--bg3-weapon-cell-size) + 1px));
+    margin-right: 3px;
+    z-index: 100;
+}
+
+#bg3-hotbar-container .bg3-weapon-set, #bg3-hotbar-container .bg3-combat-container {
+    width: fit-content !important;
+    height: fit-content;
+}
+
+#bg3-hotbar-container .bg3-weapon-set {
+    position: absolute;
+    left: 0;
+    top: 0;
+    margin: auto;
+    transition: all 0.4s ease;
+    cursor: pointer !important;
+    padding: 0;
+    grid-template-columns: repeat(var(--cols), var(--bg3-weapon-cell-size));
+    grid-template-rows: repeat(var(--rows), var(--bg3-weapon-cell-size));
+}
+
+#bg3-hotbar-container .bg3-weapon-set::before {
+    content: "I";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-shadow: var(--shadow-text-stroke);
+    color: var(--bg3-text-color);
+    font-size: var(--font-size-18);
+    font-family: 'Roboto Slab';
+    z-index: 50;
+    pointer-events: none;
+    border: var(--bg3-weapon-border-size) solid var(--bg3-weapon-border-color);
+    background: var(--bg3-weapon-background-color);
+    border-radius: 50%;
+    width: calc(var(--bg3-weapon-cell-size)/3 - 1px);
+    height: calc(var(--bg3-weapon-cell-size)/3 - 1px);
+    text-align: center;
+}
+
+#bg3-hotbar-container .bg3-weapon-set[data-container-index="1"]::before {
+    content: "II";
+}
+
+#bg3-hotbar-container .bg3-weapon-set[data-container-index="2"]::before {
+    content: "III";
+}
+
+#bg3-hotbar-container .bg3-weapon-set .hotbar-cell {
+    padding: 4px;
+    border: var(--bg3-weapon-border-size) solid var(--bg3-weapon-border-color);
+    width: var(--bg3-weapon-cell-size);
+    height: var(--bg3-weapon-cell-size);
+}
+
+@keyframes disable-pointer-events {
+    0%, 99% {
+        pointer-events: none;  
+    }  
+}
+/* data-active-set */
+#bg3-hotbar-container .bg3-weapon-container[data-active-set="0"] .bg3-weapon-set[data-container-index="0"], #bg3-hotbar-container .bg3-weapon-container[data-active-set="1"] .bg3-weapon-set[data-container-index="1"], #bg3-hotbar-container .bg3-weapon-container[data-active-set="2"] .bg3-weapon-set[data-container-index="2"] {
+    transform: translateY(0%) scale(1);
+    opacity: 1;
+    z-index: 1;
+    animation: disable-pointer-events 400ms;
+}
+
+#bg3-hotbar-container .bg3-weapon-container[data-active-set="0"] .bg3-weapon-set[data-container-index="2"], #bg3-hotbar-container .bg3-weapon-container[data-active-set="1"] .bg3-weapon-set[data-container-index="0"], #bg3-hotbar-container .bg3-weapon-container[data-active-set="2"] .bg3-weapon-set[data-container-index="1"] {
+    transform: translateY(var(--weapon-translate)) scale(var(--weapon-scale));
+    opacity: var(--weapon-opacity);
+    z-index: 0;
+}
+
+#bg3-hotbar-container .bg3-weapon-container[data-active-set="0"] .bg3-weapon-set[data-container-index="1"], #bg3-hotbar-container .bg3-weapon-container[data-active-set="1"] .bg3-weapon-set[data-container-index="2"], #bg3-hotbar-container .bg3-weapon-container[data-active-set="2"] .bg3-weapon-set[data-container-index="0"] {
+    transform: translateY(var(--weapon-translate2)) scale(var(--weapon-scale));
+    opacity: var(--weapon-opacity);
+    z-index: 0;
+}
+
+#bg3-hotbar-container .bg3-weapon-container[data-active-set="0"] .bg3-weapon-set[data-container-index="1"] .hotbar-cell, #bg3-hotbar-container .bg3-weapon-container[data-active-set="1"] .bg3-weapon-set[data-container-index="2"] .hotbar-cell, #bg3-hotbar-container .bg3-weapon-container[data-active-set="2"] .bg3-weapon-set[data-container-index="0"] .hotbar-cell, #bg3-hotbar-container .bg3-weapon-container[data-active-set="0"] .bg3-weapon-set[data-container-index="2"] .hotbar-cell, #bg3-hotbar-container .bg3-weapon-container[data-active-set="1"] .bg3-weapon-set[data-container-index="0"] .hotbar-cell, #bg3-hotbar-container .bg3-weapon-container[data-active-set="2"] .bg3-weapon-set[data-container-index="1"] .hotbar-cell {
+    pointer-events: none;
+}
+
+input[name="weapon-choice"] {
+    display: none;
+}
+
+#bg3-hotbar-container .bg3-weapon-set {
+    border-radius: 10px;
+}
+
+#bg3-hotbar-container .bg3-weapon-set .hotbar-cell:first-of-type {
+    border-radius: 10px 5px 5px 10px;
+}
+
+#bg3-hotbar-container .bg3-weapon-set .hotbar-cell:last-of-type {
+    border-radius: 5px 10px 10px 5px;
+}
+
+#bg3-hotbar-container .bg3-weapon-set .hotbar-cell.has-2h + .hotbar-cell {
+    pointer-events: none !important;
+}
+
+#bg3-hotbar-container .bg3-weapon-set .hotbar-cell.has-2h + .hotbar-cell {
+    opacity: 0.25;
+    background-image: var(--bg-2h);
+    background-size: 85%;
+    /* width: 100%;
+    height: 100%; */
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+#bg3-hotbar-container .bg3-weapon-set .hotbar-cell.has-2h + .hotbar-cell > * {
+    display: none;
+}
+
+/** Combat Container **/
+
+#bg3-hotbar-container .bg3-combat-container {
+    display: grid;
+    grid-template-rows: repeat(2, calc(var(--bg3-weapon-cell-size) / 3));
+    grid-template-columns: repeat(3, calc(var(--bg3-weapon-cell-size) * 2 / 3 - 3px));
+    align-self: end;
+    padding: 2px;
+    margin-top: calc(var(--bg3-weapon-cell-size) * 4 / 9);
+    border: var(--bg3-weapon-border-size) solid var(--bg3-weapon-border-color);
+}
+
+#bg3-hotbar-container .bg3-combat-container .hotbar-cell {
+    width: 100%;
+    height: 100%;
+}

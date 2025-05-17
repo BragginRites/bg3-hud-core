@@ -1,0 +1,15 @@
+<div>
+    {{#if enabled}}
+        {{#if (gt health.temp 0)}}<div class="temp-hp-text">+{{health.temp}}</div>{{/if}}
+        <div class="hp-label">{{health.current}}/{{health.max}}</div>
+        {{#if hpControls}}
+            <div class="hp-controls">
+                <div class="hp-control-death"><i class="fas fa-skull" data-tooltip="{{localize "BG3.Portrait.HP.Death"}}"></i></div>
+                {{!-- <div class="hp-control-minus"><i class="fas fa-circle-minus"></i></div> --}}
+                <input class="hp-input" type="text" value="{{math health.current '+' health.temp}}" max="{{health.max}}">
+                {{!-- <div class="hp-control-plus"><i class="fas fa-circle-plus"></i></div> --}}
+                <div class="hp-control-full"><i class="fas fa-heart" data-tooltip="{{localize "BG3.Portrait.HP.Full"}}"></i></div>
+            </div>
+        {{/if}}
+    {{/if}}
+</div>

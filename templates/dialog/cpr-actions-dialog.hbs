@@ -1,0 +1,22 @@
+<form class="package-configuration">
+    <div class="dialog-container grid-2" data-selected="{{selected.length}}">
+        {{!-- <div class="form-group">
+            <p class="notes">{{localize 'BG3.Settings.Menu.CPR.UpTo6'}}</p>
+        </div> --}}
+        {{#each actions}}
+            <div class="form-group">
+                <img src="{{img}}">
+                <label>{{localize name}}</label>
+                <div class="form-fields">
+                    <input class="cpr-actions" type="checkbox" id="{{_id}}" data-dtype="Boolean" {{#ifIn _id ../selected}}checked{{/ifIn}}>
+                </div>
+            </div>
+        {{/each}}
+    </div>
+    <div class="dialog-buttons">
+        <button type="submit" class="dialog-button">
+            <i class="fas fa-save"></i>
+            {{localize "BG3.Settings.ContainerAutoPopulate.Save"}}
+        </button>
+    </div>
+</form>
