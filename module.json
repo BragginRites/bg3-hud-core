@@ -1,17 +1,12 @@
 {
     "id": "bg3-hud-core",
-    "title": "BG3 Inspired HUD - Core Module",
+    "title": "BG3 Inspired HUD - Core",
     "description": "A custom, persistent, token-specific HUD inspired by Baldur's Gate 3's interface. Provides an intuitive and modern way to manage abilities, spells, and effects for your tokens.",
     "version": "0.1.0",
     "authors": [
       {
         "name": "BragginRites",
         "discord": "Braggin#1205",
-        "flags": {}
-      },
-      {
-        "name": "Dapoulp",
-        "discord": "Poulp#3418",
         "flags": {}
       }
     ],
