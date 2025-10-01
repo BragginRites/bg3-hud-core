@@ -1,0 +1,69 @@
+/* ==========================================================================
+   Active Effects Container
+   ========================================================================== */
+
+   #bg3-hotbar-container .bg3-actives-container {
+    position: absolute;
+    bottom: calc(100% + var(--bg3-hotbar-border-size, 2px));
+    right: 0;
+    min-width: var(--bg3-active-cell-size, 40px);
+    max-width: calc(var(--bg3-active-cell-size, 40px) * 10);
+    display: flex;
+    align-items: center;
+    padding: 0;
+    box-sizing: border-box;
+    z-index: var(--bg3-z-base, 100);
+    cursor: pointer;
+    flex-wrap: wrap;
+    gap: 0;
+    flex-direction: row-reverse;
+    margin-bottom: 0;
+}
+
+/* ==========================================================================
+   Active Effect Button/Icon
+   ========================================================================== */
+
+#bg3-hotbar-container .active-effect-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px;
+    border-radius: 2px;
+}
+
+#bg3-hotbar-container .active-effect-icon img {
+    width: var(--bg3-active-cell-size, 30px);
+    height: var(--bg3-active-cell-size, 30px);
+    display: block;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    border: var(--primary-border-width) solid var(--bg3-border);
+    background-color: var(--bg3-background);
+    border-radius: 4px;
+}
+
+/* Hover state */
+#bg3-hotbar-container .active-effect-icon:hover img {
+    border-color: var(--bg3-background-highlight);
+    transform: scale(1.05);
+}
+
+/* Disabled state */
+#bg3-hotbar-container .active-effect-icon.disabled img {
+    filter: grayscale(100%) brightness(50%);
+    opacity: 0.7;
+    pointer-events: auto;
+}
+
+/* Enabled state */
+#bg3-hotbar-container .active-effect-icon:not(.disabled) img {
+    filter: none;
+    opacity: 1;
+}
+
+/* Ensure disabled active effects still accept clicks for toggling */
+#bg3-hotbar-container .active-effect-icon.disabled {
+    pointer-events: auto;
+}

@@ -87,22 +87,31 @@ export class ContextMenu extends BG3Component {
      */
     _positionMenu() {
         if (!this.event) return;
-
-        const menuWidth = 200; // Approximate width
-        const menuHeight = this.items.length * 40; // Approximate height
-
-        let x = this.event.clientX;
-        let y = this.event.clientY;
-
-        // Keep menu on screen
-        if (x + menuWidth > window.innerWidth) {
-            x = window.innerWidth - menuWidth - 10;
+    
+        // Easy-to-tweak offsets
+        const offsetX = 10; // distance to the right of the cursor
+        const offsetY = -10; // distance below the cursor (to place the bottom edge)
+    
+        // Get actual menu size
+        const menuRect = this.element.getBoundingClientRect();
+        const menuWidth = menuRect.width || 200;
+        const menuHeight = menuRect.height || (this.items.length * 40);
+    
+        // Position: bottom-left corner at (mouseX + offsetX, mouseY + offsetY)
+        let x = this.event.clientX + offsetX;
+        let y = this.event.clientY + offsetY - menuHeight;
+    
+        // Clamp horizontally
+        if (x + menuWidth > window.innerWidth - offsetX) {
+            x = window.innerWidth - menuWidth - offsetX;
         }
-
-        if (y + menuHeight > window.innerHeight) {
-            y = window.innerHeight - menuHeight - 10;
+    
+        // Clamp vertically
+        if (y < offsetY) y = offsetY;
+        if (y + menuHeight > window.innerHeight - offsetY) {
+            y = window.innerHeight - menuHeight - offsetY;
         }
-
+    
         this.element.style.left = `${x}px`;
         this.element.style.top = `${y}px`;
     }

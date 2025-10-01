@@ -20,7 +20,7 @@
     height: 40px;
     background: var(--bg3-background);
     border: 2px solid var(--primary-border-color);
-    border-radius: 4px;
+    border-radius: 50%;
     color: var(--bg3-text);
     cursor: pointer;
     display: flex;

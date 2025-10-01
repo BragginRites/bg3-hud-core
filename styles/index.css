@@ -12,4 +12,7 @@
 @import './components/dragbar.css';
 @import './components/context-menu.css';
 @import './components/hotbar.css';
+@import './components/active-effects.css';
+@import './components/passives.css';
+@import './components/dialog.css';
 

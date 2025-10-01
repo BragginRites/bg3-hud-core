@@ -53,11 +53,11 @@
     font-family: "Signika", sans-serif;
     scale: var(--bg3-scale-ui, 1);
     gap: 0.25rem;
-    padding: 0;
+    padding: 0px;
     padding-bottom: var(--position-bottom, 10px);
     transition: transform .3s ease-in-out, opacity .3s ease-in-out var(--bg3-faded-delay);
     width: fit-content;
-    bottom: 0;
+    bottom: 20px;
     left: 0;
     right: 0;
     opacity: var(--bg3-faded-opacity, var(--bg3-normal-opacity));

@@ -5,6 +5,7 @@
 export const BG3HUD_REGISTRY = {
     // Main container classes registered by adapters
     portraitContainer: null,
+    passivesContainer: null,
     actionContainer: null,
     abilityContainer: null,
     
@@ -30,6 +31,15 @@ export const BG3HUD_API = {
     registerPortraitContainer(containerClass) {
         console.log('BG3 HUD Core | Registering portrait container:', containerClass.name);
         BG3HUD_REGISTRY.portraitContainer = containerClass;
+    },
+
+    /**
+     * Register a passives container class
+     * @param {Class} containerClass - Class that extends PassivesContainer
+     */
+    registerPassivesContainer(containerClass) {
+        console.log('BG3 HUD Core | Registering passives container:', containerClass.name);
+        BG3HUD_REGISTRY.passivesContainer = containerClass;
     },
 
     /**

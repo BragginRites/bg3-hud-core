@@ -70,6 +70,11 @@ export class BG3Hotbar extends foundry.applications.api.ApplicationV2 {
         Hooks.on('updateToken', this._onUpdateToken.bind(this));
         Hooks.on('updateActor', this._onUpdateActor.bind(this));
         Hooks.on('updateCombat', this._onUpdateCombat.bind(this));
+        
+        // Active effects hooks
+        Hooks.on('createActiveEffect', this._onActiveEffectChange.bind(this));
+        Hooks.on('updateActiveEffect', this._onActiveEffectChange.bind(this));
+        Hooks.on('deleteActiveEffect', this._onActiveEffectChange.bind(this));
     }
 
     /**
@@ -263,9 +268,24 @@ export class BG3Hotbar extends foundry.applications.api.ApplicationV2 {
      * @private
      */
     async _onUpdateToken(token, changes) {
-        if (token === this.currentToken) {
-            await this.refresh();
+        if (token !== this.currentToken) return;
+
+        // Don't refresh on HP bar changes - these are visual only and handled by actor updates
+        // Common token properties that don't require HUD refresh:
+        // - bar values (actorData.system.attributes.hp) - handled by _onUpdateActor
+        // - x, y (position)
+        // - rotation
+        // - hidden
+        // - elevation
+        const ignoredProperties = ['x', 'y', 'rotation', 'hidden', 'elevation'];
+        const changedKeys = Object.keys(changes);
+        const shouldIgnore = changedKeys.every(key => ignoredProperties.includes(key));
+        
+        if (shouldIgnore) {
+            return; // Don't refresh for position/visibility changes
         }
+
+        await this.refresh();
     }
 
     /**
@@ -314,6 +334,34 @@ export class BG3Hotbar extends foundry.applications.api.ApplicationV2 {
             }
         }
 
+        // Targeted update: when adapter flags change (e.g., selectedPassives), update only affected containers
+        const adapterModuleFlags = changes?.flags?.['bg3-hud-dnd5e']; // Check adapter flags
+        if (adapterModuleFlags) {
+            let updated = false;
+            
+            // If selectedPassives changed, update passives container only
+            if (Object.prototype.hasOwnProperty.call(adapterModuleFlags, 'selectedPassives')) {
+                if (this.components?.hotbar?.passivesContainer) {
+                    await this.components.hotbar.passivesContainer.render();
+                    updated = true;
+                }
+            }
+            
+            // If we handled the update, don't do full refresh
+            if (updated) return;
+        }
+
+        // Targeted update: when HP changes, update portrait container only
+        // Check if HP changed
+        const hpChanged = changes?.system?.attributes?.hp;
+        if (hpChanged) {
+            const portraitContainer = this.components?.portrait;
+            if (portraitContainer && typeof portraitContainer.updateHealth === 'function') {
+                await portraitContainer.updateHealth();
+                return;
+            }
+        }
+
         await this.refresh();
     }
 
@@ -328,6 +376,24 @@ export class BG3Hotbar extends foundry.applications.api.ApplicationV2 {
         const combatant = combat.combatant;
         if (combatant && combatant.token === this.currentToken) {
             await this.refresh();
+        }
+    }
+
+    /**
+     * Handle active effect changes
+     * Optimized: Only updates the active effects container, not full HUD
+     * @param {ActiveEffect} effect - The effect that changed
+     * @param {Object} changes - Changes made (for updates)
+     * @private
+     */
+    async _onActiveEffectChange(effect, changes) {
+        // Only update if the effect belongs to the current actor
+        if (effect.parent === this.currentActor) {
+            // Targeted update: just re-render the active effects container
+            // The container will intelligently add/remove/update only changed effects
+            if (this.components?.hotbar?.activeEffectsContainer) {
+                await this.components.hotbar.activeEffectsContainer.render();
+            }
         }
     }
 
