@@ -1,88 +1,29 @@
 {
-    "id": "bg3-hud-core",
-    "title": "BG3 Inspired HUD - Core",
-    "description": "A custom, persistent, token-specific HUD inspired by Baldur's Gate 3's interface. Provides an intuitive and modern way to manage abilities, spells, and effects for your tokens.",
-    "version": "0.1.0",
-    "authors": [
-      {
-        "name": "BragginRites",
-        "discord": "Braggin#1205",
-        "flags": {}
-      }
-    ],
-    "compatibility": {
-      "minimum": "12",
-      "verified": "12"
-    },
-    "esmodules": [
-      "scripts/module.js"
-    ],
-    "styles": [
-      "styles/index.css"
-    ],
-    "languages": [
-      {
-        "lang": "en",
-        "name": "English",
-        "path": "lang/en.json",
-        "flags": {}
-      },
-      {
-        "lang": "pl",
-        "name": "Polski",
-        "path": "lang/pl.json",
-        "flags": {}
-      },
-      {
-        "lang": "fr",
-        "name": "Français",
-        "path": "lang/fr.json",
-        "flags": {}
-      },
-      {
-        "lang": "nl",
-        "name": "Nederlands",
-        "path": "lang/nl.json",
-        "flags": {}
-      },
-      {
-        "lang": "ru",
-        "name": "Русский",
-        "path": "lang/ru.json",
-        "flags": {}
-      }
-    ],
-    "relationships": {
-      "requires": [
-        {
-          "id": "lib-wrapper",
-          "type": "module",
-          "compatibility": {}
-        },
-        {
-          "id": "colorsettings",
-          "type": "module",
-          "compatibility": {}
-        }
-      ]
-    },
-    "persistentStorage": true,
-    "url": "https://github.com/BragginRites/bg3-hud-core",
-    "manifest": "https://github.com/BragginRites/bg3-hud-core/releases/download/0.1.0/module.json",
-    "download": "https://github.com/BragginRites/bg3-hud-core/releases/download/0.1.0/bg3-hud-core.zip",
-    "readme": "README.md",
-    "bugs": "https://github.com/BragginRites/bg3-hud-core/issues",
-    "packs": [
-      {
-        "name": "bg3-inspired-hud",
-        "label": "BG3 Inspired HUD",
-        "path": "packs/bg3-inspired-hud",
-        "type": "Macro",
-        "ownership": {
-          "PLAYER": "NONE",
-          "ASSISTANT": "OWNER"
-        },
-        "system": "dnd5e"
-      }
-    ]
-  }
+  "id": "bg3-hud-core",
+  "title": "BG3 Inspired HUD - Core",
+  "description": "Core UI framework for BG3 Inspired HUD. Requires a system-specific adapter module (bg3-hud-dnd5e, bg3-hud-pf2e, etc.) to function.",
+  "version": "0.1.0",
+  "library": true,
+  "authors": [
+    {
+      "name": "BragginRites",
+      "discord": "Braggin#1205",
+      "flags": {}
+    }
+  ],
+  "compatibility": {
+    "minimum": "13",
+    "verified": "13"
+  },
+  "esmodules": [
+    "scripts/module.js"
+  ],
+  "styles": [
+    "styles/index.css"
+  ],
+  "url": "https://github.com/BragginRites/bg3-hud-core",
+  "manifest": "https://github.com/BragginRites/bg3-hud-core/releases/download/0.1.0/module.json",
+  "download": "https://github.com/BragginRites/bg3-hud-core/releases/download/0.1.0/bg3-hud-core.zip",
+  "readme": "README.md",
+  "bugs": "https://github.com/BragginRites/bg3-hud-core/issues"
+}

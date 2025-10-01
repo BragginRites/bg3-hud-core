@@ -1,0 +1,15 @@
+/* ==========================================================================
+   BG3 HUD Core - System-Agnostic Base Styles
+   ========================================================================== */
+
+/* Base variables and container styles */
+@import './base.css';
+
+/* Component styles */
+@import './components/grid.css';
+@import './components/portrait.css';
+@import './components/controls.css';
+@import './components/dragbar.css';
+@import './components/context-menu.css';
+@import './components/hotbar.css';
+

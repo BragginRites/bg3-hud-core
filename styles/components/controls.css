@@ -1,0 +1,43 @@
+/* BG3 HUD Core - Control Container & Buttons */
+
+/* ==========================================================================
+   Control Container
+   ========================================================================== */
+
+.bg3-control-container {
+    position: absolute;
+    right: -48px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    z-index: 100;
+}
+
+.hotbar-control-button {
+    width: 40px;
+    height: 40px;
+    background: var(--bg3-background);
+    border: 2px solid var(--primary-border-color);
+    border-radius: 4px;
+    color: var(--bg3-text);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    font-size: 16px;
+}
+
+.hotbar-control-button:hover {
+    background: var(--bg3-background-highlight);
+    border-color: #3498db;
+    color: #3498db;
+    transform: scale(1.05);
+}
+
+.hotbar-control-button i {
+    pointer-events: none;
+}
+

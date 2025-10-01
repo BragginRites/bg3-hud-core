@@ -1,0 +1,141 @@
+/* BG3 HUD Core - Base Styles & Variables */
+
+:root {    
+    /* Colors */
+    --bg3-background: #111111f2;
+    --bg3-border: #2f2f2f;
+    --bg3-border-width: 1px;
+    --primary-border-width: 2px;
+    --primary-border-color: #000000;
+    --bg3-text: #ddd;
+    --bg3-background-highlight: #5a5353;
+    --shadow-text-stroke: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+
+    /* Cells */
+    --bg3-cell-border-width: 2px;
+
+    /* Drag Bar */
+    --bg3-drag-bar-background: #2b2b2b;
+    --bg3-drag-bar-background-hover: #6e6e6e;
+    --bg3-drag-bar-background-dragging: #5a5353;
+
+    
+    /* Filter Colors - System adapters can override these */
+    --bg3-action: var(--color-action, #2ecc71);
+    --bg3-bonus: var(--color-bonus, #e67e22);
+    --bg3-reaction: var(--color-reaction, #fe85f6);
+    --bg3-spell: var(--color-spell, #3498db);
+    --bg3-pact: var(--color-pact, #8e44ad);
+    
+    /* Z-indices */
+    --bg3-z-base: 70;
+    --bg3-z-grid: 20;
+    --bg3-z-filter-container: 100;
+    
+    /* Sizing */
+    --bg3-cell-size: 50px;
+    --bg3-filter-button-size: 32px;
+    --bg3-portrait-size: 178px;
+}
+
+/* ==========================================================================
+   Base Container Styles
+   ========================================================================== */
+   
+#bg3-hotbar-container {
+    position: fixed;
+    display: flex;
+    align-self: end;
+    align-items: end;
+    justify-content: center;
+    align-items: end;
+    z-index: var(--bg3-z-grid);
+    font-family: "Signika", sans-serif;
+    scale: var(--bg3-scale-ui, 1);
+    gap: 0.25rem;
+    padding: 0;
+    padding-bottom: var(--position-bottom, 10px);
+    transition: transform .3s ease-in-out, opacity .3s ease-in-out var(--bg3-faded-delay);
+    width: fit-content;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    opacity: var(--bg3-faded-opacity, var(--bg3-normal-opacity));
+}
+
+#bg3-hotbar-container[data-under-pause="true"] {
+    z-index: var(--z-index-canvas);
+}
+
+#bg3-hotbar-container[data-position="center"] {
+    transform-origin: bottom;
+    margin: 0 auto;
+    padding-right: var(--position-padding);
+}
+
+#bg3-hotbar-container[data-position="left"] {
+  transform-origin: bottom left;
+  margin: 0 auto 0 calc(var(--bg3-portrait-size) + 35px + var(--position-padding));
+}
+
+#bg3-hotbar-container[data-position="right"] {
+  transform-origin: bottom right;
+  margin: 0 0 0 auto;
+  padding-right: var(--position-padding, 0);
+}
+
+#bg3-hotbar-container .hidden {
+    display: none !important;
+}
+
+#bg3-hotbar-container img {
+    border: unset;
+}
+
+/* ==========================================================================
+   Opacity Settings Handler
+   ========================================================================== */
+   
+#bg3-hotbar-container:hover, #bg3-hotbar-container:has(div.locked[data-key="controlLock"])[data-lock-settings*="opacity"] {
+    transition-delay: 0s;
+    opacity: var(--bg3-normal-opacity);
+}
+
+/* ==========================================================================
+   No Adapter Notice (Temporary - shown when no system adapter loaded)
+   ========================================================================== */
+
+.bg3-no-adapter-notice {
+    background: var(--bg3-background);
+    border: 2px solid var(--primary-border-color);
+    border-radius: 4px;
+    padding: 20px;
+    text-align: center;
+    color: var(--bg3-text);
+    min-width: 400px;
+}
+
+.bg3-no-adapter-notice p {
+    margin: 8px 0;
+    font-size: 14px;
+}
+
+.bg3-no-adapter-notice p:first-child {
+    color: #ffaa00;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.bg3-no-adapter-notice strong {
+    color: #3498db;
+}
+
+/* ==========================================================================
+   Dragging State
+   ========================================================================== */
+
+body.dragging-active {
+    cursor: ew-resize;
+    user-select: none;
+}
+

@@ -1,0 +1,44 @@
+/* BG3 HUD Core - Context Menu */
+
+/* ==========================================================================
+   Context Menu
+   ========================================================================== */
+
+.bg3-context-menu {
+    position: fixed;
+    background: var(--bg3-background);
+    border: 2px solid var(--primary-border-color);
+    border-radius: 4px;
+    padding: 4px;
+    min-width: 180px;
+    z-index: 10000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.bg3-context-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+    color: var(--bg3-text);
+    transition: all 0.15s ease;
+    border-radius: 2px;
+}
+
+.bg3-context-menu-item:hover {
+    background: var(--bg3-background-highlight);
+    color: #fff;
+}
+
+.bg3-context-menu-item i {
+    width: 16px;
+    text-align: center;
+    font-size: 14px;
+}
+
+.bg3-context-menu-label {
+    flex: 1;
+    font-size: 13px;
+}
+

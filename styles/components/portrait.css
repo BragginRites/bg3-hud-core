@@ -1,0 +1,58 @@
+/* BG3 HUD Core - Portrait Container Styles */
+
+/* ==========================================================================
+   Portrait Container
+   ========================================================================== */
+
+   #bg3-hotbar-container .bg3-portrait-container {
+    position: absolute;
+    right: 100%;
+    bottom: var(--position-bottom, 10px);
+    width: var(--bg3-portrait-size);
+    min-width: 80px;
+    height: var(--bg3-portrait-size);
+    min-height: 80px;
+    overflow: visible;
+    display: block;
+    --img-background-color: transparent;
+    margin-right: 8px;
+    z-index: 200;
+}
+
+#bg3-hotbar-container .portrait-image-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    cursor: pointer;
+    border: none;
+    outline: none;
+    box-shadow: none;
+    background-color: var(--img-background-color);
+}
+
+#bg3-hotbar-container .portrait-image-subcontainer {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+#bg3-hotbar-container .portrait-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+    border: none;
+    outline: none;
+    box-shadow: none;
+}
+
+/* .bg3-portrait-container {
+    min-width: var(--bg3-portrait-size, 175px);
+    min-height: 100px;
+    background: var(--bg3-background);
+    border: var(--primary-border-width) solid var(--primary-border-color);
+    border-radius: 4px;
+    padding: 8px;
+} */
+
