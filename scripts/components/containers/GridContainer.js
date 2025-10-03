@@ -42,13 +42,9 @@ export class GridContainer extends BG3Component {
             this.element.dataset.index = this.index;
         }
 
-        // Update CSS grid properties
+        // Set CSS custom properties for grid size (CSS will handle the actual layout)
         this.element.style.setProperty('--grid-cols', this.cols);
         this.element.style.setProperty('--grid-rows', this.rows);
-        this.element.style.display = 'grid';
-        this.element.style.gridTemplateColumns = `repeat(${this.cols}, var(--bg3-cell-size, 50px))`;
-        this.element.style.gridTemplateRows = `repeat(${this.rows}, var(--bg3-cell-size, 50px))`;
-        this.element.style.gap = '4px';
 
         // Check if we need to rebuild cells (grid size changed)
         const expectedCellCount = this.rows * this.cols;

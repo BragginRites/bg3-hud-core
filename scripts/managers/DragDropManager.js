@@ -86,6 +86,19 @@ export class DragDropManager {
 
         console.log(`BG3 HUD Core | Moving item from ${dragData.sourceSlot} to ${targetCell.col}-${targetCell.row}`);
 
+        // Detect container types
+        const sourceInWeaponSet = this.dragSourceCell.element?.closest('.bg3-weapon-set');
+        const sourceInQuickAccess = this.dragSourceCell.element?.closest('.bg3-quick-access-grid');
+        const targetInWeaponSet = targetCell.element?.closest('.bg3-weapon-set');
+        const targetInQuickAccess = targetCell.element?.closest('.bg3-quick-access-grid');
+        const sourceInHotbar = !sourceInWeaponSet && !sourceInQuickAccess;
+        const targetInHotbar = !targetInWeaponSet && !targetInQuickAccess;
+
+        // Check if this is a cross-container move
+        const isCrossContainer = (sourceInHotbar !== targetInHotbar) || 
+                                 (sourceInWeaponSet !== targetInWeaponSet) ||
+                                 (sourceInQuickAccess !== targetInQuickAccess);
+
         // Swap or move items
         const sourceData = this.dragSourceCell.data;
         const targetData = targetCell.data;
@@ -94,14 +107,23 @@ export class DragDropManager {
         await this.dragSourceCell.setData(targetData);
         await targetCell.setData(sourceData);
 
-        // Save to persistence
+        // Save to persistence based on container types
         if (this.persistenceManager) {
             const sourceSlotKey = `${this.dragSourceCell.col}-${this.dragSourceCell.row}`;
             const targetSlotKey = `${targetCell.col}-${targetCell.row}`;
             
-            // Update persistence data
-            await this.persistenceManager.updateCell(this.dragSourceCell.gridIndex || 0, sourceSlotKey, targetData);
-            await this.persistenceManager.updateCell(targetCell.gridIndex || 0, targetSlotKey, sourceData);
+            // Only update hotbar grid persistence if source/target are in hotbar grids
+            if (sourceInHotbar && targetInHotbar) {
+                // Both in hotbar - swap
+                await this.persistenceManager.updateCell(this.dragSourceCell.gridIndex || 0, sourceSlotKey, targetData);
+                await this.persistenceManager.updateCell(targetCell.gridIndex || 0, targetSlotKey, sourceData);
+            } else if (sourceInHotbar) {
+                // Source from hotbar, target elsewhere - clear hotbar cell
+                await this.persistenceManager.updateCell(this.dragSourceCell.gridIndex || 0, sourceSlotKey, targetData);
+            } else if (targetInHotbar) {
+                // Target in hotbar, source elsewhere - update hotbar cell
+                await this.persistenceManager.updateCell(targetCell.gridIndex || 0, targetSlotKey, sourceData);
+            }
         }
 
         // Notify adapter (if available)

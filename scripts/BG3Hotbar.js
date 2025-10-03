@@ -2,11 +2,13 @@ import { BG3HUD_REGISTRY } from './utils/registry.js';
 import { applyMacrobarCollapseSetting } from './utils/settings.js';
 import { DragDropManager } from './managers/DragDropManager.js';
 import { PersistenceManager } from './managers/PersistenceManager.js';
+import { InteractionCoordinator } from './managers/InteractionCoordinator.js';
+import { UpdateCoordinator } from './managers/UpdateCoordinator.js';
+import { ComponentFactory } from './managers/ComponentFactory.js';
 
 /**
  * BG3 Hotbar Application
- * Main HUD that contains all panels and components
- * Uses ApplicationV2 but configured to render without window chrome
+ * Main HUD application shell - delegates to specialized managers
  */
 export class BG3Hotbar extends foundry.applications.api.ApplicationV2 {
     /**
@@ -38,11 +40,24 @@ export class BG3Hotbar extends foundry.applications.api.ApplicationV2 {
         this.components = {};
         this.currentToken = null;
         this.currentActor = null;
-        this.dragDropManager = new DragDropManager();
+        
+        // Initialize managers
         this.persistenceManager = new PersistenceManager();
+        this.dragDropManager = new DragDropManager();
+        this.componentFactory = new ComponentFactory(this);
+        this.interactionCoordinator = new InteractionCoordinator({
+            hotbarApp: this,
+            persistenceManager: this.persistenceManager,
+            dragDropManager: this.dragDropManager,
+            get adapter() { return BG3HUD_REGISTRY.activeAdapter; }
+        });
+        this.updateCoordinator = new UpdateCoordinator({
+            hotbarApp: this,
+            persistenceManager: this.persistenceManager
+        });
 
-        // Register Foundry hooks
-        this._registerHooks();
+        // Register Foundry hooks via coordinator
+        this.updateCoordinator.registerHooks();
     }
 
     /**
@@ -54,27 +69,11 @@ export class BG3Hotbar extends foundry.applications.api.ApplicationV2 {
     }
 
     /**
-     * Refresh the hotbar (re-initialize components)
+     * Refresh the hotbar (re-render)
      */
     async refresh() {
-        console.log('BG3 HUD Core | Refreshing hotbar');
-        await this._initializeComponents();
-    }
-
-    /**
-     * Register Foundry hooks for HUD updates
-     * @private
-     */
-    _registerHooks() {
-        Hooks.on('controlToken', this._onControlToken.bind(this));
-        Hooks.on('updateToken', this._onUpdateToken.bind(this));
-        Hooks.on('updateActor', this._onUpdateActor.bind(this));
-        Hooks.on('updateCombat', this._onUpdateCombat.bind(this));
-        
-        // Active effects hooks
-        Hooks.on('createActiveEffect', this._onActiveEffectChange.bind(this));
-        Hooks.on('updateActiveEffect', this._onActiveEffectChange.bind(this));
-        Hooks.on('deleteActiveEffect', this._onActiveEffectChange.bind(this));
+        if (!this.rendered) return;
+        await this.render(false);
     }
 
     /**
@@ -123,7 +122,7 @@ export class BG3Hotbar extends foundry.applications.api.ApplicationV2 {
 
     /**
      * Initialize UI components
-     * Components are provided by system adapters
+     * Components are provided by system adapters via ComponentFactory
      * @private
      */
     async _initializeComponents() {
@@ -133,10 +132,19 @@ export class BG3Hotbar extends foundry.applications.api.ApplicationV2 {
         // Only initialize if we have a token
         if (!this.currentToken) {
             console.log('BG3 HUD Core | No token selected, skipping component initialization');
+            // Hide the UI when no token is selected
+            if (this.element) {
+                this.element.classList.add('bg3-hud-hidden');
+            }
             return;
         }
 
         console.log('BG3 HUD Core | Initializing components');
+        
+        // Hide the UI during initialization to prevent visual flicker
+        if (this.element) {
+            this.element.classList.add('bg3-hud-building');
+        }
         
         // Get the main container
         const container = this.element.querySelector('#bg3-hotbar-container');
@@ -144,68 +152,52 @@ export class BG3Hotbar extends foundry.applications.api.ApplicationV2 {
             console.error('BG3 HUD Core | Container element not found');
             return;
         }
-
-        // TODO: Uncomment this check when ready for production
-        // If no adapter is loaded, show a message
-        // if (!BG3HUD_REGISTRY.activeAdapter) {
-        //     console.log('BG3 HUD Core | No adapter loaded - HUD will be empty');
-        //     const notice = document.createElement('div');
-        //     notice.className = 'bg3-no-adapter-notice';
-        //     notice.innerHTML = `
-        //         <p>⚠️ No system adapter loaded</p>
-        //         <p>Install <strong>bg3-hud-dnd5e</strong> or <strong>bg3-hud-pf2e</strong></p>
-        //     `;
-        //     container.appendChild(notice);
-        //     return;
-        // }
         
         console.log('BG3 HUD Core | Rendering containers');
 
-        // Import core container classes
-        const { PortraitContainer } = await import('./components/containers/PortraitContainer.js');
-        const { HotbarContainer } = await import('./components/containers/HotbarContainer.js');
-
-        // Use adapter portrait if available, otherwise use base
-        const PortraitClass = BG3HUD_REGISTRY.portraitContainer || PortraitContainer;
-
-        // Initialize portrait container (always)
-        this.components.portrait = new PortraitClass({
-            actor: this.currentActor,
-            token: this.currentToken
-        });
-        const portraitElement = await this.components.portrait.render();
-        container.appendChild(portraitElement);
-
-        // Load hotbar data from persistence
+        // Set the current token in persistence manager and load UNIFIED state
         this.persistenceManager.setToken(this.currentToken);
-        const gridsData = await this.persistenceManager.load();
+        const state = await this.persistenceManager.loadState();
+
+        // Create shared interaction handlers (delegates to InteractionCoordinator)
+        const handlers = {
+            onCellClick: this.interactionCoordinator.handleClick.bind(this.interactionCoordinator),
+            onCellRightClick: this.interactionCoordinator.handleRightClick.bind(this.interactionCoordinator),
+            onCellDragStart: this.interactionCoordinator.handleDragStart.bind(this.interactionCoordinator),
+            onCellDragEnd: this.interactionCoordinator.handleDragEnd.bind(this.interactionCoordinator),
+            onCellDrop: this.interactionCoordinator.handleDrop.bind(this.interactionCoordinator)
+        };
+
+        // Create portrait container (uses adapter if available)
+        this.components.portrait = await this.componentFactory.createPortraitContainer();
+        container.appendChild(await this.components.portrait.render());
+
+        // Create wrapper for weapon sets and quick access
+        const weaponQuickWrapper = document.createElement('div');
+        weaponQuickWrapper.className = 'bg3-weapon-quick-wrapper';
+        container.appendChild(weaponQuickWrapper);
+
+        // Create weapon sets container from UNIFIED state
+        this.components.weaponSets = await this.componentFactory.createWeaponSetsContainer(state.weaponSets.sets, handlers);
+        weaponQuickWrapper.appendChild(await this.components.weaponSets.render());
+        await this.components.weaponSets.setActiveSet(state.weaponSets.activeSet, true);
+
+        // Create quick access container from UNIFIED state
+        this.components.quickAccess = await this.componentFactory.createQuickAccessContainer(state.quickAccess, handlers);
+        weaponQuickWrapper.appendChild(await this.components.quickAccess.render());
+
+        // Create hotbar container from UNIFIED state
+        this.components.hotbar = await this.componentFactory.createHotbarContainer(state.hotbar.grids, handlers);
+        container.appendChild(await this.components.hotbar.render());
         
-        // Initialize hotbar container (always) - contains multiple grids + drag bars
-        this.components.hotbar = new HotbarContainer({
-            grids: gridsData,
-            actor: this.currentActor,
-            token: this.currentToken,
-            // Drag & drop handlers
-            onCellClick: this._handleCellClick.bind(this),
-            onCellRightClick: this._handleCellRightClick.bind(this),
-            onCellDragStart: this._handleCellDragStart.bind(this),
-            onCellDragEnd: this._handleCellDragEnd.bind(this),
-            onCellDrop: this._handleCellDrop.bind(this)
-        });
-        const hotbarElement = await this.components.hotbar.render();
-        container.appendChild(hotbarElement);
+        // Create control container
+        this.components.controls = await this.componentFactory.createControlContainer();
+        this.components.hotbar.element.appendChild(await this.components.controls.render());
         
-        // Initialize control container (row controls, settings)
-        const { ControlContainer } = await import('./components/containers/ControlContainer.js');
-        this.components.controls = new ControlContainer({
-            hotbarApp: this  // Pass reference to BG3Hotbar
-        });
-        const controlsElement = await this.components.controls.render();
-        this.components.hotbar.element.appendChild(controlsElement);
-        
-        // Set adapter and persistence manager for drag drop manager
+        // Configure drag/drop manager
         if (BG3HUD_REGISTRY.activeAdapter) {
             this.dragDropManager.setAdapter(BG3HUD_REGISTRY.activeAdapter);
+            this.interactionCoordinator.setAdapter(BG3HUD_REGISTRY.activeAdapter);
         }
         this.dragDropManager.setPersistenceManager(this.persistenceManager);
 
@@ -214,6 +206,16 @@ export class BG3Hotbar extends foundry.applications.api.ApplicationV2 {
             console.log('BG3 HUD Core | Using adapter:', BG3HUD_REGISTRY.activeAdapter.constructor?.name);
         } else {
             console.log('BG3 HUD Core | Using base containers (no adapter)');
+        }
+        
+        // Show the UI with a smooth fade-in now that everything is built
+        if (this.element) {
+            // Remove building class and hidden class
+            this.element.classList.remove('bg3-hud-building', 'bg3-hud-hidden');
+            // Use a small delay to ensure the DOM has fully rendered
+            requestAnimationFrame(() => {
+                this.element.classList.add('bg3-hud-visible');
+            });
         }
     }
 
@@ -231,293 +233,10 @@ export class BG3Hotbar extends foundry.applications.api.ApplicationV2 {
     }
 
     /**
-     * Refresh the HUD
-     */
-    async refresh() {
-        if (!this.rendered) return;
-        await this.render(false);
-    }
-
-    // ========================================
-    // Foundry Hook Handlers
-    // ========================================
-
-    /**
-     * Handle token control
-     * @param {Token} token - Controlled token
-     * @param {boolean} controlled - Whether token is controlled
-     * @private
-     */
-    async _onControlToken(token, controlled) {
-        if (controlled) {
-            this.currentToken = token;
-            this.currentActor = token.actor;
-            console.log('BG3 HUD Core | Token controlled:', token.name);
-        } else {
-            this.currentToken = null;
-            this.currentActor = null;
-            console.log('BG3 HUD Core | Token deselected');
-        }
-        await this.refresh();
-    }
-
-    /**
-     * Handle token update
-     * @param {Token} token - Updated token
-     * @param {Object} changes - Changes made
-     * @private
-     */
-    async _onUpdateToken(token, changes) {
-        if (token !== this.currentToken) return;
-
-        // Don't refresh on HP bar changes - these are visual only and handled by actor updates
-        // Common token properties that don't require HUD refresh:
-        // - bar values (actorData.system.attributes.hp) - handled by _onUpdateActor
-        // - x, y (position)
-        // - rotation
-        // - hidden
-        // - elevation
-        const ignoredProperties = ['x', 'y', 'rotation', 'hidden', 'elevation'];
-        const changedKeys = Object.keys(changes);
-        const shouldIgnore = changedKeys.every(key => ignoredProperties.includes(key));
-        
-        if (shouldIgnore) {
-            return; // Don't refresh for position/visibility changes
-        }
-
-        await this.refresh();
-    }
-
-    /**
-     * Handle actor update
-     * @param {Actor} actor - Updated actor
-     * @param {Object} changes - Changes made
-     * @private
-     */
-    async _onUpdateActor(actor, changes) {
-        if (actor !== this.currentActor) return;
-
-        // If this update was triggered by our own persistence save, skip to avoid redundant rerender
-        if (this.persistenceManager?._lastSaveWasLocal) {
-            this.persistenceManager._lastSaveWasLocal = false;
-            return;
-        }
-
-        // Targeted update: when our hotbar flag changes, update grids in place instead of full refresh
-        const moduleId = this.persistenceManager?.MODULE_ID || 'bg3-hud-core';
-        const flagName = this.persistenceManager?.FLAG_NAME || 'hotbarData';
-        const moduleFlags = changes?.flags?.[moduleId];
-        const hotbarChanged = moduleFlags && Object.prototype.hasOwnProperty.call(moduleFlags, flagName);
-
-        if (hotbarChanged && this.components?.hotbar) {
-            try {
-                // Get latest grids data
-                const latest = actor.getFlag(moduleId, flagName) ?? this.persistenceManager?.getGridsData?.();
-                if (Array.isArray(latest)) {
-                    this.persistenceManager.gridsData = foundry.utils.deepClone(latest);
-                    // Update hotbar container in place
-                    this.components.hotbar.grids = this.persistenceManager.gridsData;
-                    for (let i = 0; i < this.components.hotbar.grids.length; i++) {
-                        const gridData = this.components.hotbar.grids[i];
-                        const gridContainer = this.components.hotbar.gridContainers[i];
-                        if (gridContainer) {
-                            gridContainer.rows = gridData.rows;
-                            gridContainer.cols = gridData.cols;
-                            gridContainer.items = gridData.items || {};
-                            await gridContainer.render();
-                        }
-                    }
-                    return; // Avoid full refresh
-                }
-            } catch (e) {
-                console.warn('BG3 HUD Core | Targeted hotbar update failed, falling back to refresh', e);
-            }
-        }
-
-        // Targeted update: when adapter flags change (e.g., selectedPassives), update only affected containers
-        const adapterModuleFlags = changes?.flags?.['bg3-hud-dnd5e']; // Check adapter flags
-        if (adapterModuleFlags) {
-            let updated = false;
-            
-            // If selectedPassives changed, update passives container only
-            if (Object.prototype.hasOwnProperty.call(adapterModuleFlags, 'selectedPassives')) {
-                if (this.components?.hotbar?.passivesContainer) {
-                    await this.components.hotbar.passivesContainer.render();
-                    updated = true;
-                }
-            }
-            
-            // If we handled the update, don't do full refresh
-            if (updated) return;
-        }
-
-        // Targeted update: when HP changes, update portrait container only
-        // Check if HP changed
-        const hpChanged = changes?.system?.attributes?.hp;
-        if (hpChanged) {
-            const portraitContainer = this.components?.portrait;
-            if (portraitContainer && typeof portraitContainer.updateHealth === 'function') {
-                await portraitContainer.updateHealth();
-                return;
-            }
-        }
-
-        await this.refresh();
-    }
-
-    /**
-     * Handle combat update
-     * @param {Combat} combat - Updated combat
-     * @param {Object} changes - Changes made
-     * @private
-     */
-    async _onUpdateCombat(combat, changes) {
-        // Refresh if it's the current combatant's turn
-        const combatant = combat.combatant;
-        if (combatant && combatant.token === this.currentToken) {
-            await this.refresh();
-        }
-    }
-
-    /**
-     * Handle active effect changes
-     * Optimized: Only updates the active effects container, not full HUD
-     * @param {ActiveEffect} effect - The effect that changed
-     * @param {Object} changes - Changes made (for updates)
-     * @private
-     */
-    async _onActiveEffectChange(effect, changes) {
-        // Only update if the effect belongs to the current actor
-        if (effect.parent === this.currentActor) {
-            // Targeted update: just re-render the active effects container
-            // The container will intelligently add/remove/update only changed effects
-            if (this.components?.hotbar?.activeEffectsContainer) {
-                await this.components.hotbar.activeEffectsContainer.render();
-            }
-        }
-    }
-
-    /**
      * Clean up when closing
      */
     async close(options = {}) {
         this._destroyComponents();
         return super.close(options);
-    }
-
-    /* -------------------------------------------- */
-    /*  Cell Interaction Handlers                   */
-    /* -------------------------------------------- */
-
-    /**
-     * Handle cell click
-     * @param {GridCell} cell - The clicked cell
-     * @param {MouseEvent} event - The click event
-     * @private
-     */
-    _handleCellClick(cell, event) {
-        console.log('BG3 HUD Core | Cell clicked:', cell.index, cell.data);
-        
-        // If no data in cell, do nothing
-        if (!cell.data) return;
-
-        // Call adapter's click handler if available
-        if (BG3HUD_REGISTRY.activeAdapter && typeof BG3HUD_REGISTRY.activeAdapter.onCellClick === 'function') {
-            BG3HUD_REGISTRY.activeAdapter.onCellClick(cell, event);
-        } else {
-            console.log('BG3 HUD Core | No adapter click handler - cell has data:', cell.data);
-        }
-    }
-
-    /**
-     * Handle cell right-click
-     * @param {GridCell} cell - The right-clicked cell
-     * @param {MouseEvent} event - The click event
-     * @private
-     */
-    async _handleCellRightClick(cell, event) {
-        console.log('BG3 HUD Core | Cell right-clicked:', cell.index, cell.data);
-
-        // Build context menu items
-        const menuItems = [];
-
-        // Core menu items (always available)
-        if (cell.data) {
-            menuItems.push({
-                label: 'Remove Item',
-                icon: 'fas fa-trash',
-                onClick: async () => {
-                    await this._removeCell(cell);
-                }
-            });
-        }
-
-        // Let adapter add custom menu items
-        if (BG3HUD_REGISTRY.activeAdapter && typeof BG3HUD_REGISTRY.activeAdapter.getCellMenuItems === 'function') {
-            const adapterItems = await BG3HUD_REGISTRY.activeAdapter.getCellMenuItems(cell);
-            if (adapterItems && adapterItems.length > 0) {
-                menuItems.push(...adapterItems);
-            }
-        }
-
-        // Show context menu if we have items
-        if (menuItems.length > 0) {
-            const { ContextMenu } = await import('./components/ui/ContextMenu.js');
-            const menu = new ContextMenu({
-                items: menuItems,
-                event: event,
-                parent: document.body
-            });
-            await menu.render();
-        }
-    }
-
-    /**
-     * Remove item from a cell
-     * @param {GridCell} cell - The cell to clear
-     * @private
-     */
-    async _removeCell(cell) {
-        console.log('BG3 HUD Core | Removing item from cell:', cell.index);
-        
-        // Clear the cell
-        await cell.setData(null);
-
-        // Update persistence
-        const slotKey = `${cell.col}-${cell.row}`;
-        await this.persistenceManager.updateCell(cell.gridIndex, slotKey, null);
-
-        ui.notifications.info('Item removed from hotbar');
-    }
-
-    /**
-     * Handle cell drag start
-     * @param {GridCell} cell - The cell being dragged
-     * @param {DragEvent} event - The drag event
-     * @private
-     */
-    _handleCellDragStart(cell, event) {
-        this.dragDropManager.onDragStart(cell, event);
-    }
-
-    /**
-     * Handle cell drag end
-     * @param {GridCell} cell - The cell that was dragged
-     * @param {DragEvent} event - The drag event
-     * @private
-     */
-    _handleCellDragEnd(cell, event) {
-        this.dragDropManager.onDragEnd(cell, event);
-    }
-
-    /**
-     * Handle cell drop
-     * @param {GridCell} cell - The cell being dropped on
-     * @param {DragEvent} event - The drop event
-     * @param {Object} dragData - The drag data
-     * @private
-     */
-    async _handleCellDrop(cell, event, dragData) {
-        await this.dragDropManager.onDrop(cell, event, dragData);
     }
 }

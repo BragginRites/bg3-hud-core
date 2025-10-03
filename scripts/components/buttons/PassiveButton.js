@@ -103,9 +103,12 @@ export class PassiveButton extends BG3Component {
         const img = this.createElement('img');
         img.src = this.getImage();
         img.alt = this.getLabel();
-        img.title = this.getLabel();
 
         this.element.appendChild(img);
+
+        // Add custom tooltip
+        this.element.dataset.tooltip = this.getLabel();
+        this.element.dataset.tooltipDirection = 'UP';
 
         // Register events
         this._registerEvents();
@@ -144,8 +147,13 @@ export class PassiveButton extends BG3Component {
             const newLabel = this.getLabel();
             if (img.alt !== newLabel) {
                 img.alt = newLabel;
-                img.title = newLabel;
             }
+        }
+
+        // Update tooltip
+        const newTooltip = this.getLabel();
+        if (this.element.dataset.tooltip !== newTooltip) {
+            this.element.dataset.tooltip = newTooltip;
         }
 
         // Update data attributes

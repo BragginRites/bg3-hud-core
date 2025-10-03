@@ -1,0 +1,160 @@
+/* ==========================================================================
+   Weapon Set Container
+   ========================================================================== */
+
+   :root {
+    --bg3-weapon-cell-size: 75px;
+    --bg3-weapon-border-size: 2px;
+    --bg3-weapon-border-color: #2f2f2f;
+    --bg3-weapon-background-color: rgba(0, 0, 0, 0.5);
+    --weapon-opacity: 0.6;
+    --weapon-scale: 0.6;
+    --weapon-translate-up: -50%;
+    --weapon-translate-down: 50%;
+}
+
+/* ==========================================================================
+   Weapon + Quick Access Wrapper
+   ========================================================================== */
+
+#bg3-hotbar-container .bg3-weapon-quick-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    align-self: flex-end;
+    margin-left: 20px;
+    margin-right: 20px;
+}
+
+#bg3-hotbar-container .bg3-weapon-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: var(--bg3-weapon-cell-size);
+    min-height: calc(var(--bg3-weapon-cell-size) * 1.6);
+    transform-style: preserve-3d;
+    position: relative;
+    width: calc(2 * (var(--bg3-weapon-cell-size) + 1px));
+    z-index: 100;
+}
+
+/* ==========================================================================
+   Weapon Set Grid
+   ========================================================================== */
+
+#bg3-hotbar-container .bg3-weapon-set {
+    position: absolute;
+    left: 0;
+    top: 0;
+    margin: auto;
+    transition: all 0.4s ease;
+    cursor: pointer;
+    padding: 0;
+    width: fit-content;
+    height: fit-content;
+    border-radius: 10px;
+    /* Override grid template to use weapon cell size */
+    grid-template-columns: repeat(var(--grid-cols, 2), var(--bg3-weapon-cell-size));
+    grid-template-rows: repeat(var(--grid-rows, 1), var(--bg3-weapon-cell-size));
+}
+
+#bg3-hotbar-container .bg3-weapon-set .bg3-grid-cell {
+    width: var(--bg3-weapon-cell-size);
+    height: var(--bg3-weapon-cell-size);
+}
+
+/* Set number indicator (I, II, III) */
+#bg3-hotbar-container .bg3-weapon-set::before {
+    content: "I";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+    color: var(--color-text-light-primary, #fff);
+    font-size: 24px;
+    font-family: 'Roboto Slab', serif;
+    z-index: 50;
+    pointer-events: none;
+    border: var(--bg3-border);
+    background: var(--bg3-weapon-background-color);
+    border-radius: 50%;
+    width: calc(var(--bg3-weapon-cell-size) / 2);
+    height: calc(var(--bg3-weapon-cell-size) / 2);
+    text-align: center;
+}
+
+#bg3-hotbar-container .bg3-weapon-set[data-container-index="1"]::before {
+    content: "II";
+}
+
+#bg3-hotbar-container .bg3-weapon-set[data-container-index="2"]::before {
+    content: "III";
+}
+
+/* Weapon set cells */
+#bg3-hotbar-container .bg3-weapon-set .bg3-grid-cell {
+    padding: 4px;
+    border: var( --bg3-border)
+}
+
+#bg3-hotbar-container .bg3-weapon-set .bg3-grid-cell:first-of-type {
+    border-radius: 10px 5px 5px 10px;
+}
+
+#bg3-hotbar-container .bg3-weapon-set .bg3-grid-cell:last-of-type {
+    border-radius: 5px 10px 10px 5px;
+}
+
+/* ==========================================================================
+   Active Set Positioning (3D Carousel Effect)
+   ========================================================================== */
+
+/* Disable pointer events during transition */
+@keyframes disable-pointer-events {
+    0%, 99% {
+        pointer-events: none;  
+    }  
+}
+
+/* Active set (Set 0, 1, or 2) */
+#bg3-hotbar-container .bg3-weapon-container[data-active-set="0"] .bg3-weapon-set[data-container-index="0"],
+#bg3-hotbar-container .bg3-weapon-container[data-active-set="1"] .bg3-weapon-set[data-container-index="1"],
+#bg3-hotbar-container .bg3-weapon-container[data-active-set="2"] .bg3-weapon-set[data-container-index="2"] {
+    transform: translateY(0%) scale(1);
+    opacity: 1;
+    z-index: 2;
+    animation: disable-pointer-events 400ms;
+}
+
+/* Set above active (previous in cycle) */
+#bg3-hotbar-container .bg3-weapon-container[data-active-set="0"] .bg3-weapon-set[data-container-index="2"],
+#bg3-hotbar-container .bg3-weapon-container[data-active-set="1"] .bg3-weapon-set[data-container-index="0"],
+#bg3-hotbar-container .bg3-weapon-container[data-active-set="2"] .bg3-weapon-set[data-container-index="1"] {
+    transform: translateY(var(--weapon-translate-down)) scale(var(--weapon-scale));
+    opacity: var(--weapon-opacity);
+    z-index: 1;
+}
+
+/* Set below active (next in cycle) */
+#bg3-hotbar-container .bg3-weapon-container[data-active-set="0"] .bg3-weapon-set[data-container-index="1"],
+#bg3-hotbar-container .bg3-weapon-container[data-active-set="1"] .bg3-weapon-set[data-container-index="2"],
+#bg3-hotbar-container .bg3-weapon-container[data-active-set="2"] .bg3-weapon-set[data-container-index="0"] {
+    transform: translateY(var(--weapon-translate-up)) scale(var(--weapon-scale));
+    opacity: var(--weapon-opacity);
+    z-index: 1;
+}
+
+/* Disable click events on inactive set cells, but allow drag-and-drop */
+#bg3-hotbar-container .bg3-weapon-container[data-active-set="0"] .bg3-weapon-set[data-container-index="1"] .bg3-grid-cell,
+#bg3-hotbar-container .bg3-weapon-container[data-active-set="0"] .bg3-weapon-set[data-container-index="2"] .bg3-grid-cell,
+#bg3-hotbar-container .bg3-weapon-container[data-active-set="1"] .bg3-weapon-set[data-container-index="0"] .bg3-grid-cell,
+#bg3-hotbar-container .bg3-weapon-container[data-active-set="1"] .bg3-weapon-set[data-container-index="2"] .bg3-grid-cell,
+#bg3-hotbar-container .bg3-weapon-container[data-active-set="2"] .bg3-weapon-set[data-container-index="0"] .bg3-grid-cell,
+#bg3-hotbar-container .bg3-weapon-container[data-active-set="2"] .bg3-weapon-set[data-container-index="1"] .bg3-grid-cell {
+    pointer-events: auto; /* Allow drops, but block clicks via JS */
+}
+

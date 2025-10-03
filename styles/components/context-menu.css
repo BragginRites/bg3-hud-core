@@ -42,3 +42,10 @@
     font-size: 13px;
 }
 
+.bg3-context-menu-separator {
+    height: 1px;
+    background: var(--primary-border-color);
+    margin: 4px 8px;
+    opacity: 0.5;
+}
+

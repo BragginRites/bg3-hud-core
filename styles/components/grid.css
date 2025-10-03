@@ -7,6 +7,8 @@
 .bg3-grid-container {
     display: grid;
     gap: 4px;
+    grid-template-columns: repeat(var(--grid-cols, 1), var(--bg3-cell-size, 50px));
+    grid-template-rows: repeat(var(--grid-rows, 1), var(--bg3-cell-size, 50px));
 }
 
 /* ==========================================================================

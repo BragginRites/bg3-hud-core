@@ -37,6 +37,13 @@ export class ContextMenu extends BG3Component {
 
         // Create menu items
         for (const item of visibleItems) {
+            // Handle separators
+            if (item.separator) {
+                const separator = this.createElement('div', ['bg3-context-menu-separator']);
+                this.element.appendChild(separator);
+                continue;
+            }
+
             const menuItem = this.createElement('div', ['bg3-context-menu-item']);
             
             if (item.icon) {

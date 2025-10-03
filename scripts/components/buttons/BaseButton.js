@@ -37,9 +37,10 @@ export class BaseButton extends BG3Component {
             this.element.dataset.key = this.key;
         }
 
-        // Add tooltip if provided
+        // Add tooltip if provided (using custom BG3 tooltip system)
         if (this.tooltip) {
-            this.element.title = this.tooltip;
+            this.element.dataset.tooltip = this.tooltip;
+            this.element.dataset.tooltipDirection = this.tooltipDirection || 'UP';
         }
 
         // Add icon if provided

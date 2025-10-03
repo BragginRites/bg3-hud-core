@@ -89,15 +89,3 @@
     border-color: var(--bg3-background-highlight);
     transform: scale(1.05);
 }
-
-/* Configuration hint (shown on hover of gear icon) */
-#bg3-hotbar-container .bg3-passives-container:hover::after {
-    content: 'Configure Passives';
-    position: absolute;
-    bottom: -20px;
-    left: 0;
-    font-size: 0.8em;
-    color: rgba(255, 255, 255, 0.6);
-    white-space: nowrap;
-    pointer-events: none;
-}

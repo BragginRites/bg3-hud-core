@@ -63,6 +63,18 @@
     opacity: var(--bg3-faded-opacity, var(--bg3-normal-opacity));
 }
 
+/* Hide HUD during initialization to prevent visual flicker */
+.bg3-hud.bg3-hud-building,
+.bg3-hud.bg3-hud-hidden {
+    opacity: 0 !important;
+    pointer-events: none;
+}
+
+/* Smooth fade-in when HUD is ready */
+.bg3-hud.bg3-hud-visible {
+    transition: opacity 0.3s ease-in-out;
+}
+
 #bg3-hotbar-container[data-under-pause="true"] {
     z-index: var(--z-index-canvas);
 }

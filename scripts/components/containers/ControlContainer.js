@@ -111,8 +111,11 @@ export class ControlContainer extends BG3Component {
             key: 'control-settings',
             classes: ['hotbar-control-button'],
             icon: 'fa-cog',
-            tooltip: 'Settings',
+            tooltip: 'Settings<br>(Right-click for quick actions)',
             onClick: async (event) => {
+                await this._openModuleSettings();
+            },
+            onRightClick: async (event) => {
                 await this._showSettingsMenu(event);
             }
         };
@@ -242,7 +245,32 @@ export class ControlContainer extends BG3Component {
     }
 
     /**
-     * Show settings menu
+     * Open module settings in Foundry's settings window
+     * @private
+     */
+    async _openModuleSettings() {
+        // Open the Foundry settings window
+        const menu = game.settings.menus.get('bg3-hud-core.settingsMenu');
+        if (menu) {
+            // If there's a registered settings menu, open it
+            const app = new menu.type();
+            app.render(true);
+        } else {
+            // Otherwise, open the module configuration directly
+            const setting = game.settings.settings.get('bg3-hud-core');
+            if (setting) {
+                new SettingsConfig().render(true, {
+                    filter: 'bg3-hud-core'
+                });
+            } else {
+                // Fallback: open general settings
+                new SettingsConfig().render(true);
+            }
+        }
+    }
+
+    /**
+     * Show settings menu (right-click context menu)
      * @param {MouseEvent} event - Click event
      * @private
      */
@@ -323,47 +351,104 @@ export class ControlContainer extends BG3Component {
     }
 
     /**
-     * Clear all items from hotbar
+     * Clear all items from ALL containers (hotbar, weapon sets, quick access)
      * @private
      */
     async _clearAllItems() {
         if (!this.hotbarApp) return;
 
+        // Clear hotbar grids
         const hotbarContainer = this.hotbarApp.components.hotbar;
-        
-        // Clear items from all grids
-        for (let i = 0; i < hotbarContainer.grids.length; i++) {
-            hotbarContainer.grids[i].items = {};
+        if (hotbarContainer) {
+            for (let i = 0; i < hotbarContainer.grids.length; i++) {
+                hotbarContainer.grids[i].items = {};
+            }
+
+            // Update each grid container
+            for (let i = 0; i < hotbarContainer.gridContainers.length; i++) {
+                const gridContainer = hotbarContainer.gridContainers[i];
+                gridContainer.items = {};
+                await gridContainer.render();
+            }
+
+            // Save hotbar
+            await this.hotbarApp.persistenceManager.save(hotbarContainer.grids);
         }
 
-        // Update each grid container individually
-        for (let i = 0; i < hotbarContainer.gridContainers.length; i++) {
-            const gridContainer = hotbarContainer.gridContainers[i];
-            gridContainer.items = {};
-            await gridContainer.render();
+        // Clear weapon sets
+        const weaponSetsContainer = this.hotbarApp.components.weaponSets;
+        if (weaponSetsContainer) {
+            for (let i = 0; i < weaponSetsContainer.weaponSets.length; i++) {
+                weaponSetsContainer.weaponSets[i].items = {};
+            }
+
+            // Update each weapon set grid container
+            for (let i = 0; i < weaponSetsContainer.gridContainers.length; i++) {
+                const gridContainer = weaponSetsContainer.gridContainers[i];
+                gridContainer.items = {};
+                await gridContainer.render();
+            }
+
+            // Save weapon sets
+            await this.hotbarApp.persistenceManager.saveWeaponSets(weaponSetsContainer.weaponSets);
         }
 
-        // Save
-        await this.hotbarApp.persistenceManager.save(hotbarContainer.grids);
+        // Clear quick access
+        const quickAccessContainer = this.hotbarApp.components.quickAccess;
+        if (quickAccessContainer) {
+            quickAccessContainer.gridData.items = {};
 
-        ui.notifications.info('All items cleared from hotbar');
+            // Update quick access grid container
+            if (quickAccessContainer.gridContainer) {
+                quickAccessContainer.gridContainer.items = {};
+                await quickAccessContainer.gridContainer.render();
+            }
+
+            // Save quick access
+            await this.hotbarApp.persistenceManager.saveQuickAccess(quickAccessContainer.gridData);
+        }
+
+        ui.notifications.info('All items cleared from all containers');
     }
 
     /**
-     * Export layout as JSON
+     * Export layout as JSON (ALL PANELS by default)
+     * Includes hotbar, weapon sets, active set index, and quick access
      * @private
      */
     _exportLayout() {
         if (!this.hotbarApp) return;
 
-        const layout = this.hotbarApp.persistenceManager.getGridsData();
-        const dataStr = JSON.stringify(layout, null, 2);
+        const actor = this.hotbarApp.currentActor;
+        const token = this.hotbarApp.currentToken;
+
+        // Gather data from all panels via persistence manager
+        const hotbar = this.hotbarApp.persistenceManager.getGridsData();
+        const weaponSets = this.hotbarApp.persistenceManager.getWeaponSetsData();
+        const activeWeaponSet = actor?.getFlag('bg3-hud-core', 'activeWeaponSet') ?? 0;
+        const quickAccess = this.hotbarApp.persistenceManager.getQuickAccessData();
+
+        const exportPayload = {
+            meta: {
+                module: 'bg3-hud-core',
+                version: 'prototype',
+                timestamp: new Date().toISOString(),
+                actorUuid: actor?.uuid || null,
+                tokenId: token?.id || null
+            },
+            hotbar,
+            weaponSets,
+            activeWeaponSet,
+            quickAccess
+        };
+
+        const dataStr = JSON.stringify(exportPayload, null, 2);
         const blob = new Blob([dataStr], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         
         const link = document.createElement('a');
         link.href = url;
-        link.download = `bg3-hotbar-layout-${Date.now()}.json`;
+        link.download = `bg3-hud-full-layout-${Date.now()}.json`;
         link.click();
         
         URL.revokeObjectURL(url);

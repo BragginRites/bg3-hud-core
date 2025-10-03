@@ -50,9 +50,12 @@ export class ActiveEffectButton extends BG3Component {
         img.src = this.effect.img || this.effect.icon || 'icons/svg/aura.svg'; // Fallback icon
         const effectName = this._getEffectName();
         img.alt = effectName;
-        img.title = effectName;
 
         this.element.appendChild(img);
+
+        // Add custom tooltip
+        this.element.dataset.tooltip = effectName;
+        this.element.dataset.tooltipDirection = 'UP';
 
         // Update disabled state
         this._updateDisabledState();
@@ -140,8 +143,13 @@ export class ActiveEffectButton extends BG3Component {
             const newAlt = this._getEffectName();
             if (img.alt !== newAlt) {
                 img.alt = newAlt;
-                img.title = newAlt;
             }
+        }
+
+        // Update tooltip
+        const newTooltip = this._getEffectName();
+        if (this.element.dataset.tooltip !== newTooltip) {
+            this.element.dataset.tooltip = newTooltip;
         }
 
         // Update data attributes
