@@ -82,6 +82,14 @@ export class GridCell extends BG3Component {
         this.element.setAttribute('data-slot', slotKey);
         this.element.setAttribute('draggable', true);
 
+        // Store UUID for later retrieval
+        if (this.data.uuid) {
+            this.element.dataset.uuid = this.data.uuid;
+            
+            // Fetch full item data to extract metadata for filtering
+            await this._extractItemMetadata();
+        }
+
         // Add item image
         if (this.data.img) {
             const img = this.createElement('img', ['hotbar-item']);
@@ -122,10 +130,45 @@ export class GridCell extends BG3Component {
             quantityDiv.textContent = this.data.quantity;
             this.element.appendChild(quantityDiv);
         }
+    }
 
-        // Store UUID for later retrieval
-        if (this.data.uuid) {
-            this.element.dataset.uuid = this.data.uuid;
+    /**
+     * Extract item metadata for filtering (system-agnostic with system-specific data)
+     * @private
+     */
+    async _extractItemMetadata() {
+        try {
+            const item = await fromUuid(this.data.uuid);
+            if (!item) return;
+
+            // Store item type (universal)
+            this.element.dataset.itemType = item.type;
+
+            // D&D 5e specific: spell level and preparation mode
+            if (item.type === 'spell' && item.system?.level !== undefined) {
+                this.element.dataset.level = item.system.level;
+                if (item.system.preparation?.mode) {
+                    this.element.dataset.preparationMode = item.system.preparation.mode;
+                }
+            }
+
+            // D&D 5e specific: extract activity action types
+            if (item.system?.activities instanceof Map && item.system.activities.size > 0) {
+                const activityActionTypes = Array.from(item.system.activities.values())
+                    .filter(activity => activity.activation?.type)
+                    .map(activity => activity.activation.type);
+                
+                if (activityActionTypes.length > 0) {
+                    this.element.dataset.activityActionTypes = [...new Set(activityActionTypes)].join(',');
+                }
+            }
+
+            // Legacy D&D 5e: fallback to old activation.type
+            if (item.system?.activation?.type) {
+                this.element.dataset.actionType = item.system.activation.type.toLowerCase();
+            }
+        } catch (error) {
+            console.warn('BG3 HUD | Failed to extract item metadata:', error);
         }
     }
 

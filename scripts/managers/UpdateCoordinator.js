@@ -235,11 +235,12 @@ export class UpdateCoordinator {
 
     /**
      * Handle combat state changes (start/end/turn)
-     * Update action buttons visibility without full refresh
+     * Update action buttons visibility and reset filters
      * @private
      */
     _onCombatStateChange() {
         this._updateActionButtonsVisibility();
+        this._resetFilters();
     }
 
     /**
@@ -250,6 +251,18 @@ export class UpdateCoordinator {
         const actionButtons = this.hotbarApp.components?.actionButtons;
         if (actionButtons && typeof actionButtons.updateVisibility === 'function') {
             actionButtons.updateVisibility();
+        }
+    }
+
+    /**
+     * Reset filter container used filters
+     * Called on turn start and combat end
+     * @private
+     */
+    _resetFilters() {
+        const filters = this.hotbarApp.components?.filters;
+        if (filters && typeof filters.resetUsedFilters === 'function') {
+            filters.resetUsedFilters();
         }
     }
 

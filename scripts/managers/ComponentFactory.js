@@ -107,6 +107,26 @@ export class ComponentFactory {
     }
 
     /**
+     * Create filter container
+     * Uses adapter implementation if available, otherwise returns null
+     * @returns {Promise<FilterContainer|null>}
+     */
+    async createFilterContainer() {
+        const { FilterContainer } = await import('../components/containers/FilterContainer.js');
+        
+        // Check if adapter provides a filter container class
+        const FilterClass = BG3HUD_REGISTRY.filterContainer;
+        
+        // Only create if adapter registered a custom class and we have an actor
+        if (!this.hotbarApp.currentActor || !FilterClass) return null;
+        
+        return new FilterClass({
+            actor: this.hotbarApp.currentActor,
+            token: this.hotbarApp.currentToken
+        });
+    }
+
+    /**
      * Create control container
      * @returns {Promise<ControlContainer>}
      */
