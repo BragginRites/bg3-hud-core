@@ -403,3 +403,12 @@
     background: #27ae60;
 }
 
+.bg3-dialog-buttons .bg3-button-secondary {
+    background: rgba(100, 100, 100, 0.3);
+    color: var(--bg3-text, #ddd);
+}
+
+.bg3-dialog-buttons .bg3-button-secondary:hover {
+    background: rgba(100, 100, 100, 0.5);
+}
+

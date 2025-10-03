@@ -34,10 +34,6 @@ export class DragBar extends BG3Component {
         this.element = this.createElement('div', ['bg3-drag-bar']);
         this.element.dataset.index = this.index;
 
-        // Create drag indicator (visual feedback line)
-        const indicator = this.createElement('div', ['drag-indicator']);
-        this.element.appendChild(indicator);
-
         // Add drag icon
         const icon = this.createElement('i', ['fas', 'fa-grip-vertical']);
         this.element.appendChild(icon);
@@ -63,7 +59,6 @@ export class DragBar extends BG3Component {
 
         // Add visual feedback
         this.element.classList.add('dragging');
-        this.element.querySelector('.drag-indicator').classList.add('visible');
         document.body.classList.add('dragging-active');
 
         // Add document-level listeners
@@ -87,10 +82,6 @@ export class DragBar extends BG3Component {
         // Calculate delta
         this.deltaX = event.clientX - this.startX;
 
-        // Update indicator position
-        const indicator = this.element.querySelector('.drag-indicator');
-        indicator.style.transform = `translateX(${this.deltaX}px)`;
-
         // Call callback if provided
         if (this.options.onDrag) {
             this.options.onDrag(this, this.deltaX, event);
@@ -110,9 +101,6 @@ export class DragBar extends BG3Component {
         
         // Remove visual feedback
         this.element.classList.remove('dragging');
-        const indicator = this.element.querySelector('.drag-indicator');
-        indicator.classList.remove('visible');
-        indicator.style.transform = '';
         document.body.classList.remove('dragging-active');
 
         // Remove document-level listeners

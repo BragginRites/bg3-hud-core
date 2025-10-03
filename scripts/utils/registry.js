@@ -8,6 +8,7 @@ export const BG3HUD_REGISTRY = {
     passivesContainer: null,
     actionContainer: null,
     abilityContainer: null,
+    actionButtonsContainer: null,
     
     // Additional containers registered by adapters (e.g., rest/turn, weapon)
     containers: {},
@@ -58,6 +59,15 @@ export const BG3HUD_API = {
     registerAbilityContainer(containerClass) {
         console.log('BG3 HUD Core | Registering ability container:', containerClass.name);
         BG3HUD_REGISTRY.abilityContainer = containerClass;
+    },
+
+    /**
+     * Register an action buttons container class
+     * @param {Class} containerClass - Class that extends ActionButtonsContainer
+     */
+    registerActionButtonsContainer(containerClass) {
+        console.log('BG3 HUD Core | Registering action buttons container:', containerClass.name);
+        BG3HUD_REGISTRY.actionButtonsContainer = containerClass;
     },
 
     /**

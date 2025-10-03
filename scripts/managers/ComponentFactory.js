@@ -76,7 +76,33 @@ export class ComponentFactory {
             grids: gridsData,
             actor: this.hotbarApp.currentActor,
             token: this.hotbarApp.currentToken,
+            hotbarApp: this.hotbarApp,
             ...handlers
+        });
+    }
+
+    /**
+     * Create action buttons container
+     * Uses adapter implementation if available, otherwise returns null
+     * @returns {Promise<ActionButtonsContainer|null>}
+     */
+    async createActionButtonsContainer() {
+        const { ActionButtonsContainer } = await import('../components/containers/ActionButtonsContainer.js');
+        
+        // Check if adapter provides an action buttons container class
+        const ActionButtonsClass = BG3HUD_REGISTRY.actionButtonsContainer || ActionButtonsContainer;
+        
+        // Only create if we have an actor and either:
+        // 1. Adapter registered a custom class, or
+        // 2. Adapter provides a getActionButtons method
+        const adapter = BG3HUD_REGISTRY.activeAdapter;
+        if (!this.hotbarApp.currentActor) return null;
+        if (!adapter?.getActionButtons && ActionButtonsClass === ActionButtonsContainer) return null;
+        
+        return new ActionButtonsClass({
+            actor: this.hotbarApp.currentActor,
+            token: this.hotbarApp.currentToken,
+            getButtons: adapter?.getActionButtons ? () => adapter.getActionButtons() : undefined
         });
     }
 

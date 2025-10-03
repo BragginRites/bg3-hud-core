@@ -190,6 +190,12 @@ export class BG3Hotbar extends foundry.applications.api.ApplicationV2 {
         this.components.hotbar = await this.componentFactory.createHotbarContainer(state.hotbar.grids, handlers);
         container.appendChild(await this.components.hotbar.render());
         
+        // Create action buttons container (rest/turn buttons if adapter provides them)
+        this.components.actionButtons = await this.componentFactory.createActionButtonsContainer();
+        if (this.components.actionButtons) {
+            container.appendChild(await this.components.actionButtons.render());
+        }
+        
         // Create control container
         this.components.controls = await this.componentFactory.createControlContainer();
         this.components.hotbar.element.appendChild(await this.components.controls.render());

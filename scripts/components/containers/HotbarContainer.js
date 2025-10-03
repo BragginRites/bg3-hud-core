@@ -178,59 +178,83 @@ export class HotbarContainer extends BG3Component {
      * @private
      */
     /**
-     * Handle drag bar end - resize grids
+     * Handle drag bar move - update containers in real-time
      * @param {DragBar} bar - The drag bar
-     * @param {number} deltaX - Final pixel delta
+     * @param {number} deltaX - Current pixel delta
      * @private
      */
-    async _onDragBarEnd(bar, deltaX) {
+    async _onDragBarMove(bar, deltaX) {
         const cellWidth = 54; // var(--bg3-cell-size) + gap
         const deltaColsRounded = Math.round(deltaX / cellWidth);
 
-        if (Math.abs(deltaColsRounded) >= 1) {
-            // Get the two grid containers and their data
-            const leftGridContainer = this.gridContainers[bar.index];
-            const rightGridContainer = this.gridContainers[bar.index + 1];
-            const leftGrid = this.grids[bar.index];
-            const rightGrid = this.grids[bar.index + 1];
+        // Get the two grid containers
+        const leftGridContainer = this.gridContainers[bar.index];
+        const rightGridContainer = this.gridContainers[bar.index + 1];
+        const leftGrid = this.grids[bar.index];
+        const rightGrid = this.grids[bar.index + 1];
+        
+        if (!leftGridContainer || !rightGridContainer) return;
 
-            // Calculate the total columns between these two grids (conserved)
-            const totalCols = leftGrid.cols + rightGrid.cols;
+        // Store original column counts if not already stored
+        if (leftGridContainer._originalCols === undefined) {
+            leftGridContainer._originalCols = leftGrid.cols;
+        }
+        if (rightGridContainer._originalCols === undefined) {
+            rightGridContainer._originalCols = rightGrid.cols;
+        }
 
-            // Calculate new column counts, clamped to [0, totalCols]
-            let newLeftCols = leftGrid.cols + deltaColsRounded;
-            let newRightCols = rightGrid.cols - deltaColsRounded;
+        // Calculate the total columns between these two grids (conserved)
+        const totalCols = leftGridContainer._originalCols + rightGridContainer._originalCols;
 
-            // Ensure we don't exceed the total or go below 0
-            newLeftCols = Math.max(0, Math.min(totalCols, newLeftCols));
-            newRightCols = totalCols - newLeftCols; // Ensure they always add up to totalCols
+        // Calculate new column counts, clamped to [0, totalCols]
+        let newLeftCols = leftGridContainer._originalCols + deltaColsRounded;
+        let newRightCols = rightGridContainer._originalCols - deltaColsRounded;
 
-            // Update grid data
-            leftGrid.cols = newLeftCols;
-            rightGrid.cols = newRightCols;
+        // Ensure we don't exceed the total or go below 0
+        newLeftCols = Math.max(0, Math.min(totalCols, newLeftCols));
+        newRightCols = totalCols - newLeftCols;
 
-            console.log(`Resized grids: ${bar.index} to ${newLeftCols} cols, ${bar.index + 1} to ${newRightCols} cols (total: ${totalCols})`);
-
+        // Only update if columns actually changed
+        if (leftGridContainer.cols !== newLeftCols || rightGridContainer.cols !== newRightCols) {
             // Update the GridContainer instances' properties
             leftGridContainer.cols = newLeftCols;
             rightGridContainer.cols = newRightCols;
 
             // Hide/show containers based on column count
-            if (newLeftCols === 0) {
-                leftGridContainer.element.style.display = 'none';
-            } else {
-                leftGridContainer.element.style.display = '';
-            }
+            leftGridContainer.element.style.display = newLeftCols === 0 ? 'none' : '';
+            rightGridContainer.element.style.display = newRightCols === 0 ? 'none' : '';
 
-            if (newRightCols === 0) {
-                rightGridContainer.element.style.display = 'none';
-            } else {
-                rightGridContainer.element.style.display = '';
-            }
-
-            // Re-render the grids in place
+            // Re-render the grids in place (this restructures them)
             await leftGridContainer.render();
             await rightGridContainer.render();
+        }
+    }
+
+    /**
+     * Handle drag bar end - finalize resize and save
+     * @param {DragBar} bar - The drag bar
+     * @param {number} deltaX - Final pixel delta
+     * @private
+     */
+    async _onDragBarEnd(bar, deltaX) {
+        // Get the two grid containers
+        const leftGridContainer = this.gridContainers[bar.index];
+        const rightGridContainer = this.gridContainers[bar.index + 1];
+        const leftGrid = this.grids[bar.index];
+        const rightGrid = this.grids[bar.index + 1];
+
+        // Clean up stored original values
+        if (leftGridContainer) {
+            delete leftGridContainer._originalCols;
+        }
+        if (rightGridContainer) {
+            delete rightGridContainer._originalCols;
+        }
+
+        // Update grid data to match current state (already updated during drag)
+        if (leftGrid && rightGrid) {
+            leftGrid.cols = leftGridContainer.cols;
+            rightGrid.cols = rightGridContainer.cols;
 
             // Save to persistence
             if (this.options.hotbarApp?.persistenceManager) {

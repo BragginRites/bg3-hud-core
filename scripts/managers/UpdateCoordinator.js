@@ -19,6 +19,10 @@ export class UpdateCoordinator {
         Hooks.on('updateToken', this._onUpdateToken.bind(this));
         Hooks.on('updateActor', this._onUpdateActor.bind(this));
         Hooks.on('updateCombat', this._onUpdateCombat.bind(this));
+        Hooks.on('combatStart', this._onCombatStateChange.bind(this));
+        Hooks.on('combatRound', this._onCombatStateChange.bind(this));
+        Hooks.on('combatTurn', this._onCombatStateChange.bind(this));
+        Hooks.on('deleteCombat', this._onCombatStateChange.bind(this));
         
         // Active effects hooks
         Hooks.on('createActiveEffect', this._onActiveEffectChange.bind(this));
@@ -223,6 +227,29 @@ export class UpdateCoordinator {
         const combatant = combat.combatant;
         if (combatant && combatant.token === this.hotbarApp.currentToken) {
             await this.hotbarApp.refresh();
+        }
+        
+        // Update action button visibility
+        this._updateActionButtonsVisibility();
+    }
+
+    /**
+     * Handle combat state changes (start/end/turn)
+     * Update action buttons visibility without full refresh
+     * @private
+     */
+    _onCombatStateChange() {
+        this._updateActionButtonsVisibility();
+    }
+
+    /**
+     * Update action buttons visibility based on combat state
+     * @private
+     */
+    _updateActionButtonsVisibility() {
+        const actionButtons = this.hotbarApp.components?.actionButtons;
+        if (actionButtons && typeof actionButtons.updateVisibility === 'function') {
+            actionButtons.updateVisibility();
         }
     }
 
