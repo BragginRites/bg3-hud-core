@@ -217,3 +217,189 @@
     background: rgba(255, 255, 255, 0.15);
 }
 
+/* ==========================================================================
+   Auto-Populate Dialog (Pill-based selection)
+   ========================================================================== */
+
+.bg3-dialog-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    pointer-events: none;
+    animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes dialogFadeIn {
+    from { 
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to { 
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.bg3-dialog {
+    background: var(--bg3-background, #111111f2);
+    border: var(--primary-border-width, 2px) solid var(--primary-border-color, #000);
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+    min-width: 400px;
+    max-width: 600px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    animation: dialogFadeIn 0.2s ease-out;
+    pointer-events: auto;
+}
+
+.bg3-dialog-title {
+    margin: 0;
+    padding: 16px 20px;
+    font-size: 1.3em;
+    font-weight: bold;
+    color: var(--bg3-text, #ddd);
+    text-shadow: var(--shadow-text-stroke);
+    border-bottom: var(--bg3-border-width, 1px) solid var(--bg3-border, #2f2f2f);
+    background: var(--bg3-background-highlight, #5a5353);
+}
+
+.bg3-dialog-content {
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.bg3-dialog-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.bg3-dialog-content::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+}
+
+.bg3-dialog-content::-webkit-scrollbar-thumb {
+    background: var(--bg3-background-highlight, #5a5353);
+    border-radius: 4px;
+}
+
+.bg3-dialog-content::-webkit-scrollbar-thumb:hover {
+    background: #6e6e6e;
+}
+
+/* Pills group header */
+.bg3-pills-group-header {
+    font-size: 0.85em;
+    font-weight: bold;
+    color: var(--bg3-text, #ddd);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 12px;
+    margin-bottom: 8px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--bg3-border, #2f2f2f);
+    opacity: 0.7;
+}
+
+.bg3-pills-group-header:first-child {
+    margin-top: 0;
+}
+
+/* Pills container */
+.bg3-pills-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+/* Pill button */
+.bg3-pill {
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 2px solid var(--bg3-border, #2f2f2f);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--bg3-text, #ddd);
+    font-size: 0.95em;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-shadow: var(--shadow-text-stroke);
+}
+
+.bg3-pill:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--bg3-action, #2ecc71);
+    transform: translateY(-1px);
+}
+
+.bg3-pill.active {
+    background: var(--bg3-action, #2ecc71);
+    border-color: var(--bg3-action, #2ecc71);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(46, 204, 113, 0.4);
+}
+
+.bg3-pill:active {
+    transform: scale(0.98);
+}
+
+/* Dialog buttons */
+.bg3-dialog-buttons {
+    padding: 16px 20px;
+    border-top: var(--bg3-border-width, 1px) solid var(--bg3-border, #2f2f2f);
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    background: var(--bg3-background-highlight, #5a5353);
+}
+
+.bg3-dialog-buttons .bg3-button {
+    padding: 8px 20px;
+    border-radius: 4px;
+    font-size: 1em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: var(--bg3-border-width, 1px) solid var(--bg3-border, #2f2f2f);
+    text-shadow: var(--shadow-text-stroke);
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--bg3-text, #ddd);
+}
+
+.bg3-dialog-buttons .bg3-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.bg3-dialog-buttons .bg3-button:active {
+    transform: scale(0.98);
+}
+
+.bg3-dialog-buttons .bg3-button-primary {
+    background: var(--bg3-action, #2ecc71);
+    color: #fff;
+}
+
+.bg3-dialog-buttons .bg3-button-primary:hover {
+    background: #27ae60;
+}
+

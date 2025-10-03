@@ -229,8 +229,15 @@ export class InteractionCoordinator {
             return;
         }
 
+        // Get actor from hotbar app
+        const actor = this.hotbarApp?.currentActor;
+        if (!actor) {
+            ui.notifications.warn('No actor selected');
+            return;
+        }
+
         try {
-            await this.adapter.autoPopulate.populateContainer(container);
+            await this.adapter.autoPopulate.populateContainer(container, actor);
             
             // Persist the changes
             const containerInfo = ContainerTypeDetector.detectContainer(container.cells[0]);

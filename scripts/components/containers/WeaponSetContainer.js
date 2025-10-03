@@ -155,8 +155,14 @@ export class WeaponSetContainer extends BG3Component {
             
             // Add click handler to switch sets
             this.addEventListener(gridContainer.element, 'click', async (event) => {
-                // Don't switch if clicking on a grid cell
-                if (event.target.closest('.bg3-grid-cell')) return;
+                const activeIndex = this.getActiveSet();
+                
+                // If this is the active set, allow normal cell clicks
+                if (i === activeIndex) return;
+                
+                // If this is an inactive set, clicking anywhere switches to it
+                event.preventDefault();
+                event.stopPropagation();
                 await this._handleSetClick(i, gridContainer);
             });
             
