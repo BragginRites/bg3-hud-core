@@ -15,6 +15,9 @@ export class GridContainer extends BG3Component {
      * @param {Object} options.items - Item data keyed by "col-row" (e.g., "0-0", "1-2")
      * @param {string} options.id - Container identifier
      * @param {number} options.index - Container index
+     * @param {string} options.containerType - Container type ('hotbar', 'weaponSet', 'quickAccess')
+     * @param {number} options.containerIndex - Container index for persistence
+     * @param {PersistenceManager} options.persistenceManager - Persistence manager reference
      * @param {string[]} options.classes - Additional CSS classes
      */
     constructor(options = {}) {
@@ -24,6 +27,9 @@ export class GridContainer extends BG3Component {
         this.items = options.items || {};
         this.id = options.id || 'grid';
         this.index = options.index || 0;
+        this.containerType = options.containerType || 'hotbar';
+        this.containerIndex = options.containerIndex ?? options.index ?? 0;
+        this.persistenceManager = options.persistenceManager || null;
         this.classes = options.classes || [];
         this.cells = [];
     }
@@ -66,9 +72,13 @@ export class GridContainer extends BG3Component {
                         row: row,
                         col: col,
                         data: itemData,
-                        gridIndex: this.index,
+                        containerType: this.containerType,
+                        containerIndex: this.containerIndex,
+                        persistenceManager: this.persistenceManager,
                         onClick: this.options.onCellClick,
-                        onRightClick: this.options.onCellRightClick,
+                        onRightClick: this.options.onCellRightClick ? (cell, event) => {
+                            this.options.onCellRightClick(cell, event, this);
+                        } : null,
                         onDragStart: this.options.onCellDragStart,
                         onDragEnd: this.options.onCellDragEnd,
                         onDrop: this.options.onCellDrop
@@ -103,7 +113,8 @@ export class GridContainer extends BG3Component {
     }
 
     /**
-     * Shallow equality for cell data objects to avoid unnecessary re-renders
+     * Deep equality for cell data objects to avoid unnecessary re-renders
+     * Compares all common properties that adapters might use
      * @param {Object|null} a
      * @param {Object|null} b
      * @returns {boolean}
@@ -112,14 +123,26 @@ export class GridContainer extends BG3Component {
     _areCellDatasEqual(a, b) {
         if (a === b) return true;
         if (!a || !b) return false;
+        
+        // Compare core properties
         if (a.uuid !== b.uuid) return false;
         if (a.img !== b.img) return false;
         if (a.name !== b.name) return false;
+        if (a.type !== b.type) return false;
+        
+        // Compare quantity
         const aq = a.quantity || 0, bq = b.quantity || 0;
         if (aq !== bq) return false;
+        
+        // Compare uses
         const au = a.uses || {}, bu = b.uses || {};
         if ((au.value || 0) !== (bu.value || 0)) return false;
         if ((au.max || 0) !== (bu.max || 0)) return false;
+        
+        // For anything more complex (nested metadata), do a JSON comparison
+        // This catches adapter-specific fields without knowing them in advance
+        if (JSON.stringify(a) !== JSON.stringify(b)) return false;
+        
         return true;
     }
 

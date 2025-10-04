@@ -2,6 +2,7 @@
  * Update Coordinator
  * Handles Foundry hooks and coordinates targeted updates
  * Monitors single hudState flag for simplified state management
+ * Note: HUD state updates are now handled via socketlib for real-time sync
  */
 export class UpdateCoordinator {
     constructor(options = {}) {
@@ -94,14 +95,19 @@ export class UpdateCoordinator {
         const hudStateChanged = changes?.flags?.[this.moduleId]?.[this.flagName];
         
         if (hudStateChanged) {
-            // Skip reload if we just saved locally (prevents race condition)
+            // Socket-based updates: Only update if we initiated the save (for backup/validation)
+            // All other clients receive instant updates via socketlib, no hook handling needed
             if (this.persistenceManager.shouldSkipReload()) {
-                console.log('BG3 HUD Core | UpdateCoordinator: Skipping reload (local save in progress)');
+                console.log('BG3 HUD Core | UpdateCoordinator: Skipping reload (local save just completed)');
                 return;
             }
             
-            console.log('BG3 HUD Core | UpdateCoordinator: HUD state changed, performing targeted update');
-            await this._handleStateUpdate();
+            // For observers: socketlib already handled the update instantly
+            // This hook fires after the server roundtrip, which we can ignore
+            console.log('BG3 HUD Core | UpdateCoordinator: Skipping hook-based update (socketlib handles real-time sync)');
+            
+            // Update our cached state to stay in sync with the server
+            this.persistenceManager.state = foundry.utils.deepClone(actor.getFlag(this.moduleId, this.flagName));
             return;
         }
 
@@ -130,12 +136,13 @@ export class UpdateCoordinator {
     /**
      * Handle HUD state update
      * Reload state and update all containers in place
+     * Uses unified update pattern for all containers
      * @private
      */
     async _handleStateUpdate() {
         const state = await this.persistenceManager.loadState();
         
-        // Update hotbar grids
+        // Update hotbar grids (multiple grids)
         if (this.hotbarApp.components?.hotbar) {
             const hotbar = this.hotbarApp.components.hotbar;
             hotbar.grids = state.hotbar.grids;
@@ -152,7 +159,7 @@ export class UpdateCoordinator {
             }
         }
         
-        // Update weapon sets
+        // Update weapon sets (multiple grids)
         if (this.hotbarApp.components?.weaponSets) {
             const weaponSets = this.hotbarApp.components.weaponSets;
             weaponSets.weaponSets = state.weaponSets.sets;
@@ -170,10 +177,20 @@ export class UpdateCoordinator {
             await weaponSets.setActiveSet(state.weaponSets.activeSet, true);
         }
         
-        // Update quick access - use container's own update method for consistency
+        // Update quick access (now normalized as array of grids)
         if (this.hotbarApp.components?.quickAccess) {
             const quickAccess = this.hotbarApp.components.quickAccess;
-            await quickAccess.updateGrid(state.quickAccess);
+            quickAccess.grids = state.quickAccess.grids;
+            
+            // Use same pattern as hotbar/weaponSets for consistency
+            const gridData = quickAccess.grids[0];
+            const gridContainer = quickAccess.gridContainers[0];
+            if (gridContainer) {
+                gridContainer.rows = gridData.rows;
+                gridContainer.cols = gridData.cols;
+                gridContainer.items = gridData.items;
+                await gridContainer.render();
+            }
         }
     }
 
@@ -282,5 +299,6 @@ export class UpdateCoordinator {
             }
         }
     }
+
 }
 

@@ -8,9 +8,10 @@ export class AutoPopulateFramework {
      * Show dialog and populate container based on user selection
      * @param {GridContainer} container - The container to populate
      * @param {Actor} actor - The actor whose items to populate from
+     * @param {PersistenceManager} persistenceManager - Optional persistence manager for UUID checking
      * @returns {Promise<void>}
      */
-    async populateContainer(container, actor) {
+    async populateContainer(container, actor, persistenceManager = null) {
         if (!actor) {
             ui.notifications.warn('No actor available for auto-populate');
             return;
@@ -45,13 +46,7 @@ export class AutoPopulateFramework {
             const sortedItems = await this.sortItems(items);
 
             // Add items to container
-            const addedCount = await this.addItemsToContainer(sortedItems, container);
-
-            if (addedCount > 0) {
-                ui.notifications.info(`Added ${addedCount} item${addedCount > 1 ? 's' : ''} to container`);
-            } else {
-                ui.notifications.warn('No items could be added (container may be full or items already present)');
-            }
+            const addedCount = await this.addItemsToContainer(sortedItems, container, persistenceManager);
 
         } catch (error) {
             console.error('BG3 HUD Core | AutoPopulate error:', error);
@@ -126,24 +121,45 @@ export class AutoPopulateFramework {
 
     /**
      * Add items to container in grid order
-     * Skips items that already exist in the container
+     * Skips items that already exist in the HUD (across ALL containers)
      * @param {Array<{uuid: string}>} items - Sorted items to add
      * @param {GridContainer} container - Target container
+     * @param {PersistenceManager} persistenceManager - Optional persistence manager for global UUID checking
      * @returns {Promise<number>} Number of items added
      */
-    async addItemsToContainer(items, container) {
-        // Get existing UUIDs to prevent duplicates
-        const existingUuids = new Set();
-        for (const [key, item] of Object.entries(container.items)) {
-            if (item && item.uuid) {
-                existingUuids.add(item.uuid);
+    async addItemsToContainer(items, container, persistenceManager = null) {
+        // Filter out items that already exist in the HUD (global check)
+        const newItems = [];
+        
+        for (const item of items) {
+            if (!item.uuid) continue;
+            
+            // If we have persistence manager, check entire HUD for duplicates
+            if (persistenceManager && typeof persistenceManager.findUuidInHud === 'function') {
+                const existingLocation = persistenceManager.findUuidInHud(item.uuid);
+                if (existingLocation) {
+                    console.log(`BG3 HUD Core | AutoPopulate: Skipping ${item.uuid} - already exists at ${existingLocation.container}[${existingLocation.containerIndex}].${existingLocation.slotKey}`);
+                    continue;
+                }
+            } else {
+                // Fallback: only check current container
+                let existsInContainer = false;
+                for (const [key, existingItem] of Object.entries(container.items)) {
+                    if (existingItem?.uuid === item.uuid) {
+                        existsInContainer = true;
+                        break;
+                    }
+                }
+                if (existsInContainer) {
+                    continue;
+                }
             }
+            
+            newItems.push(item);
         }
-
-        // Filter out items that already exist
-        const newItems = items.filter(item => !existingUuids.has(item.uuid));
         
         if (newItems.length === 0) {
+            ui.notifications.info('All selected items are already in the HUD');
             return 0;
         }
 

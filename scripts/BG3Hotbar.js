@@ -1,10 +1,10 @@
 import { BG3HUD_REGISTRY } from './utils/registry.js';
 import { applyMacrobarCollapseSetting } from './utils/settings.js';
-import { DragDropManager } from './managers/DragDropManager.js';
 import { PersistenceManager } from './managers/PersistenceManager.js';
 import { InteractionCoordinator } from './managers/InteractionCoordinator.js';
 import { UpdateCoordinator } from './managers/UpdateCoordinator.js';
 import { ComponentFactory } from './managers/ComponentFactory.js';
+import { SocketManager } from './managers/SocketManager.js';
 
 /**
  * BG3 Hotbar Application
@@ -43,12 +43,11 @@ export class BG3Hotbar extends foundry.applications.api.ApplicationV2 {
         
         // Initialize managers
         this.persistenceManager = new PersistenceManager();
-        this.dragDropManager = new DragDropManager();
         this.componentFactory = new ComponentFactory(this);
+        this.socketManager = new SocketManager(this);
         this.interactionCoordinator = new InteractionCoordinator({
             hotbarApp: this,
             persistenceManager: this.persistenceManager,
-            dragDropManager: this.dragDropManager,
             get adapter() { return BG3HUD_REGISTRY.activeAdapter; }
         });
         this.updateCoordinator = new UpdateCoordinator({
@@ -58,6 +57,12 @@ export class BG3Hotbar extends foundry.applications.api.ApplicationV2 {
 
         // Register Foundry hooks via coordinator
         this.updateCoordinator.registerHooks();
+        
+        // Initialize socket connection (if socketlib available)
+        this.socketManager.initialize();
+        
+        // Link socket manager to persistence manager
+        this.persistenceManager.setSocketManager(this.socketManager);
     }
 
     /**
@@ -66,6 +71,19 @@ export class BG3Hotbar extends foundry.applications.api.ApplicationV2 {
      */
     applyMacrobarCollapseSetting() {
         applyMacrobarCollapseSetting();
+    }
+
+    /**
+     * Update display settings (item names, uses, etc.)
+     */
+    updateDisplaySettings() {
+        if (!this.element) return;
+
+        const showItemNames = game.settings.get('bg3-hud-core', 'showItemNames');
+        const showItemUses = game.settings.get('bg3-hud-core', 'showItemUses');
+
+        this.element.dataset.itemName = showItemNames;
+        this.element.dataset.itemUse = showItemUses;
     }
 
     /**
@@ -115,6 +133,9 @@ export class BG3Hotbar extends foundry.applications.api.ApplicationV2 {
      */
     async _onRender(context, options) {
         await super._onRender(context, options);
+        
+        // Apply display settings
+        this.updateDisplaySettings();
         
         // Initialize components after DOM is ready
         await this._initializeComponents();
@@ -182,7 +203,7 @@ export class BG3Hotbar extends foundry.applications.api.ApplicationV2 {
         weaponQuickWrapper.appendChild(await this.components.weaponSets.render());
         await this.components.weaponSets.setActiveSet(state.weaponSets.activeSet, true);
 
-        // Create quick access container from UNIFIED state
+        // Create quick access container from UNIFIED state (now arrays of grids)
         this.components.quickAccess = await this.componentFactory.createQuickAccessContainer(state.quickAccess, handlers);
         weaponQuickWrapper.appendChild(await this.components.quickAccess.render());
 
@@ -206,12 +227,10 @@ export class BG3Hotbar extends foundry.applications.api.ApplicationV2 {
         this.components.controls = await this.componentFactory.createControlContainer();
         this.components.hotbar.element.appendChild(await this.components.controls.render());
         
-        // Configure drag/drop manager
+        // Configure adapter (InteractionCoordinator handles all logic)
         if (BG3HUD_REGISTRY.activeAdapter) {
-            this.dragDropManager.setAdapter(BG3HUD_REGISTRY.activeAdapter);
             this.interactionCoordinator.setAdapter(BG3HUD_REGISTRY.activeAdapter);
         }
-        this.dragDropManager.setPersistenceManager(this.persistenceManager);
 
         console.log('BG3 HUD Core | Components initialized:', Object.keys(this.components));
         if (BG3HUD_REGISTRY.activeAdapter) {

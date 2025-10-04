@@ -4,14 +4,14 @@
    Hotbar Container
    ========================================================================== */
 
-.bg3-hotbar-container {
+   .bg3-hotbar-container {
     position: relative;
     display: flex;
     align-items: center;
     gap: 0;
     background: var(--bg3-background);
     border: var(--primary-border-width) solid var(--primary-border-color);
-    border-radius: 4px;
-    padding: 8px;
+    border-radius: 10px;
+    padding: 3px;
 }
 

@@ -109,11 +109,15 @@ export class HotbarContainer extends BG3Component {
                     items: gridData.items || {},
                     id: 'hotbar',
                     index: i,
+                    containerType: 'hotbar',
+                    containerIndex: i,
+                    persistenceManager: this.options.hotbarApp?.persistenceManager,
                     onCellClick: this.options.onCellClick,
                     onCellRightClick: this.options.onCellRightClick,
                     onCellDragStart: this.options.onCellDragStart,
                     onCellDragEnd: this.options.onCellDragEnd,
-                    onCellDrop: this.options.onCellDrop
+                    onCellDrop: this.options.onCellDrop,
+                    decorateCellElement: BG3HUD_REGISTRY.activeAdapter?.decorateCellElement
                 });
 
                 this.gridContainers.push(gridContainer);
@@ -256,9 +260,14 @@ export class HotbarContainer extends BG3Component {
             leftGrid.cols = leftGridContainer.cols;
             rightGrid.cols = rightGridContainer.cols;
 
-            // Save to persistence
+            // Save to persistence - update each grid's config
             if (this.options.hotbarApp?.persistenceManager) {
-                await this.options.hotbarApp.persistenceManager.save(this.grids);
+                await this.options.hotbarApp.persistenceManager.updateGridConfig(leftIndex, {
+                    cols: leftGridContainer.cols
+                });
+                await this.options.hotbarApp.persistenceManager.updateGridConfig(rightIndex, {
+                    cols: rightGridContainer.cols
+                });
             }
         }
     }

@@ -42,7 +42,6 @@ export class AutoSortFramework {
             // Rearrange items in grid
             await this.rearrangeGrid(items, container);
 
-            ui.notifications.info('Container sorted successfully');
         } catch (error) {
             console.error('BG3 HUD Core | AutoSort error:', error);
             ui.notifications.error('Failed to sort container. See console for details.');

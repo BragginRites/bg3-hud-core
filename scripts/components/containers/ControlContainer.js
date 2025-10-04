@@ -145,10 +145,12 @@ export class ControlContainer extends BG3Component {
             await gridContainer.render();
         }
 
-        // Save to persistence
-        await this.hotbarApp.persistenceManager.save(hotbarContainer.grids);
-
-        ui.notifications.info('Row added to hotbar');
+        // Save to persistence - update each grid's config
+        for (let i = 0; i < hotbarContainer.grids.length; i++) {
+            await this.hotbarApp.persistenceManager.updateGridConfig(i, {
+                rows: hotbarContainer.grids[i].rows
+            });
+        }
     }
 
     /**
@@ -165,7 +167,6 @@ export class ControlContainer extends BG3Component {
         
         // Check if we can remove a row (minimum 1 row)
         if (hotbarContainer.grids[0].rows <= 1) {
-            ui.notifications.warn('Cannot remove last row');
             return;
         }
 
@@ -181,10 +182,12 @@ export class ControlContainer extends BG3Component {
             await gridContainer.render();
         }
 
-        // Save to persistence
-        await this.hotbarApp.persistenceManager.save(hotbarContainer.grids);
-
-        ui.notifications.info('Row removed from hotbar');
+        // Save to persistence - update each grid's config
+        for (let i = 0; i < hotbarContainer.grids.length; i++) {
+            await this.hotbarApp.persistenceManager.updateGridConfig(i, {
+                rows: hotbarContainer.grids[i].rows
+            });
+        }
     }
 
     /**
@@ -344,71 +347,65 @@ export class ControlContainer extends BG3Component {
             await gridContainer.render();
         }
 
-        // Save
-        await this.hotbarApp.persistenceManager.save(hotbarContainer.grids);
-
-        ui.notifications.info('Layout reset to defaults');
+        // Save to persistence - update each grid's config
+        for (let i = 0; i < hotbarContainer.grids.length; i++) {
+            await this.hotbarApp.persistenceManager.updateGridConfig(i, {
+                rows: defaultConfig.rows,
+                cols: defaultConfig.cols
+            });
+        }
     }
 
     /**
      * Clear all items from ALL containers (hotbar, weapon sets, quick access)
+     * Seamless update: clear persistence then update each container in place
      * @private
      */
     async _clearAllItems() {
         if (!this.hotbarApp) return;
 
-        // Clear hotbar grids
-        const hotbarContainer = this.hotbarApp.components.hotbar;
-        if (hotbarContainer) {
-            for (let i = 0; i < hotbarContainer.grids.length; i++) {
-                hotbarContainer.grids[i].items = {};
+        try {
+            // Centralized clear: use PersistenceManager to clear everything
+            await this.hotbarApp.persistenceManager.clearAll();
+
+            // Seamless update: update each container in place (no full refresh)
+            const updates = [];
+
+            // Clear hotbar grids
+            const hotbarContainer = this.hotbarApp.components.hotbar;
+            if (hotbarContainer) {
+                for (let i = 0; i < hotbarContainer.gridContainers.length; i++) {
+                    const gridContainer = hotbarContainer.gridContainers[i];
+                    gridContainer.items = {};
+                    updates.push(gridContainer.render());
+                }
             }
 
-            // Update each grid container
-            for (let i = 0; i < hotbarContainer.gridContainers.length; i++) {
-                const gridContainer = hotbarContainer.gridContainers[i];
+            // Clear weapon sets
+            const weaponSetsContainer = this.hotbarApp.components.weaponSets;
+            if (weaponSetsContainer) {
+                for (let i = 0; i < weaponSetsContainer.gridContainers.length; i++) {
+                    const gridContainer = weaponSetsContainer.gridContainers[i];
+                    gridContainer.items = {};
+                    updates.push(gridContainer.render());
+                }
+            }
+
+            // Clear quick access
+            const quickAccessContainer = this.hotbarApp.components.quickAccess;
+            if (quickAccessContainer?.gridContainers[0]) {
+                const gridContainer = quickAccessContainer.gridContainers[0];
                 gridContainer.items = {};
-                await gridContainer.render();
+                updates.push(gridContainer.render());
             }
 
-            // Save hotbar
-            await this.hotbarApp.persistenceManager.save(hotbarContainer.grids);
+            // Wait for all updates in parallel
+            await Promise.all(updates);
+
+        } catch (error) {
+            console.error('BG3 HUD Core | Failed to clear all items:', error);
+            ui.notifications.error('Failed to clear all items');
         }
-
-        // Clear weapon sets
-        const weaponSetsContainer = this.hotbarApp.components.weaponSets;
-        if (weaponSetsContainer) {
-            for (let i = 0; i < weaponSetsContainer.weaponSets.length; i++) {
-                weaponSetsContainer.weaponSets[i].items = {};
-            }
-
-            // Update each weapon set grid container
-            for (let i = 0; i < weaponSetsContainer.gridContainers.length; i++) {
-                const gridContainer = weaponSetsContainer.gridContainers[i];
-                gridContainer.items = {};
-                await gridContainer.render();
-            }
-
-            // Save weapon sets
-            await this.hotbarApp.persistenceManager.saveWeaponSets(weaponSetsContainer.weaponSets);
-        }
-
-        // Clear quick access
-        const quickAccessContainer = this.hotbarApp.components.quickAccess;
-        if (quickAccessContainer) {
-            quickAccessContainer.gridData.items = {};
-
-            // Update quick access grid container
-            if (quickAccessContainer.gridContainer) {
-                quickAccessContainer.gridContainer.items = {};
-                await quickAccessContainer.gridContainer.render();
-            }
-
-            // Save quick access
-            await this.hotbarApp.persistenceManager.saveQuickAccess(quickAccessContainer.gridData);
-        }
-
-        ui.notifications.info('All items cleared from all containers');
     }
 
     /**
@@ -422,11 +419,12 @@ export class ControlContainer extends BG3Component {
         const actor = this.hotbarApp.currentActor;
         const token = this.hotbarApp.currentToken;
 
-        // Gather data from all panels via persistence manager
-        const hotbar = this.hotbarApp.persistenceManager.getGridsData();
-        const weaponSets = this.hotbarApp.persistenceManager.getWeaponSetsData();
-        const activeWeaponSet = actor?.getFlag('bg3-hud-core', 'activeWeaponSet') ?? 0;
-        const quickAccess = this.hotbarApp.persistenceManager.getQuickAccessData();
+        // Gather data from unified state
+        const state = this.hotbarApp.persistenceManager.getState();
+        const hotbar = state?.hotbar?.grids || [];
+        const weaponSets = state?.weaponSets?.sets || [];
+        const activeWeaponSet = state?.weaponSets?.activeSet ?? 0;
+        const quickAccess = state?.quickAccess || { rows: 2, cols: 3, items: {} };
 
         const exportPayload = {
             meta: {
@@ -451,9 +449,7 @@ export class ControlContainer extends BG3Component {
         link.download = `bg3-hud-full-layout-${Date.now()}.json`;
         link.click();
         
-        URL.revokeObjectURL(url);
-        
-        ui.notifications.info('Layout exported');
+        URL.revokeObjectURL(url);  
     }
 
     /**
@@ -492,13 +488,17 @@ export class ControlContainer extends BG3Component {
                         await gridContainer.render();
                     }
 
-                    // Save layout
-                    await this.hotbarApp.persistenceManager.save(layout);
+                    // Save layout - update each grid's config and items
+                    for (let i = 0; i < layout.length; i++) {
+                        await this.hotbarApp.persistenceManager.updateGridConfig(i, {
+                            rows: layout[i].rows,
+                            cols: layout[i].cols
+                        });
+                        await this.hotbarApp.persistenceManager.updateContainer('hotbar', i, layout[i].items || {});
+                    }
                     
-                    ui.notifications.info('Layout imported successfully');
                 } catch (error) {
                     console.error('BG3 HUD Core | Failed to import layout:', error);
-                    ui.notifications.error('Failed to import layout');
                 }
             };
             reader.readAsText(file);

@@ -136,13 +136,17 @@ export class WeaponSetContainer extends BG3Component {
                 items: setData.items || {},
                 id: 'weapon',
                 index: i,
+                containerType: 'weaponSet',
+                containerIndex: i,
+                persistenceManager: this.persistenceManager,
                 actor: this.actor,
                 token: this.token,
                 onCellClick: this.onCellClick,
                 onCellRightClick: this.onCellRightClick,
                 onCellDragStart: this.onCellDragStart,
                 onCellDragEnd: this.onCellDragEnd,
-                onCellDrop: this.onCellDrop
+                onCellDrop: this.onCellDrop,
+                decorateCellElement: this.options?.hotbarApp?.adapter?.decorateCellElement || this.options?.decorateCellElement
             });
             
             // Render first to create the element
@@ -197,6 +201,15 @@ export class WeaponSetContainer extends BG3Component {
         await this.setActiveSet(setIndex);
         
         console.log(`WeaponSetContainer | Switched to weapon set ${setIndex + 1}`);
+    }
+
+    /**
+     * Get a grid container by index
+     * @param {number} index - Grid index
+     * @returns {GridContainer|null}
+     */
+    getGrid(index) {
+        return this.gridContainers[index] || null;
     }
 
     /**

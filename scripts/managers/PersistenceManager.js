@@ -13,6 +13,7 @@ export class PersistenceManager {
         this.state = null; // Cached state
         this._saveInProgress = false; // Prevent concurrent saves
         this._lastSaveTimestamp = 0; // Track when we last saved locally
+        this.socketManager = null; // Set by BG3Hotbar
         
         // Default grid configuration - can be overridden by system adapters
         this.DEFAULT_GRID_CONFIG = {
@@ -20,6 +21,14 @@ export class PersistenceManager {
             cols: 5,
             gridCount: 3
         };
+    }
+
+    /**
+     * Set socket manager reference
+     * @param {SocketManager} socketManager
+     */
+    setSocketManager(socketManager) {
+        this.socketManager = socketManager;
     }
 
     /**
@@ -47,11 +56,13 @@ export class PersistenceManager {
         }
 
         // Try to load unified state
-        const savedState = this.currentActor.getFlag(this.MODULE_ID, this.FLAG_NAME);
+        let savedState = this.currentActor.getFlag(this.MODULE_ID, this.FLAG_NAME);
         
         if (savedState && savedState.version === this.VERSION) {
             console.log('BG3 HUD Core | PersistenceManager: Loaded state from flags');
             this.state = foundry.utils.deepClone(savedState);
+            // Migrate quickAccess from array to object if needed
+            this._migrateQuickAccessFormat(this.state);
             return this.state;
         }
 
@@ -127,65 +138,68 @@ export class PersistenceManager {
      * @returns {Promise<void>}
      */
     async updateCell(options) {
-        const { container, containerIndex, slotKey, data } = options;
+        const { container, slotKey, data } = options;
+        const containerIndex = options.containerIndex ?? 0;
         
-        // ALWAYS load fresh state from flags
-        const state = await this.loadState();
+        console.log('BG3 HUD | PersistenceManager.updateCell called:', { container, containerIndex, slotKey, data });
         
-        // Navigate to the correct items object
-        let items;
-        switch (container) {
-            case 'hotbar':
-                if (!state.hotbar.grids[containerIndex]) {
-                    console.error('BG3 HUD Core | PersistenceManager: Invalid hotbar grid index:', containerIndex);
-                    return;
-                }
-                items = state.hotbar.grids[containerIndex].items;
-                break;
-                
-            case 'weaponSet':
-                if (!state.weaponSets.sets[containerIndex]) {
-                    console.error('BG3 HUD Core | PersistenceManager: Invalid weapon set index:', containerIndex);
-                    return;
-                }
-                items = state.weaponSets.sets[containerIndex].items;
-                break;
-                
-            case 'quickAccess':
-                // Convert array to object-like helper for manipulation by slotKey
-                // slotKey is in format "col-row"
-                // We will update the array by translating slotKey → index
-                if (!Array.isArray(state.quickAccess.items)) state.quickAccess.items = [];
-                items = state.quickAccess.items;
-                break;
-                
-            default:
-                console.error('BG3 HUD Core | PersistenceManager: Unknown container type:', container);
-                return;
+        // Use cached state if available, otherwise load fresh
+        let state = this.state;
+        if (!state) {
+            state = await this.loadState();
         }
         
-        // Update or delete the cell
-        if (container === 'quickAccess') {
-            const [colStr, rowStr] = slotKey.split('-');
-            const col = Number(colStr);
-            const row = Number(rowStr);
-            const cols = state.quickAccess.cols;
-            const index = row * cols + col;
-            if (data === null || data === undefined) {
-                items[index] = undefined;
-            } else {
-                items[index] = data;
+        // Navigate to the correct items object and assign directly
+        switch (container) {
+            case 'hotbar': {
+                const grid = state.hotbar?.grids?.[containerIndex];
+                if (!grid) {
+                    console.warn('BG3 HUD Core | PersistenceManager: Hotbar grid not found:', containerIndex);
+                    return;
+                }
+                grid.items[slotKey] = data;
+                break;
             }
-        } else {
-            if (data === null || data === undefined) {
-                delete items[slotKey];
-            } else {
-                items[slotKey] = data;
+            case 'quickAccess': {
+                if (!state.quickAccess || !Array.isArray(state.quickAccess.grids)) {
+                    console.warn('BG3 HUD Core | PersistenceManager: QuickAccess branch missing, creating new one.');
+                    state.quickAccess = { grids: [ { rows: 2, cols: 3, items: {} } ] };
+                }
+                const qGrid = state.quickAccess.grids[containerIndex] || (state.quickAccess.grids[containerIndex] = { rows: 2, cols: 3, items: {} });
+                if (!qGrid.items || typeof qGrid.items !== 'object') {
+                    qGrid.items = {};
+                }
+                qGrid.items[slotKey] = data;
+                break;
             }
+            case 'weaponSet': {
+                const set = state.weaponSets?.sets?.[containerIndex];
+                if (!set) {
+                    console.warn('BG3 HUD Core | PersistenceManager: Weapon set not found:', containerIndex);
+                    return;
+                }
+                set.items[slotKey] = data;
+                break;
+            }
+            default:
+                console.warn('BG3 HUD Core | PersistenceManager: Unknown container type:', container);
+                return;
         }
         
         // Save the entire state
         await this.saveState(state);
+        
+        // Broadcast update via socket for instant sync
+        if (this.socketManager && this.currentActor) {
+            await this.socketManager.broadcastUpdate(this.currentActor.uuid, {
+                type: 'cellUpdate',
+                userId: game.user.id,
+                container,
+                containerIndex,
+                slotKey,
+                data
+            });
+        }
     }
 
     /**
@@ -221,6 +235,16 @@ export class PersistenceManager {
         }
         
         await this.saveState(state);
+        
+        // Broadcast update via socket for instant sync
+        if (this.socketManager && this.currentActor) {
+            await this.socketManager.broadcastUpdate(this.currentActor.uuid, {
+                type: 'gridConfig',
+                userId: game.user.id,
+                gridIndex,
+                config
+            });
+        }
     }
 
     /**
@@ -251,7 +275,13 @@ export class PersistenceManager {
                 break;
                 
             case 'quickAccess':
-                state.quickAccess.items = items;
+                if (!state.quickAccess || !Array.isArray(state.quickAccess.grids)) {
+                    state.quickAccess = { grids: [ { rows: 2, cols: 3, items: {} } ] };
+                }
+                if (!state.quickAccess.grids[containerIndex]) {
+                    state.quickAccess.grids[containerIndex] = { rows: 2, cols: 3, items: {} };
+                }
+                state.quickAccess.grids[containerIndex].items = items;
                 break;
                 
             default:
@@ -260,6 +290,17 @@ export class PersistenceManager {
         }
         
         await this.saveState(state);
+        
+        // Broadcast update via socket for instant sync
+        if (this.socketManager && this.currentActor) {
+            await this.socketManager.broadcastUpdate(this.currentActor.uuid, {
+                type: 'containerUpdate',
+                userId: game.user.id,
+                containerType,
+                containerIndex,
+                items
+            });
+        }
     }
 
     /**
@@ -280,9 +321,61 @@ export class PersistenceManager {
         }
         
         // Clear quick access
-        state.quickAccess.items = {};
+        if (Array.isArray(state.quickAccess?.grids)) {
+            for (const grid of state.quickAccess.grids) {
+                grid.items = {};
+            }
+        }
         
         await this.saveState(state);
+        
+        // Broadcast update via socket for instant sync
+        if (this.socketManager && this.currentActor) {
+            await this.socketManager.broadcastUpdate(this.currentActor.uuid, {
+                type: 'clearAll',
+                userId: game.user.id
+            });
+        }
+    }
+
+    /**
+     * Migrate quickAccess items from array format to object map
+     * @param {Object} state - HUD state
+     * @private
+     */
+    _migrateQuickAccessFormat(state) {
+        if (!state.quickAccess) return;
+        
+        // If legacy quickAccess is a single grid object with items array, convert to object map and wrap into grids[]
+        if (Array.isArray(state.quickAccess.items)) {
+            console.log('BG3 HUD Core | PersistenceManager: Migrating quickAccess from array to object map');
+            const cols = state.quickAccess.cols || 3;
+            const arrayItems = state.quickAccess.items;
+            const mapItems = {};
+            
+            for (let i = 0; i < arrayItems.length; i++) {
+                if (arrayItems[i]) {
+                    const row = Math.floor(i / cols);
+                    const col = i % cols;
+                    const slotKey = `${col}-${row}`;
+                    mapItems[slotKey] = arrayItems[i];
+                }
+            }
+            
+            state.quickAccess.items = mapItems;
+            console.log('BG3 HUD Core | PersistenceManager: QuickAccess migrated to object map format');
+        }
+
+        // Wrap single quickAccess grid into grids[] if not already
+        if (!Array.isArray(state.quickAccess.grids)) {
+            const rows = state.quickAccess.rows ?? 2;
+            const cols = state.quickAccess.cols ?? 3;
+            const items = state.quickAccess.items && typeof state.quickAccess.items === 'object' ? state.quickAccess.items : {};
+            state.quickAccess = {
+                grids: [ { rows, cols, items } ]
+            };
+            console.log('BG3 HUD Core | PersistenceManager: QuickAccess wrapped into grids[]');
+        }
     }
 
     /**
@@ -314,10 +407,9 @@ export class PersistenceManager {
                 activeSet: 0
             },
             quickAccess: {
-                rows: 2,
-                cols: 3,
-                // Store as array of cell entries (row-major), to allow full replacement semantics
-                items: []
+                grids: [
+                    { rows: 2, cols: 3, items: {} }
+                ]
             }
         };
     }
@@ -365,23 +457,14 @@ export class PersistenceManager {
         
         // Migrate quick access
         if (oldQuickAccess) {
-            state.quickAccess.rows = oldQuickAccess.rows || state.quickAccess.rows;
-            state.quickAccess.cols = oldQuickAccess.cols || state.quickAccess.cols;
-            // Old format used an object map keyed by "col-row". Convert to array (row-major)
-            const rows = state.quickAccess.rows;
-            const cols = state.quickAccess.cols;
+            const rows = oldQuickAccess.rows || 2;
+            const cols = oldQuickAccess.cols || 3;
             const legacyItems = oldQuickAccess.items || {};
-            const itemsArray = [];
-            for (const key of Object.keys(legacyItems)) {
-                const [colStr, rowStr] = key.split('-');
-                const col = Number(colStr);
-                const row = Number(rowStr);
-                if (Number.isInteger(col) && Number.isInteger(row)) {
-                    const index = row * cols + col;
-                    itemsArray[index] = legacyItems[key];
-                }
-            }
-            state.quickAccess.items = itemsArray;
+            state.quickAccess = {
+                grids: [
+                    { rows, cols, items: legacyItems }
+                ]
+            };
         }
         
         console.log('BG3 HUD Core | PersistenceManager: Migration complete');
@@ -418,140 +501,107 @@ export class PersistenceManager {
 
     /**
      * Check if we should skip state reload (because we just saved locally)
-     * Prevents race condition where updateActor hook fires before save completes
+     * Prevents flicker from updateActor hook triggering unnecessary re-renders
+     * after optimistic UI updates during drag/drop operations
      * @returns {boolean} True if we should skip reload
      */
     shouldSkipReload() {
-        // Skip if we saved in the last 100ms
+        // Skip if we saved in the last 500ms (generous window for Foundry's async hooks)
         const timeSinceLastSave = Date.now() - this._lastSaveTimestamp;
-        return timeSinceLastSave < 100;
+        return timeSinceLastSave < 500;
     }
 
     /**
-     * Legacy compatibility methods
-     * These maintain compatibility with old code during transition
+     * Check if a UUID already exists anywhere in the HUD (prevents duplicates)
+     * @param {string} uuid - UUID to check
+     * @param {Object} options - Options
+     * @param {string} options.excludeContainer - Container type to exclude from check
+     * @param {number} options.excludeContainerIndex - Container index to exclude
+     * @param {string} options.excludeSlotKey - Slot key to exclude (for moves within same location)
+     * @returns {Object|null} Location where UUID exists {container, containerIndex, slotKey}, or null if not found
      */
+    findUuidInHud(uuid, options = {}) {
+        if (!uuid || !this.state) return null;
 
-    /**
-     * Legacy: Load hotbar data
-     * @returns {Promise<Array>} Hotbar grids
-     */
-    async load() {
-        const state = await this.loadState();
-        return state.hotbar.grids;
+        const { excludeContainer, excludeContainerIndex, excludeSlotKey } = options;
+
+        // Check hotbar grids
+        if (excludeContainer !== 'hotbar') {
+            for (let i = 0; i < this.state.hotbar.grids.length; i++) {
+                const grid = this.state.hotbar.grids[i];
+                for (const [slotKey, item] of Object.entries(grid.items || {})) {
+                    if (item?.uuid === uuid) {
+                        return { container: 'hotbar', containerIndex: i, slotKey };
+                    }
+                }
+            }
+        } else if (excludeContainerIndex !== undefined) {
+            // Check other hotbar grids
+            for (let i = 0; i < this.state.hotbar.grids.length; i++) {
+                if (i === excludeContainerIndex) continue;
+                const grid = this.state.hotbar.grids[i];
+                for (const [slotKey, item] of Object.entries(grid.items || {})) {
+                    if (item?.uuid === uuid) {
+                        return { container: 'hotbar', containerIndex: i, slotKey };
+                    }
+                }
+            }
+            // Check the same grid but different slots
+            const sameGrid = this.state.hotbar.grids[excludeContainerIndex];
+            for (const [slotKey, item] of Object.entries(sameGrid.items || {})) {
+                if (slotKey !== excludeSlotKey && item?.uuid === uuid) {
+                    return { container: 'hotbar', containerIndex: excludeContainerIndex, slotKey };
+                }
+            }
+        }
+
+        // Check weapon sets
+        if (excludeContainer !== 'weaponSet') {
+            for (let i = 0; i < this.state.weaponSets.sets.length; i++) {
+                const set = this.state.weaponSets.sets[i];
+                for (const [slotKey, item] of Object.entries(set.items || {})) {
+                    if (item?.uuid === uuid) {
+                        return { container: 'weaponSet', containerIndex: i, slotKey };
+                    }
+                }
+            }
+        } else if (excludeContainerIndex !== undefined) {
+            // Check other weapon sets
+            for (let i = 0; i < this.state.weaponSets.sets.length; i++) {
+                if (i === excludeContainerIndex) continue;
+                const set = this.state.weaponSets.sets[i];
+                for (const [slotKey, item] of Object.entries(set.items || {})) {
+                    if (item?.uuid === uuid) {
+                        return { container: 'weaponSet', containerIndex: i, slotKey };
+                    }
+                }
+            }
+            // Check the same set but different slots
+            const sameSet = this.state.weaponSets.sets[excludeContainerIndex];
+            for (const [slotKey, item] of Object.entries(sameSet.items || {})) {
+                if (slotKey !== excludeSlotKey && item?.uuid === uuid) {
+                    return { container: 'weaponSet', containerIndex: excludeContainerIndex, slotKey };
+                }
+            }
+        }
+
+        // Check quick access
+        if (excludeContainer !== 'quickAccess') {
+            for (const [slotKey, item] of Object.entries(this.state.quickAccess.items || {})) {
+                if (item?.uuid === uuid) {
+                    return { container: 'quickAccess', containerIndex: 0, slotKey };
+                }
+            }
+        } else if (excludeSlotKey) {
+            // Check different slots in quick access
+            for (const [slotKey, item] of Object.entries(this.state.quickAccess.items || {})) {
+                if (slotKey !== excludeSlotKey && item?.uuid === uuid) {
+                    return { container: 'quickAccess', containerIndex: 0, slotKey };
+                }
+            }
+        }
+
+        return null;
     }
 
-    /**
-     * Legacy: Save hotbar data (deprecated - use saveState)
-     * @param {Array} gridsData - Array of grid data objects
-     * @returns {Promise<void>}
-     */
-    async save(gridsData) {
-        const state = await this.loadState();
-        state.hotbar.grids = gridsData;
-        await this.saveState(state);
-    }
-
-    /**
-     * Legacy: Get grids data
-     * @returns {Array} Hotbar grids
-     */
-    getGridsData() {
-        return this.state?.hotbar.grids || [];
-    }
-
-    /**
-     * Legacy: Load weapon sets
-     * @returns {Promise<Array>} Weapon sets
-     */
-    async loadWeaponSets() {
-        const state = await this.loadState();
-        return state.weaponSets.sets;
-    }
-
-    /**
-     * Legacy: Save weapon sets (deprecated - use saveState)
-     * @param {Array} weaponSets - Array of weapon set data
-     * @returns {Promise<void>}
-     */
-    async saveWeaponSets(weaponSets) {
-        const state = await this.loadState();
-        state.weaponSets.sets = weaponSets;
-        await this.saveState(state);
-    }
-
-    /**
-     * Legacy: Update weapon set cell (deprecated - use updateCell)
-     * @param {number} setIndex - Set index
-     * @param {string} slotKey - Slot key
-     * @param {Object|null} cellData - Cell data
-     * @returns {Promise<void>}
-     */
-    async updateWeaponSetCell(setIndex, slotKey, cellData) {
-        await this.updateCell({
-            container: 'weaponSet',
-            containerIndex: setIndex,
-            slotKey: slotKey,
-            data: cellData
-        });
-    }
-
-    /**
-     * Legacy: Get weapon sets data
-     * @returns {Array} Weapon sets
-     */
-    getWeaponSetsData() {
-        return this.state?.weaponSets.sets || [];
-    }
-
-    /**
-     * Legacy: Load quick access
-     * @returns {Promise<Object>} Quick access grid
-     */
-    async loadQuickAccess() {
-        const state = await this.loadState();
-        return state.quickAccess;
-    }
-
-    /**
-     * Legacy: Save quick access (deprecated - use saveState)
-     * @param {Object} quickAccess - Quick access grid data
-     * @returns {Promise<void>}
-     */
-    async saveQuickAccess(quickAccess) {
-        const state = await this.loadState();
-        state.quickAccess = quickAccess;
-        await this.saveState(state);
-    }
-
-    /**
-     * Legacy: Update quick access cell (deprecated - use updateCell)
-     * @param {string} slotKey - Slot key
-     * @param {Object|null} cellData - Cell data
-     * @returns {Promise<void>}
-     */
-    async updateQuickAccessCell(slotKey, cellData) {
-        await this.updateCell({
-            container: 'quickAccess',
-            containerIndex: 0, // Not used for quick access
-            slotKey: slotKey,
-            data: cellData
-        });
-    }
-
-    /**
-     * Legacy: Get quick access data
-     * @returns {Object} Quick access grid
-     */
-    getQuickAccessData() {
-        return this.state?.quickAccess || { rows: 2, cols: 3, items: {} };
-    }
-
-    /**
-     * Legacy: Clear all (now uses clearAll)
-     * @returns {Promise<void>}
-     */
-    async clear() {
-        await this.clearAll();
-    }
 }

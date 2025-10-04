@@ -1,20 +1,26 @@
 import { ContainerTypeDetector } from './ContainerTypeDetector.js';
-import { DropStrategyFactory } from './DropStrategy.js';
+import { SlotContextMenu } from '../components/ui/SlotContextMenu.js';
 
 /**
  * Interaction Coordinator
- * Routes all cell interactions to appropriate handlers
- * Eliminates 347+ lines of duplicate logic from BG3Hotbar
+ * Orchestrates cell interactions and drag/drop operations
+ * Routes clicks to adapter, coordinates persistence
+ * Context menus delegated to SlotContextMenu
  */
 export class InteractionCoordinator {
     constructor(options = {}) {
         this.hotbarApp = options.hotbarApp;
         this.persistenceManager = options.persistenceManager;
-        this.dragDropManager = options.dragDropManager;
         this.adapter = options.adapter;
         
-        // Create drop strategy factory
-        this.dropStrategyFactory = new DropStrategyFactory(this.persistenceManager);
+        // Drag state tracking
+        this.dragSourceCell = null;
+        
+        // Context menu builder (adapter set via setAdapter)
+        this.contextMenu = new SlotContextMenu({
+            interactionCoordinator: this,
+            adapter: this.adapter
+        });
     }
 
     /**
@@ -23,6 +29,7 @@ export class InteractionCoordinator {
      */
     setAdapter(adapter) {
         this.adapter = adapter;
+        this.contextMenu.adapter = adapter;
     }
 
     /**
@@ -31,14 +38,11 @@ export class InteractionCoordinator {
      * @param {MouseEvent} event
      */
     handleClick(cell, event) {
-        console.log('BG3 HUD Core | Cell clicked:', cell.index, cell.data);
-        
         // Block clicks on inactive weapon set cells
         if (ContainerTypeDetector.isWeaponSet(cell)) {
             const weaponContainer = this.hotbarApp.components.weaponSets;
             const activeSet = weaponContainer ? weaponContainer.getActiveSet() : 0;
             if (!ContainerTypeDetector.isActiveWeaponSet(cell, activeSet)) {
-                console.log('BG3 HUD Core | Click blocked on inactive weapon set');
                 return;
             }
         }
@@ -49,145 +53,18 @@ export class InteractionCoordinator {
         // Call adapter's click handler if available
         if (this.adapter && typeof this.adapter.onCellClick === 'function') {
             this.adapter.onCellClick(cell, event);
-        } else {
-            console.log('BG3 HUD Core | No adapter click handler - cell has data:', cell.data);
         }
     }
 
     /**
      * Handle cell right-click
+     * Delegates to SlotContextMenu for menu building
      * @param {GridCell} cell
      * @param {MouseEvent} event
+     * @param {GridContainer} container - The container owning the cell
      */
-    async handleRightClick(cell, event) {
-        console.log('BG3 HUD Core | Cell right-clicked:', cell.index, cell.data);
-
-        // Build context menu items
-        const menuItems = [];
-
-        // SECTION 1: Cell-level actions (if cell has data)
-        if (cell.data) {
-            menuItems.push({
-                label: 'Remove Item',
-                icon: 'fas fa-trash',
-                onClick: async () => {
-                    await this.removeCell(cell);
-                }
-            });
-
-            // Let adapter add custom cell menu items
-            if (this.adapter && typeof this.adapter.getCellMenuItems === 'function') {
-                const adapterItems = await this.adapter.getCellMenuItems(cell);
-                if (adapterItems && adapterItems.length > 0) {
-                    menuItems.push(...adapterItems);
-                }
-            }
-        }
-
-        // SECTION 2: Container-level actions (always shown)
-        const container = this._getContainerFromCell(cell);
-        if (container) {
-            // Add separator if we already have cell-level items
-            if (menuItems.length > 0) {
-                menuItems.push({ separator: true });
-            }
-
-            const hasItems = container.items && Object.keys(container.items).length > 0;
-
-            // Sort container (only enabled if container has items)
-            if (this.adapter && this.adapter.autoSort) {
-                menuItems.push({
-                    label: 'Sort Container',
-                    icon: 'fas fa-sort',
-                    onClick: async () => {
-                        if (!hasItems) {
-                            ui.notifications.warn('Container is empty - nothing to sort');
-                            return;
-                        }
-                        await this.sortContainer(container);
-                    }
-                });
-            }
-
-            // Clear container (only enabled if container has items)
-            menuItems.push({
-                label: 'Clear Container',
-                icon: 'fas fa-times-circle',
-                onClick: async () => {
-                    if (!hasItems) {
-                        ui.notifications.warn('Container is already empty');
-                        return;
-                    }
-                    await this.clearContainer(container);
-                }
-            });
-
-            // Auto-populate (placeholder for future implementation)
-            // This will be enabled by the adapter when auto-populate is implemented
-            if (this.adapter && this.adapter.autoPopulate) {
-                menuItems.push({
-                    label: 'Auto-Populate Container',
-                    icon: 'fas fa-magic',
-                    onClick: async () => {
-                        await this.autoPopulateContainer(container);
-                    }
-                });
-            }
-
-            // Let adapter add custom container menu items
-            if (this.adapter && typeof this.adapter.getContainerMenuItems === 'function') {
-                const adapterItems = await this.adapter.getContainerMenuItems(container);
-                if (adapterItems && adapterItems.length > 0) {
-                    menuItems.push(...adapterItems);
-                }
-            }
-        }
-
-        // Show context menu if we have items
-        if (menuItems.length > 0) {
-            const { ContextMenu } = await import('../components/ui/ContextMenu.js');
-            const menu = new ContextMenu({
-                items: menuItems,
-                event: event,
-                parent: document.body
-            });
-            await menu.render();
-        }
-    }
-
-    /**
-     * Get the container that owns a cell
-     * @param {GridCell} cell
-     * @returns {GridContainer|null}
-     * @private
-     */
-    _getContainerFromCell(cell) {
-        // Get container from cell's parent element
-        const containerElement = cell.element?.closest('.bg3-grid-container');
-        if (!containerElement) return null;
-
-        // Find the container component instance
-        const containerId = containerElement.dataset.id;
-        const containerIndex = parseInt(containerElement.dataset.index);
-
-        // Search in hotbar components
-        if (this.hotbarApp.components.hotbar) {
-            const grid = this.hotbarApp.components.hotbar.getGrid(containerIndex);
-            if (grid && grid.id === containerId) return grid;
-        }
-
-        // Search in weapon sets
-        if (this.hotbarApp.components.weaponSets) {
-            const grid = this.hotbarApp.components.weaponSets.getGrid(containerIndex);
-            if (grid && grid.id === containerId) return grid;
-        }
-
-        // Search in quick access
-        if (this.hotbarApp.components.quickAccess && containerId === 'quick-access') {
-            return this.hotbarApp.components.quickAccess.gridContainer;
-        }
-
-        return null;
+    async handleRightClick(cell, event, container) {
+        await this.contextMenu.show(cell, event, container);
     }
 
 
@@ -197,7 +74,7 @@ export class InteractionCoordinator {
      */
     async sortContainer(container) {
         if (!this.adapter || !this.adapter.autoSort) {
-            console.warn('BG3 HUD Core | No adapter or autoSort capability');
+            ui.notifications.warn('AutoSort not available');
             return;
         }
 
@@ -232,12 +109,12 @@ export class InteractionCoordinator {
         // Get actor from hotbar app
         const actor = this.hotbarApp?.currentActor;
         if (!actor) {
-            ui.notifications.warn('No actor selected');
             return;
         }
 
         try {
-            await this.adapter.autoPopulate.populateContainer(container, actor);
+            // Pass persistence manager for global UUID duplicate checking
+            await this.adapter.autoPopulate.populateContainer(container, actor, this.persistenceManager);
             
             // Persist the changes
             const containerInfo = ContainerTypeDetector.detectContainer(container.cells[0]);
@@ -260,20 +137,18 @@ export class InteractionCoordinator {
      */
     async clearContainer(container) {
         try {
-            // Clear the container
+            // Clear the container visually
             await container.clear();
             
-            // Persist the changes
-            const containerInfo = ContainerTypeDetector.detectContainer(container.cells[0]);
-            if (containerInfo && this.persistenceManager) {
+            // Persist the changes using container's own metadata
+            if (this.persistenceManager) {
                 await this.persistenceManager.updateContainer(
-                    containerInfo.type,
-                    containerInfo.index,
+                    container.containerType,
+                    container.containerIndex ?? 0,
                     {}
                 );
             }
 
-            ui.notifications.info('Container cleared');
         } catch (error) {
             console.error('BG3 HUD Core | Error clearing container:', error);
             ui.notifications.error('Failed to clear container');
@@ -282,44 +157,45 @@ export class InteractionCoordinator {
 
     /**
      * Remove item from a cell
+     * Single orchestration point for cell removal
+     * Follows clean pattern: extract data → update UI → persist state
      * @param {GridCell} cell
      */
     async removeCell(cell) {
-        const container = ContainerTypeDetector.detectContainer(cell);
-        console.log('BG3 HUD Core | Removing item from cell:', cell.index, 'Container:', container);
+        console.log('BG3 HUD Core | Removing item from', `${cell.containerType}[${cell.containerIndex}].${cell.getSlotKey()}`);
         
-        // Clear the cell visually
-        await cell.setData(null);
+        // STEP 1: Update visual state
+        await cell.setData(null, { skipSave: true });
 
-        // Use strategy to persist based on container type
-        const strategy = this.dropStrategyFactory.getStrategy(cell);
-        if (strategy) {
-            console.log('BG3 HUD Core | Persisting removal via strategy:', container.type);
-            await strategy.persistCell(cell);
-            console.log('BG3 HUD Core | Removal persisted');
-        } else {
-            console.warn('BG3 HUD Core | No strategy found for cell container type');
+        // STEP 2: Persist the removal
+        if (this.persistenceManager) {
+            await this.persistenceManager.updateCell({
+                container: cell.containerType,
+                containerIndex: cell.containerIndex,
+                slotKey: cell.getSlotKey(),
+                data: null
+            });
+            
+            console.log('BG3 HUD Core | Cell removal persisted successfully');
         }
-
-        ui.notifications.info('Item removed from hotbar');
     }
 
     /**
-     * Handle cell drag start
+     * Handle cell drag start - track source cell
      * @param {GridCell} cell
      * @param {DragEvent} event
      */
     handleDragStart(cell, event) {
-        this.dragDropManager.onDragStart(cell, event);
+        this.dragSourceCell = cell;
     }
 
     /**
-     * Handle cell drag end
+     * Handle cell drag end - clear source cell
      * @param {GridCell} cell
      * @param {DragEvent} event
      */
     handleDragEnd(cell, event) {
-        this.dragDropManager.onDragEnd(cell, event);
+        this.dragSourceCell = null;
     }
 
     /**
@@ -332,31 +208,25 @@ export class InteractionCoordinator {
     async handleDrop(targetCell, event, dragData) {
         console.log('BG3 HUD Core | Drop on cell:', targetCell.index, dragData);
 
-        // Get target strategy
-        const targetStrategy = this.dropStrategyFactory.getStrategy(targetCell);
-        if (!targetStrategy) {
-            console.warn('BG3 HUD Core | No strategy for target container');
-            return;
-        }
-
         // Internal drop (from another cell)
-        if (dragData?.sourceSlot && this.dragDropManager.dragSourceCell) {
-            await this._handleInternalDrop(targetCell, dragData, targetStrategy);
+        if (dragData?.sourceSlot && this.dragSourceCell) {
+            await this._handleInternalDrop(targetCell, dragData);
         } else {
             // External drop (from character sheet, compendium, etc.)
-            await this._handleExternalDrop(targetCell, event, targetStrategy);
+            await this._handleExternalDrop(targetCell, event);
         }
     }
 
     /**
      * Handle internal drop (cell to cell)
+     * Single orchestration point for all cell-to-cell moves
+     * Follows clean pattern: extract data → validate → update UI → persist state
      * @param {GridCell} targetCell
      * @param {Object} dragData
-     * @param {DropStrategy} targetStrategy
      * @private
      */
-    async _handleInternalDrop(targetCell, dragData, targetStrategy) {
-        const sourceCell = this.dragDropManager.dragSourceCell;
+    async _handleInternalDrop(targetCell, dragData) {
+        const sourceCell = this.dragSourceCell;
         if (!sourceCell) {
             console.warn('BG3 HUD Core | No source cell for internal drop');
             return;
@@ -367,87 +237,175 @@ export class InteractionCoordinator {
             return;
         }
 
-        console.log('BG3 HUD Core | Internal drop from', dragData.sourceSlot, 'to', ContainerTypeDetector.getSlotKey(targetCell));
+        // STEP 1: Extract data (capture current state before any changes)
+        const sourceData = sourceCell.data;
+        const targetData = targetCell.data;
+        const sourceSlotKey = sourceCell.getSlotKey();
+        const targetSlotKey = targetCell.getSlotKey();
 
-        // Check if same container (for swap) or cross-container (for move)
-        if (ContainerTypeDetector.areSameContainer(sourceCell, targetCell)) {
-            // Same container - swap items
-            await targetStrategy.handleSwap(sourceCell, targetCell);
+        // STEP 2: Validate UUID uniqueness for swaps
+        // When swapping, check if the target item's UUID would conflict at source location
+        if (targetData?.uuid) {
+            const existingLocation = this.persistenceManager.findUuidInHud(targetData.uuid, {
+                excludeContainer: targetCell.containerType,
+                excludeContainerIndex: targetCell.containerIndex,
+                excludeSlotKey: targetSlotKey
+            });
+            
+            if (existingLocation) {
+                ui.notifications.warn('This item already exists elsewhere in the HUD');
+                console.log('BG3 HUD Core | UUID conflict during swap:', targetData.uuid, 'at', existingLocation);
+                return;
+            }
+        }
+
+        console.log('BG3 HUD Core | Internal drop:', {
+            from: `${sourceCell.containerType}[${sourceCell.containerIndex}].${sourceSlotKey}`,
+            to: `${targetCell.containerType}[${targetCell.containerIndex}].${targetSlotKey}`,
+            sameContainer: ContainerTypeDetector.areSameContainer(sourceCell, targetCell)
+        });
+
+        // Check if same container or cross-container
+        const sameContainer = ContainerTypeDetector.areSameContainer(sourceCell, targetCell);
+
+        // STEP 3: Check for UUID conflicts in moves (not swaps)
+        if (!sameContainer && sourceData?.uuid && !targetData) {
+            // Moving item to empty slot in different container - check for duplicates
+            const existingLocation = this.persistenceManager.findUuidInHud(sourceData.uuid, {
+                excludeContainer: sourceCell.containerType,
+                excludeContainerIndex: sourceCell.containerIndex,
+                excludeSlotKey: sourceSlotKey
+            });
+            
+            if (existingLocation) {
+                ui.notifications.warn('This item already exists elsewhere in the HUD');
+                console.log('BG3 HUD Core | UUID conflict during move:', sourceData.uuid, 'at', existingLocation);
+                return;
+            }
+        }
+
+        if (sameContainer) {
+            // SAME CONTAINER: Swap items
+            
+            // STEP 2: Update visual state (both cells in parallel)
+            await Promise.all([
+                sourceCell.setData(targetData, { skipSave: true }),
+                targetCell.setData(sourceData, { skipSave: true })
+            ]);
+
+            // STEP 3: Persist both changes (single source of truth)
+            if (this.persistenceManager) {
+                await this.persistenceManager.updateCell({
+                    container: sourceCell.containerType,
+                    containerIndex: sourceCell.containerIndex,
+                    slotKey: sourceSlotKey,
+                    data: targetData
+                });
+                
+                await this.persistenceManager.updateCell({
+                    container: targetCell.containerType,
+                    containerIndex: targetCell.containerIndex,
+                    slotKey: targetSlotKey,
+                    data: sourceData
+                });
+                
+                console.log('BG3 HUD Core | Swap persisted successfully');
+            }
         } else {
-            // Cross-container - move item
-            await this._handleCrossContainerMove(sourceCell, targetCell);
+            // CROSS-CONTAINER: Move item (clear source)
+            
+            // STEP 2: Update visual state (both cells in parallel)
+            await Promise.all([
+                sourceCell.setData(null, { skipSave: true }),
+                targetCell.setData(sourceData, { skipSave: true })
+            ]);
+
+            // STEP 3: Persist both changes (clear source, set target)
+            if (this.persistenceManager) {
+                await this.persistenceManager.updateCell({
+                    container: sourceCell.containerType,
+                    containerIndex: sourceCell.containerIndex,
+                    slotKey: sourceSlotKey,
+                    data: null
+                });
+                
+                await this.persistenceManager.updateCell({
+                    container: targetCell.containerType,
+                    containerIndex: targetCell.containerIndex,
+                    slotKey: targetSlotKey,
+                    data: sourceData
+                });
+                
+                console.log('BG3 HUD Core | Move persisted successfully');
+            }
         }
     }
 
-    /**
-     * Handle cross-container move
-     * Uses unified updateCell API - order doesn't matter since operations are atomic
-     * @param {GridCell} sourceCell
-     * @param {GridCell} targetCell
-     * @private
-     */
-    async _handleCrossContainerMove(sourceCell, targetCell) {
-        console.log('BG3 HUD Core | Cross-container move');
-
-        const sourceContainer = ContainerTypeDetector.detectContainer(sourceCell);
-        const targetContainer = ContainerTypeDetector.detectContainer(targetCell);
-        
-        // Get data
-        const sourceData = sourceCell.data;
-
-        // Move: set target and clear source
-        await targetCell.setData(sourceData);
-        await sourceCell.setData(null);
-
-        // Use unified API - order doesn't matter now since they're atomic
-        const sourceKey = ContainerTypeDetector.getSlotKey(sourceCell);
-        const targetKey = ContainerTypeDetector.getSlotKey(targetCell);
-        
-        await this.persistenceManager.updateCell({
-            container: targetContainer.type,
-            containerIndex: targetContainer.index,
-            slotKey: targetKey,
-            data: sourceData
-        });
-        
-        await this.persistenceManager.updateCell({
-            container: sourceContainer.type,
-            containerIndex: sourceContainer.index,
-            slotKey: sourceKey,
-            data: null
-        });
-    }
 
     /**
      * Handle external drop (from character sheet, compendium, etc.)
+     * Single orchestration point for external item drops
+     * Follows clean pattern: extract data → validate → update UI → persist state
      * @param {GridCell} targetCell
      * @param {DragEvent} event
-     * @param {DropStrategy} targetStrategy
      * @private
      */
-    async _handleExternalDrop(targetCell, event, targetStrategy) {
-        console.log('BG3 HUD Core | External drop');
+    async _handleExternalDrop(targetCell, event) {
+        console.log('BG3 HUD Core | External drop to', `${targetCell.containerType}[${targetCell.containerIndex}].${targetCell.getSlotKey()}`);
 
-        // Get item from drag data
+        // STEP 1: Get and transform item data
         const item = await this._getItemFromDragData(event);
         if (!item) {
             console.warn('BG3 HUD Core | Could not get item from drag data');
             return;
         }
 
-        console.log('BG3 HUD Core | Got item from drag:', item.name);
+        // STEP 2: Validate item ownership (must belong to current actor)
+        const currentActor = this.hotbarApp?.currentActor;
+        if (!currentActor) {
+            ui.notifications.warn('No actor selected');
+            return;
+        }
 
-        // Transform item to cell data
+        if (item.actor && item.actor.id !== currentActor.id) {
+            ui.notifications.warn(`This item belongs to ${item.actor.name}, not ${currentActor.name}`);
+            console.log('BG3 HUD Core | Actor ownership mismatch:', item.actor.name, 'vs', currentActor.name);
+            return;
+        }
+
+        // STEP 3: Transform item to cell data
         const cellData = await this._transformItemToCellData(item);
         if (!cellData) {
             console.warn('BG3 HUD Core | Could not transform item to cell data');
             return;
         }
 
-        // Use strategy to handle drop
-        await targetStrategy.handleExternalDrop(targetCell, cellData);
+        // STEP 4: Check for UUID duplicates (only if UUID exists)
+        if (cellData.uuid) {
+            const existingLocation = this.persistenceManager.findUuidInHud(cellData.uuid);
+            if (existingLocation) {
+                ui.notifications.warn('This item is already in the HUD');
+                console.log('BG3 HUD Core | UUID already exists:', cellData.uuid, 'at', existingLocation);
+                return;
+            }
+        }
 
-        ui.notifications.info(`Added ${cellData.name || 'item'} to hotbar`);
+        console.log('BG3 HUD Core | Adding item to hotbar:', item.name);
+
+        // STEP 2: Update visual state
+        await targetCell.setData(cellData, { skipSave: true });
+        
+        // STEP 3: Persist the change
+        if (this.persistenceManager) {
+            await this.persistenceManager.updateCell({
+                container: targetCell.containerType,
+                containerIndex: targetCell.containerIndex,
+                slotKey: targetCell.getSlotKey(),
+                data: cellData
+            });
+            
+            console.log('BG3 HUD Core | External drop persisted successfully');
+        }
     }
 
     /**

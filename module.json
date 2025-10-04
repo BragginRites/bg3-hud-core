@@ -4,6 +4,7 @@
   "description": "Core UI framework for BG3 Inspired HUD. Requires a system-specific adapter module (bg3-hud-dnd5e, bg3-hud-pf2e, etc.) to function.",
   "version": "0.1.0",
   "library": true,
+  "socket": true,
   "authors": [
     {
       "name": "BragginRites",
@@ -14,6 +15,16 @@
   "compatibility": {
     "minimum": "13",
     "verified": "13"
+  },
+  "relationships": {
+    "requires": [
+      {
+        "id": "socketlib",
+        "type": "module",
+        "manifest": "https://raw.githubusercontent.com/manuelVo/foundryvtt-socketlib/master/module.json",
+        "compatibility": {}
+      }
+    ]
   },
   "esmodules": [
     "scripts/module.js"

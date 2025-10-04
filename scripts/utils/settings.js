@@ -23,6 +23,36 @@ export function registerSettings() {
             }
         }
     });
+
+    // Show item names setting
+    game.settings.register(MODULE_ID, 'showItemNames', {
+        name: 'Show Item Names',
+        hint: 'Display item names below each hotbar item',
+        scope: 'client',
+        config: true,
+        type: Boolean,
+        default: false,
+        onChange: () => {
+            if (ui.BG3HOTBAR) {
+                ui.BG3HOTBAR.updateDisplaySettings();
+            }
+        }
+    });
+
+    // Show item uses & quantity setting
+    game.settings.register(MODULE_ID, 'showItemUses', {
+        name: 'Show Item Uses & Quantity',
+        hint: 'Display remaining uses in the top-right corner and quantity in the top-left corner',
+        scope: 'client',
+        config: true,
+        type: Boolean,
+        default: true,
+        onChange: () => {
+            if (ui.BG3HOTBAR) {
+                ui.BG3HOTBAR.updateDisplaySettings();
+            }
+        }
+    });
 }
 
 /**

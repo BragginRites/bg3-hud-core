@@ -112,29 +112,11 @@ export class FilterContainer extends BG3Component {
 
         // Update cell states
         const cells = document.querySelectorAll('.bg3-grid-cell.filled');
-        
-        console.log('BG3 HUD | Updating cell filter states:', {
-            totalCells: cells.length,
-            highlighted: this._highlighted?.data,
-            used: this._used.map(f => f.data)
-        });
 
         for (const cell of cells) {
             const isUsed = this._used.some(f => this.matchesFilter(f, cell));
             const isHighlighted = this._highlighted ? 
                 this.matchesFilter(this._highlighted, cell) : false;
-
-            // Debug: log cell metadata
-            if (this._highlighted) {
-                console.log('BG3 HUD | Cell:', {
-                    uuid: cell.dataset.uuid,
-                    itemType: cell.dataset.itemType,
-                    level: cell.dataset.level,
-                    actionType: cell.dataset.actionType,
-                    activityActionTypes: cell.dataset.activityActionTypes,
-                    matches: isHighlighted
-                });
-            }
 
             // Update used class
             cell.classList.toggle('used', isUsed);

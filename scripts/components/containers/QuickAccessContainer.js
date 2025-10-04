@@ -14,7 +14,7 @@ export class QuickAccessContainer extends BG3Component {
      * @param {Object} options - Container options
      * @param {Actor} options.actor - The actor
      * @param {Token} options.token - The token
-     * @param {Object} options.gridData - Grid data {rows, cols, items}
+     * @param {Array} options.grids - Array of grid data objects [{rows, cols, items}]
      * @param {Function} options.onCellClick - Cell click handler
      * @param {Function} options.onCellRightClick - Cell right-click handler
      * @param {Function} options.onCellDragStart - Cell drag start handler
@@ -25,14 +25,17 @@ export class QuickAccessContainer extends BG3Component {
         super(options);
         this.actor = options.actor;
         this.token = options.token;
-        this.gridData = options.gridData || this._getDefaultGrid();
+        // Store grid data as array for consistency with other containers
+        this.grids = Array.isArray(options.grids) ? options.grids : [options.gridData || this._getDefaultGrid()];
+        this.persistenceManager = options.persistenceManager;
         this.onCellClick = options.onCellClick;
         this.onCellRightClick = options.onCellRightClick;
         this.onCellDragStart = options.onCellDragStart;
         this.onCellDragEnd = options.onCellDragEnd;
         this.onCellDrop = options.onCellDrop;
         
-        this.gridContainer = null;
+        // Use array for consistency with HotbarContainer and WeaponSetContainer
+        this.gridContainers = [];
     }
 
     /**
@@ -41,7 +44,8 @@ export class QuickAccessContainer extends BG3Component {
      * @private
      */
     _getDefaultGrid() {
-        return { rows: 2, cols: 3, items: [] };
+        // Unified format uses object map keyed by "col-row"
+        return { rows: 2, cols: 3, items: {} };
     }
 
     /**
@@ -56,81 +60,64 @@ export class QuickAccessContainer extends BG3Component {
 
         // Clear existing
         this.element.innerHTML = '';
+        this.gridContainers = [];
 
-        // Create grid container
-        // Convert stored array form to the GridContainer's expected map form
-        const itemsMap = Array.isArray(this.gridData.items)
-            ? this._arrayToItemsMap(this.gridData.items, this.gridData.cols)
-            : (this.gridData.items || {});
+        // Create single grid container (QuickAccess only has one grid)
+        const gridData = this.grids[0];
+        const itemsMap = gridData.items || {};
 
-        this.gridContainer = new GridContainer({
-            rows: this.gridData.rows,
-            cols: this.gridData.cols,
+        const gridContainer = new GridContainer({
+            rows: gridData.rows,
+            cols: gridData.cols,
             items: itemsMap,
             id: 'quick-access',
             index: 0,
+            containerType: 'quickAccess',
+            containerIndex: 0,
+            persistenceManager: this.persistenceManager,
             actor: this.actor,
             token: this.token,
             onCellClick: this.onCellClick,
             onCellRightClick: this.onCellRightClick,
             onCellDragStart: this.onCellDragStart,
             onCellDragEnd: this.onCellDragEnd,
-            onCellDrop: this.onCellDrop
+            onCellDrop: this.onCellDrop,
+            decorateCellElement: this.options?.decorateCellElement
         });
         
+        // Store in array for consistency
+        this.gridContainers[0] = gridContainer;
+        
         // Render first to create the element
-        await this.gridContainer.render();
+        await gridContainer.render();
         
         // Add CSS class
-        this.gridContainer.element.classList.add('bg3-quick-access-grid');
-        this.element.appendChild(this.gridContainer.element);
+        gridContainer.element.classList.add('bg3-quick-access-grid');
+        this.element.appendChild(gridContainer.element);
 
         return this.element;
     }
 
     /**
-     * Update the grid data
-     * @param {Object} newData - New grid data
+     * Get the grid container (for interface consistency with HotbarContainer/WeaponSetContainer)
+     * @param {number} index - Grid index
+     * @returns {GridContainer|null}
      */
-    async updateGrid(newData) {
-        this.gridData = newData;
-        if (this.gridContainer) {
-            // Only update items to avoid structural rebuilds
-            const itemsMap = Array.isArray(newData.items)
-                ? this._arrayToItemsMap(newData.items, newData.cols)
-                : (newData.items || {});
-            this.gridContainer.items = itemsMap;
-            await this.gridContainer.render();
-        }
-    }
-
-    /**
-     * Convert array of entries (row-major) to keyed map "col-row" → data
-     * @param {Array} itemsArray
-     * @param {number} cols
-     * @returns {Object}
-     * @private
-     */
-    _arrayToItemsMap(itemsArray, cols) {
-        const map = {};
-        for (let index = 0; index < itemsArray.length; index++) {
-            const data = itemsArray[index];
-            if (!data) continue;
-            const row = Math.floor(index / cols);
-            const col = index % cols;
-            map[`${col}-${row}`] = data;
-        }
-        return map;
+    getGrid(index) {
+        return this.gridContainers[index] || null;
     }
 
     /**
      * Destroy the container
      */
     destroy() {
-        if (this.gridContainer && typeof this.gridContainer.destroy === 'function') {
-            this.gridContainer.destroy();
+        // Destroy all grid containers
+        for (const gridContainer of this.gridContainers) {
+            if (gridContainer && typeof gridContainer.destroy === 'function') {
+                gridContainer.destroy();
+            }
         }
-        this.gridContainer = null;
+        this.gridContainers = [];
         super.destroy();
     }
 }

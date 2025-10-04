@@ -42,6 +42,7 @@ export class ComponentFactory {
             token: this.hotbarApp.currentToken,
             weaponSets: weaponSetsData,
             persistenceManager: this.hotbarApp.persistenceManager,
+            decorateCellElement: BG3HUD_REGISTRY.activeAdapter?.decorateCellElement,
             ...handlers
         });
     }
@@ -58,7 +59,9 @@ export class ComponentFactory {
         return new QuickAccessContainer({
             actor: this.hotbarApp.currentActor,
             token: this.hotbarApp.currentToken,
-            gridData: quickAccessData,
+            grids: quickAccessData?.grids ?? [quickAccessData],
+            persistenceManager: this.hotbarApp.persistenceManager,
+            decorateCellElement: BG3HUD_REGISTRY.activeAdapter?.decorateCellElement,
             ...handlers
         });
     }
@@ -77,6 +80,7 @@ export class ComponentFactory {
             actor: this.hotbarApp.currentActor,
             token: this.hotbarApp.currentToken,
             hotbarApp: this.hotbarApp,
+            decorateCellElement: BG3HUD_REGISTRY.activeAdapter?.decorateCellElement,
             ...handlers
         });
     }

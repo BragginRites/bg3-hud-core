@@ -12,6 +12,9 @@ export class GridCell extends BG3Component {
      * @param {number} options.index - Cell index in grid
      * @param {number} options.row - Row position
      * @param {number} options.col - Column position
+     * @param {string} options.containerType - Container type ('hotbar', 'weaponSet', 'quickAccess')
+     * @param {number} options.containerIndex - Container index (for hotbar grids or weapon sets)
+     * @param {PersistenceManager} options.persistenceManager - Persistence manager reference
      * @param {Object} options.data - Cell data (generic structure: {uuid, name, img, uses, quantity})
      * @param {Function} options.onClick - Click handler
      * @param {Function} options.onRightClick - Right-click handler
@@ -24,12 +27,24 @@ export class GridCell extends BG3Component {
         this.index = options.index ?? 0;
         this.row = options.row ?? 0;
         this.col = options.col ?? 0;
-        this.gridIndex = options.gridIndex ?? 0;  // Which grid this cell belongs to
+        this.containerType = options.containerType || 'hotbar';
+        this.containerIndex = options.containerIndex ?? 0;
+        this.persistenceManager = options.persistenceManager || null;
         this.data = options.data || null;
         this.isEmpty = !this.data;
         // Create a stable element once to avoid flicker on re-renders
         this.element = this.createElement('div', ['bg3-grid-cell']);
     }
+
+    /**
+     * Get the slot key for this cell
+     * @returns {string} Slot key in "col-row" format
+     */
+    getSlotKey() {
+        return `${this.col}-${this.row}`;
+    }
+
+    
 
     /**
      * Render the grid cell
@@ -85,9 +100,6 @@ export class GridCell extends BG3Component {
         // Store UUID for later retrieval
         if (this.data.uuid) {
             this.element.dataset.uuid = this.data.uuid;
-            
-            // Fetch full item data to extract metadata for filtering
-            await this._extractItemMetadata();
         }
 
         // Add item image
@@ -132,45 +144,7 @@ export class GridCell extends BG3Component {
         }
     }
 
-    /**
-     * Extract item metadata for filtering (system-agnostic with system-specific data)
-     * @private
-     */
-    async _extractItemMetadata() {
-        try {
-            const item = await fromUuid(this.data.uuid);
-            if (!item) return;
-
-            // Store item type (universal)
-            this.element.dataset.itemType = item.type;
-
-            // D&D 5e specific: spell level and preparation mode
-            if (item.type === 'spell' && item.system?.level !== undefined) {
-                this.element.dataset.level = item.system.level;
-                if (item.system.preparation?.mode) {
-                    this.element.dataset.preparationMode = item.system.preparation.mode;
-                }
-            }
-
-            // D&D 5e specific: extract activity action types
-            if (item.system?.activities instanceof Map && item.system.activities.size > 0) {
-                const activityActionTypes = Array.from(item.system.activities.values())
-                    .filter(activity => activity.activation?.type)
-                    .map(activity => activity.activation.type);
-                
-                if (activityActionTypes.length > 0) {
-                    this.element.dataset.activityActionTypes = [...new Set(activityActionTypes)].join(',');
-                }
-            }
-
-            // Legacy D&D 5e: fallback to old activation.type
-            if (item.system?.activation?.type) {
-                this.element.dataset.actionType = item.system.activation.type.toLowerCase();
-            }
-        } catch (error) {
-            console.warn('BG3 HUD | Failed to extract item metadata:', error);
-        }
-    }
+    
 
     /**
      * Add interaction handlers
@@ -280,7 +254,13 @@ export class GridCell extends BG3Component {
      * Update cell data and re-render
      * @param {Object} newData - New cell data
      */
-    async setData(newData) {
+    /**
+     * Update cell data and visual state
+     * @param {Object|null} newData - New cell data
+     * @param {Object} options - Options
+     * @param {boolean} options.skipSave - If true, only update visual state (don't persist)
+     */
+    async setData(newData, options = {}) {
         this.data = newData;
         this.isEmpty = !newData;
         
@@ -298,8 +278,19 @@ export class GridCell extends BG3Component {
                 this._renderEmptyState();
             } else {
                 await this._renderContent();
+                // Allow adapter to decorate the cell element with system-specific attributes
+                if (this.options?.decorateCellElement && typeof this.options.decorateCellElement === 'function') {
+                    try {
+                        await this.options.decorateCellElement(this.element, this.data);
+                    } catch (e) {
+                        console.warn('BG3 HUD | Cell decoration failed:', e);
+                    }
+                }
             }
         }
+        
+        // Note: GridCell never saves directly - orchestrators like InteractionCoordinator
+        // handle persistence. The skipSave flag is here for clarity and future-proofing.
     }
 
     /**

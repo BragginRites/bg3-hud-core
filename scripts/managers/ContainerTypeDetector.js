@@ -14,11 +14,18 @@ export class ContainerTypeDetector {
     };
 
     /**
-     * Detect container type from a cell element
+     * Detect container type from a cell
+     * Prioritizes cell metadata over DOM detection for reliability
      * @param {GridCell} cell - Cell to check
      * @returns {Object} {type: 'hotbar'|'weaponSet'|'quickAccess', index: number}
      */
     static detectContainer(cell) {
+        // Prefer cell metadata (more reliable than DOM)
+        if (cell?.containerType && cell.containerIndex !== undefined) {
+            return { type: cell.containerType, index: cell.containerIndex };
+        }
+        
+        // Fallback to DOM detection if metadata missing
         if (!cell?.element) {
             return { type: this.TYPES.HOTBAR, index: 0 };
         }
@@ -37,8 +44,7 @@ export class ContainerTypeDetector {
         }
         
         // Default: hotbar grid
-        const gridIndex = cell.gridIndex ?? 0;
-        return { type: this.TYPES.HOTBAR, index: gridIndex };
+        return { type: this.TYPES.HOTBAR, index: cell.containerIndex ?? 0 };
     }
 
     /**
