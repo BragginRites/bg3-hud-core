@@ -50,3 +50,45 @@ Hooks.once('ready', async () => {
 
     console.log('BG3 HUD Core | Initialization complete');
 });
+
+// ========================================
+// Token Creation Hook
+// ========================================
+
+Hooks.on('createToken', async (tokenDocument, options, userId) => {
+    // Only run for GMs or if the user created the token
+    if (!game.user.isGM && game.userId !== userId) return;
+
+    const token = tokenDocument.object;
+    if (!token || !token.actor) return;
+
+    // Check if adapter provides auto-populate on token creation
+    const adapter = BG3HUD_REGISTRY.activeAdapter;
+    if (!adapter || !adapter.autoPopulate) return;
+
+    // Check if feature is enabled
+    const enabled = game.settings.get(adapter.MODULE_ID, 'autoPopulateEnabled');
+    if (!enabled) return;
+
+    const configuration = game.settings.get(adapter.MODULE_ID, 'autoPopulateConfiguration');
+    if (!configuration) return;
+
+    // Check if any grid has types configured
+    const hasTypes = configuration.grid0?.length > 0 ||
+                     configuration.grid1?.length > 0 ||
+                     configuration.grid2?.length > 0;
+    
+    if (!hasTypes) return;
+
+    console.log('BG3 HUD Core | Auto-populating new token:', token.name);
+
+    try {
+        // Use a temporary persistence manager for the token
+        const { PersistenceManager } = await import('./managers/PersistenceManager.js');
+        const tempPersistence = new PersistenceManager();
+        
+        await adapter.autoPopulate.populateOnTokenCreation(token, configuration, tempPersistence);
+    } catch (error) {
+        console.error('BG3 HUD Core | Error in auto-populate on token creation:', error);
+    }
+});

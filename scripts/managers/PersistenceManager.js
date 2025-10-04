@@ -17,7 +17,7 @@ export class PersistenceManager {
         
         // Default grid configuration - can be overridden by system adapters
         this.DEFAULT_GRID_CONFIG = {
-            rows: 1,
+            rows: 3,
             cols: 5,
             gridCount: 3
         };

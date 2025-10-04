@@ -64,6 +64,15 @@ export class GridCell extends BG3Component {
         } else {
             this.element.classList.add('filled');
             await this._renderContent();
+            
+            // Allow adapter to decorate the cell element with system-specific attributes
+            if (this.options?.decorateCellElement && typeof this.options.decorateCellElement === 'function') {
+                try {
+                    await this.options.decorateCellElement(this.element, this.data);
+                } catch (e) {
+                    console.warn('BG3 HUD | Cell decoration failed:', e);
+                }
+            }
         }
 
         // Add interaction handlers (only once per element)

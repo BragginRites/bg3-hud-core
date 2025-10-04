@@ -10,18 +10,18 @@
   /* Filter Container */
   .bg3-filter-container {
       position: absolute;
-      top: -25px;
+      top: -35px;
       left: 50%;
       transform: translate(-50%, -50%);
       display: flex;
       gap: 2px;
       align-items: center;
       padding: 1px;
-      flex-wrap: wrap;
       background: rgba(0,0,0,0.35);
       opacity: 0;
       pointer-events: none;
       transition: opacity 120ms ease, transform 120ms ease;
+      white-space: nowrap; /* Prevent wrapping */
   }
   
   

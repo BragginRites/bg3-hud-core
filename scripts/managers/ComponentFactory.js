@@ -37,12 +37,18 @@ export class ComponentFactory {
     async createWeaponSetsContainer(weaponSetsData, handlers) {
         const { WeaponSetContainer } = await import('../components/containers/WeaponSetContainer.js');
         
+        // Bind decorateCellElement to maintain adapter context
+        const adapter = BG3HUD_REGISTRY.activeAdapter;
+        const decorateCellElement = adapter?.decorateCellElement 
+            ? adapter.decorateCellElement.bind(adapter) 
+            : undefined;
+        
         return new WeaponSetContainer({
             actor: this.hotbarApp.currentActor,
             token: this.hotbarApp.currentToken,
             weaponSets: weaponSetsData,
             persistenceManager: this.hotbarApp.persistenceManager,
-            decorateCellElement: BG3HUD_REGISTRY.activeAdapter?.decorateCellElement,
+            decorateCellElement: decorateCellElement,
             ...handlers
         });
     }
@@ -56,12 +62,18 @@ export class ComponentFactory {
     async createQuickAccessContainer(quickAccessData, handlers) {
         const { QuickAccessContainer } = await import('../components/containers/QuickAccessContainer.js');
         
+        // Bind decorateCellElement to maintain adapter context
+        const adapter = BG3HUD_REGISTRY.activeAdapter;
+        const decorateCellElement = adapter?.decorateCellElement 
+            ? adapter.decorateCellElement.bind(adapter) 
+            : undefined;
+        
         return new QuickAccessContainer({
             actor: this.hotbarApp.currentActor,
             token: this.hotbarApp.currentToken,
             grids: quickAccessData?.grids ?? [quickAccessData],
             persistenceManager: this.hotbarApp.persistenceManager,
-            decorateCellElement: BG3HUD_REGISTRY.activeAdapter?.decorateCellElement,
+            decorateCellElement: decorateCellElement,
             ...handlers
         });
     }
@@ -75,12 +87,18 @@ export class ComponentFactory {
     async createHotbarContainer(gridsData, handlers) {
         const { HotbarContainer } = await import('../components/containers/HotbarContainer.js');
         
+        // Bind decorateCellElement to maintain adapter context
+        const adapter = BG3HUD_REGISTRY.activeAdapter;
+        const decorateCellElement = adapter?.decorateCellElement 
+            ? adapter.decorateCellElement.bind(adapter) 
+            : undefined;
+        
         return new HotbarContainer({
             grids: gridsData,
             actor: this.hotbarApp.currentActor,
             token: this.hotbarApp.currentToken,
             hotbarApp: this.hotbarApp,
-            decorateCellElement: BG3HUD_REGISTRY.activeAdapter?.decorateCellElement,
+            decorateCellElement: decorateCellElement,
             ...handlers
         });
     }

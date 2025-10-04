@@ -31,6 +31,8 @@ export class GridContainer extends BG3Component {
         this.containerIndex = options.containerIndex ?? options.index ?? 0;
         this.persistenceManager = options.persistenceManager || null;
         this.classes = options.classes || [];
+        // Adapter-provided decorator for cells (bound in factory)
+        this.decorateCellElement = options.decorateCellElement || null;
         this.cells = [];
     }
 
@@ -81,7 +83,9 @@ export class GridContainer extends BG3Component {
                         } : null,
                         onDragStart: this.options.onCellDragStart,
                         onDragEnd: this.options.onCellDragEnd,
-                        onDrop: this.options.onCellDrop
+                        onDrop: this.options.onCellDrop,
+                        // Pass through the adapter decorator to each cell
+                        decorateCellElement: this.decorateCellElement
                     });
 
                     this.cells.push(cell);
@@ -102,7 +106,7 @@ export class GridContainer extends BG3Component {
                     if (!cell) continue;
 
                     if (!this._areCellDatasEqual(cell.data, itemData)) {
-                        updates.push(cell.setData(itemData));
+                        updates.push(cell.setData(itemData, { decorateCellElement: this.decorateCellElement }));
                     }
                 }
             }
@@ -179,7 +183,7 @@ export class GridContainer extends BG3Component {
                 const cellKey = `${col}-${row}`;
                 const cell = this.getCell(col, row);
                 if (cell) {
-                    await cell.setData(this.items[cellKey] || null);
+                    await cell.setData(this.items[cellKey] || null, { decorateCellElement: this.decorateCellElement });
                 }
             }
         }

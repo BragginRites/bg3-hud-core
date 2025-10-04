@@ -412,3 +412,91 @@
     background: rgba(100, 100, 100, 0.5);
 }
 
+/* ==========================================================================
+   Auto-Populate Configuration Dialog (Grid-based assignment)
+   ========================================================================== */
+
+.auto-populate-config-dialog {
+    min-width: 700px;
+    max-width: 900px;
+    min-height: 600px;
+    max-height: 90vh;
+}
+
+.auto-populate-config-dialog .bg3-dialog-content {
+    max-height: 75vh;
+}
+
+.bg3-dialog-description {
+    color: var(--bg3-text, #ddd);
+    font-size: 0.9em;
+    margin: 0;
+    padding: 12px 20px;
+    border-bottom: var(--bg3-border-width, 1px) solid var(--bg3-border, #2f2f2f);
+    background: rgba(255, 255, 255, 0.03);
+    opacity: 0.85;
+    text-align: center;
+}
+
+.grids-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 0;
+}
+
+.grid-section {
+    border: 2px solid var(--bg3-border, #2f2f2f);
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 16px;
+    transition: all 0.2s ease;
+}
+
+.grid-section:hover {
+    border-color: rgba(46, 204, 113, 0.4);
+    background: rgba(0, 0, 0, 0.4);
+}
+
+.grid-section-header {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: var(--bg3-action, #2ecc71);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid rgba(46, 204, 113, 0.4);
+    text-shadow: var(--shadow-text-stroke);
+}
+
+/* Reuse group headers from regular auto-populate */
+.grid-section .bg3-pills-group-header {
+    font-size: 0.8em;
+    margin-top: 8px;
+    margin-bottom: 6px;
+}
+
+.grid-section .bg3-pills-group-header:first-of-type {
+    margin-top: 0;
+}
+
+/* Pills container spacing within grid sections */
+.grid-section .bg3-pills-container {
+    margin-bottom: 8px;
+}
+
+.grid-section .bg3-pills-container:last-child {
+    margin-bottom: 0;
+}
+
+/* Disabled pills for types assigned to other grids */
+.bg3-pill.disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    background: rgba(80, 80, 80, 0.2);
+    border-color: rgba(80, 80, 80, 0.4);
+    pointer-events: none;
+    filter: grayscale(0.8);
+}
+

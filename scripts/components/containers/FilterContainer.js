@@ -164,9 +164,31 @@ export class FilterContainer extends BG3Component {
 
     /**
      * Update filters (useful when actor data changes)
+     * Only updates filter values (like spell slots) without rebuilding the entire container
      */
     async update() {
-        await this.render();
+        // Get fresh filter definitions from adapter
+        const filterDefs = this.getFilters();
+        
+        // Update existing filter buttons in-place
+        for (let i = 0; i < filterDefs.length && i < this.filterButtons.length; i++) {
+            const filterDef = filterDefs[i];
+            const button = this.filterButtons[i];
+            
+            // Update only the data that can change (spell slots, etc.)
+            if (filterDef.value !== undefined && button.data.value !== filterDef.value) {
+                button.data.value = filterDef.value;
+                button.data.max = filterDef.max;
+                
+                // Update the visual representation without full re-render
+                await button.updateSlots(filterDef.value, filterDef.max);
+            }
+        }
+        
+        // If filter count changed (rare), do a full rebuild
+        if (filterDefs.length !== this.filterButtons.length) {
+            await this.render();
+        }
     }
 
     /**

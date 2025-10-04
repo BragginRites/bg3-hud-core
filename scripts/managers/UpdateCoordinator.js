@@ -38,19 +38,40 @@ export class UpdateCoordinator {
      * @private
      */
     async _onControlToken(token, controlled) {
+        // Check how many tokens are currently controlled
+        const controlledTokens = canvas.tokens.controlled;
+        const multipleTokensControlled = controlledTokens.length > 1;
+        
         if (controlled) {
-            this.hotbarApp.currentToken = token;
-            this.hotbarApp.currentActor = token.actor;
-            console.log('BG3 HUD Core | Token controlled:', token.name);
-            await this.hotbarApp.refresh();
+            if (multipleTokensControlled) {
+                // Hide UI when multiple tokens are selected to prevent confusion
+                console.log('BG3 HUD Core | Multiple tokens controlled, hiding UI');
+                this.hotbarApp.currentToken = null;
+                this.hotbarApp.currentActor = null;
+                await this.hotbarApp.refresh();
+            } else {
+                // Single token controlled - show UI normally
+                this.hotbarApp.currentToken = token;
+                this.hotbarApp.currentActor = token.actor;
+                console.log('BG3 HUD Core | Token controlled:', token.name);
+                await this.hotbarApp.refresh();
+            }
         } else {
-            // When deselecting, don't immediately null out the actor
-            // This allows pending updateActor hooks to complete
-            // We'll clear it after the refresh
-            console.log('BG3 HUD Core | Token deselected');
-            this.hotbarApp.currentToken = null;
-            this.hotbarApp.currentActor = null;
-            await this.hotbarApp.refresh();
+            // When deselecting, check if we still have a single token selected
+            if (controlledTokens.length === 1) {
+                // Another token is still selected, show it
+                const remainingToken = controlledTokens[0];
+                this.hotbarApp.currentToken = remainingToken;
+                this.hotbarApp.currentActor = remainingToken.actor;
+                console.log('BG3 HUD Core | Token deselected, showing remaining token:', remainingToken.name);
+                await this.hotbarApp.refresh();
+            } else {
+                // No tokens selected or multiple tokens selected
+                console.log('BG3 HUD Core | Token deselected');
+                this.hotbarApp.currentToken = null;
+                this.hotbarApp.currentActor = null;
+                await this.hotbarApp.refresh();
+            }
             
             // DON'T clear _lastSaveWasLocal here - let the updateActor hook handle it
             // This ensures that if an actor update is pending, it will be properly skipped
@@ -129,7 +150,32 @@ export class UpdateCoordinator {
             }
         }
 
-        // Fallback: full refresh for unhandled changes
+        // Check for spell slot changes (very common in D&D 5e)
+        const spellsChanged = changes?.system?.spells;
+        if (spellsChanged) {
+            if (await this._handleResourceChange()) {
+                return;
+            }
+        }
+
+        // Check for item changes (uses, quantity, etc.)
+        const itemsChanged = changes?.items;
+        if (itemsChanged) {
+            if (await this._handleItemsChange(itemsChanged)) {
+                return;
+            }
+        }
+
+        // Check for resource changes (ki, rage, etc.)
+        const resourcesChanged = changes?.system?.resources;
+        if (resourcesChanged) {
+            if (await this._handleResourceChange()) {
+                return;
+            }
+        }
+
+        // Fallback: full refresh for unhandled changes (rare)
+        console.warn('BG3 HUD Core | UpdateCoordinator: Unhandled actor change, doing full refresh:', changes);
         await this.hotbarApp.refresh();
     }
 
@@ -234,20 +280,72 @@ export class UpdateCoordinator {
     }
 
     /**
+     * Handle resource changes (spell slots, ki, rage, etc.)
+     * Targeted update: only update filter container
+     * @returns {Promise<boolean>} True if handled
+     * @private
+     */
+    async _handleResourceChange() {
+        const filters = this.hotbarApp.components?.filters;
+        if (filters && typeof filters.update === 'function') {
+            await filters.update();
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Handle item changes (uses, quantity, etc.)
+     * Targeted update: update cells that display the changed items
+     * @param {Array} changedItems - Array of changed item data
+     * @returns {Promise<boolean>} True if handled
+     * @private
+     */
+    async _handleItemsChange(changedItems) {
+        // For now, update all grid containers
+        // TODO: Make this more granular by only updating cells with changed items
+        const updated = [];
+
+        if (this.hotbarApp.components?.hotbar) {
+            for (const gridContainer of this.hotbarApp.components.hotbar.gridContainers) {
+                updated.push(gridContainer.render());
+            }
+        }
+
+        if (this.hotbarApp.components?.weaponSets) {
+            for (const gridContainer of this.hotbarApp.components.weaponSets.gridContainers) {
+                updated.push(gridContainer.render());
+            }
+        }
+
+        if (this.hotbarApp.components?.quickAccess) {
+            for (const gridContainer of this.hotbarApp.components.quickAccess.gridContainers) {
+                updated.push(gridContainer.render());
+            }
+        }
+
+        if (updated.length > 0) {
+            await Promise.all(updated);
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Handle combat update
      * @param {Combat} combat
      * @param {Object} changes
      * @private
      */
     async _onUpdateCombat(combat, changes) {
-        // Refresh if it's the current combatant's turn
-        const combatant = combat.combatant;
-        if (combatant && combatant.token === this.hotbarApp.currentToken) {
-            await this.hotbarApp.refresh();
-        }
-        
-        // Update action button visibility
+        // Update action button visibility (no need for full refresh)
         this._updateActionButtonsVisibility();
+        
+        // Reset filters when turn changes
+        if (changes.turn !== undefined || changes.round !== undefined) {
+            this._resetFilters();
+        }
     }
 
     /**

@@ -146,11 +146,14 @@ export class ControlContainer extends BG3Component {
         }
 
         // Save to persistence - update each grid's config
+        console.log('BG3 HUD Core | _addRow: Saving grid configs');
         for (let i = 0; i < hotbarContainer.grids.length; i++) {
+            console.log(`BG3 HUD Core | Saving grid ${i} rows: ${hotbarContainer.grids[i].rows}`);
             await this.hotbarApp.persistenceManager.updateGridConfig(i, {
                 rows: hotbarContainer.grids[i].rows
             });
         }
+        console.log('BG3 HUD Core | _addRow: Configs saved');
     }
 
     /**

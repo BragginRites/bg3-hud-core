@@ -102,6 +102,27 @@ export class FilterButton extends BG3Component {
     }
 
     /**
+     * Update spell slot display without full re-render
+     * @param {number} value - Current value
+     * @param {number} max - Maximum value
+     */
+    async updateSlots(value, max) {
+        if (!this.element) return;
+        
+        // Find existing slot track
+        const track = this.element.querySelector('.slot-track');
+        if (!track) return;
+        
+        const filled = Number(value) || 0;
+        const boxes = track.querySelectorAll('.slot-box');
+        
+        // Update filled state of each box
+        boxes.forEach((box, i) => {
+            box.classList.toggle('filled', i < filled);
+        });
+    }
+
+    /**
      * Get tooltip content
      * @returns {string}
      */

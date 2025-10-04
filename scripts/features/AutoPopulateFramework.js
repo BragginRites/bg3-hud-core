@@ -211,5 +211,132 @@ export class AutoPopulateFramework {
     setAutoSort(autoSort) {
         this.autoSort = autoSort;
     }
+
+    /**
+     * Auto-populate on token creation
+     * Called when a new token is created on the canvas
+     * @param {Token} token - The newly created token
+     * @param {Object} configuration - Configuration object {grid0: [], grid1: [], grid2: []}
+     * @param {PersistenceManager} persistenceManager - Persistence manager
+     * @returns {Promise<void>}
+     */
+    async populateOnTokenCreation(token, configuration, persistenceManager) {
+        const actor = token.actor;
+        if (!actor || !configuration) {
+            return;
+        }
+
+        console.log(`BG3 HUD Core | Auto-populating token ${token.name} with configuration:`, configuration);
+
+        try {
+            // Build initial HUD state with populated items per grid
+            await this._populateInitialStateByGrid(configuration, actor, persistenceManager);
+
+            console.log(`BG3 HUD Core | Auto-populated token ${token.name}`);
+        } catch (error) {
+            console.error('BG3 HUD Core | Error auto-populating on token creation:', error);
+        }
+    }
+
+    /**
+     * Populate initial HUD state with items assigned to specific grids
+     * @param {Object} configuration - Configuration object {grid0: [], grid1: [], grid2: []}
+     * @param {Actor} actor - The actor
+     * @param {PersistenceManager} persistenceManager - Persistence manager
+     * @private
+     */
+    async _populateInitialStateByGrid(configuration, actor, persistenceManager) {
+        // Load current state (or defaults)
+        await persistenceManager.setToken({ actor });
+        const state = await persistenceManager.loadState();
+
+        // Process each configured grid
+        for (let gridIndex = 0; gridIndex < 3; gridIndex++) {
+            const gridKey = `grid${gridIndex}`;
+            const itemTypes = configuration[gridKey];
+            
+            if (!itemTypes || itemTypes.length === 0) {
+                continue; // Skip grids with no configured types
+            }
+
+            // Ensure grid exists
+            if (!state.hotbar.grids[gridIndex]) {
+                console.warn(`BG3 HUD Core | Grid ${gridIndex} does not exist, skipping`);
+                continue;
+            }
+
+            const grid = state.hotbar.grids[gridIndex];
+
+            // Get items matching the configured types for this grid
+            const items = await this.getMatchingItems(actor, itemTypes);
+            
+            if (items.length === 0) {
+                continue; // No items to populate
+            }
+
+            // Sort items
+            const sortedItems = await this.sortItems(items);
+
+            // Enrich items with full data
+            const enrichedItems = [];
+            for (const item of sortedItems) {
+                const itemData = await fromUuid(item.uuid);
+                if (itemData) {
+                    enrichedItems.push({
+                        uuid: item.uuid,
+                        name: itemData.name,
+                        img: itemData.img,
+                        type: itemData.type
+                    });
+                }
+            }
+
+            // Populate this grid with items
+            const cols = grid.cols || 5;
+            const rows = grid.rows || 1;
+            let itemIndex = 0;
+
+            for (let r = 0; r < rows && itemIndex < enrichedItems.length; r++) {
+                for (let c = 0; c < cols && itemIndex < enrichedItems.length; c++) {
+                    const slotKey = `${c}-${r}`;
+                    
+                    // Only populate empty slots
+                    if (!grid.items[slotKey]) {
+                        grid.items[slotKey] = enrichedItems[itemIndex];
+                        itemIndex++;
+                    }
+                }
+            }
+
+            console.log(`BG3 HUD Core | Populated grid ${gridIndex} with ${itemIndex} items`);
+        }
+
+        // Save the populated state
+        await persistenceManager.saveState(state);
+    }
+
+    /**
+     * Show configuration dialog for auto-populate settings
+     * @returns {Promise<Array<string>|null>} Selected types or null if cancelled
+     */
+    async showConfigDialog() {
+        const { AutoPopulateConfigDialog } = await import('../components/ui/AutoPopulateConfigDialog.js');
+        
+        const choices = await this.getItemTypeChoices();
+        if (!choices || choices.length === 0) {
+            ui.notifications.warn('No item types available for configuration');
+            return null;
+        }
+
+        // Get current settings (adapter should provide this)
+        const currentSettings = this.getAutoPopulateSettings ? await this.getAutoPopulateSettings() : [];
+
+        const dialog = new AutoPopulateConfigDialog({
+            choices: choices,
+            selected: currentSettings
+        });
+
+        return await dialog.render();
+    }
 }
 

@@ -117,7 +117,7 @@ export class HotbarContainer extends BG3Component {
                     onCellDragStart: this.options.onCellDragStart,
                     onCellDragEnd: this.options.onCellDragEnd,
                     onCellDrop: this.options.onCellDrop,
-                    decorateCellElement: BG3HUD_REGISTRY.activeAdapter?.decorateCellElement
+                    decorateCellElement: this.options.decorateCellElement
                 });
 
                 this.gridContainers.push(gridContainer);
@@ -262,12 +262,15 @@ export class HotbarContainer extends BG3Component {
 
             // Save to persistence - update each grid's config
             if (this.options.hotbarApp?.persistenceManager) {
-                await this.options.hotbarApp.persistenceManager.updateGridConfig(leftIndex, {
+                console.log(`BG3 HUD Core | Drag bar end: Saving grid ${bar.index} cols: ${leftGridContainer.cols}`);
+                await this.options.hotbarApp.persistenceManager.updateGridConfig(bar.index, {
                     cols: leftGridContainer.cols
                 });
-                await this.options.hotbarApp.persistenceManager.updateGridConfig(rightIndex, {
+                console.log(`BG3 HUD Core | Drag bar end: Saving grid ${bar.index + 1} cols: ${rightGridContainer.cols}`);
+                await this.options.hotbarApp.persistenceManager.updateGridConfig(bar.index + 1, {
                     cols: rightGridContainer.cols
                 });
+                console.log('BG3 HUD Core | Drag bar configs saved');
             }
         }
     }
