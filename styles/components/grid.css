@@ -28,6 +28,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    overflow: hidden; /* Mask content to cell bounds */
 }
 
 .bg3-grid-cell.empty {
@@ -96,6 +97,8 @@
     object-fit: cover;
     border-radius: 2px;
     pointer-events: none;
+    position: relative;
+    z-index: 1; /* Behind borders and overlays */
 }
 
 .hotbar-item.depleted {
@@ -118,6 +121,7 @@
     text-overflow: ellipsis;
     display: none;
     pointer-events: none;
+    z-index: 10; /* Above image */
 }
 
 #bg3-hotbar-container[data-item-name="true"] .hotbar-item-name {
@@ -135,7 +139,7 @@
     padding: 1px 4px;
     font-size: 0.8em;
     font-weight: bold;
-    z-index: 11;
+    z-index: 10; /* Above image but below drag overlay */
     pointer-events: none;
 }
 
