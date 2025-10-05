@@ -148,13 +148,24 @@
     z-index: 1;
 }
 
-/* Disable click events on inactive set cells, but allow drag-and-drop */
+/* Disable manipulation on inactive set cells */
 #bg3-hotbar-container .bg3-weapon-container[data-active-set="0"] .bg3-weapon-set[data-container-index="1"] .bg3-grid-cell,
 #bg3-hotbar-container .bg3-weapon-container[data-active-set="0"] .bg3-weapon-set[data-container-index="2"] .bg3-grid-cell,
 #bg3-hotbar-container .bg3-weapon-container[data-active-set="1"] .bg3-weapon-set[data-container-index="0"] .bg3-grid-cell,
 #bg3-hotbar-container .bg3-weapon-container[data-active-set="1"] .bg3-weapon-set[data-container-index="2"] .bg3-grid-cell,
 #bg3-hotbar-container .bg3-weapon-container[data-active-set="2"] .bg3-weapon-set[data-container-index="0"] .bg3-grid-cell,
 #bg3-hotbar-container .bg3-weapon-container[data-active-set="2"] .bg3-weapon-set[data-container-index="1"] .bg3-grid-cell {
-    pointer-events: auto; /* Allow drops, but block clicks via JS */
+    pointer-events: auto; /* Allow drops, but block clicks/drags via JS */
+    cursor: default; /* Show default cursor instead of grab cursor */
+}
+
+/* Prevent drag cursor on filled cells in inactive sets */
+#bg3-hotbar-container .bg3-weapon-container[data-active-set="0"] .bg3-weapon-set[data-container-index="1"] .bg3-grid-cell.filled,
+#bg3-hotbar-container .bg3-weapon-container[data-active-set="0"] .bg3-weapon-set[data-container-index="2"] .bg3-grid-cell.filled,
+#bg3-hotbar-container .bg3-weapon-container[data-active-set="1"] .bg3-weapon-set[data-container-index="0"] .bg3-grid-cell.filled,
+#bg3-hotbar-container .bg3-weapon-container[data-active-set="1"] .bg3-weapon-set[data-container-index="2"] .bg3-grid-cell.filled,
+#bg3-hotbar-container .bg3-weapon-container[data-active-set="2"] .bg3-weapon-set[data-container-index="0"] .bg3-grid-cell.filled,
+#bg3-hotbar-container .bg3-weapon-container[data-active-set="2"] .bg3-weapon-set[data-container-index="1"] .bg3-grid-cell.filled {
+    cursor: pointer; /* Show pointer to indicate you can click to switch sets */
 }
 

@@ -30,6 +30,7 @@ export class ComponentFactory {
 
     /**
      * Create weapon sets container
+     * Uses adapter implementation if available, otherwise base
      * @param {Array} weaponSetsData - Array of weapon set grid data
      * @param {Object} handlers - Interaction handlers
      * @returns {Promise<WeaponSetContainer>}
@@ -37,18 +38,22 @@ export class ComponentFactory {
     async createWeaponSetsContainer(weaponSetsData, handlers) {
         const { WeaponSetContainer } = await import('../components/containers/WeaponSetContainer.js');
         
+        // Use adapter weapon set container if available (follows Argon pattern)
+        const WeaponSetClass = BG3HUD_REGISTRY.weaponSetContainer || WeaponSetContainer;
+        
         // Bind decorateCellElement to maintain adapter context
         const adapter = BG3HUD_REGISTRY.activeAdapter;
         const decorateCellElement = adapter?.decorateCellElement 
             ? adapter.decorateCellElement.bind(adapter) 
             : undefined;
         
-        return new WeaponSetContainer({
+        return new WeaponSetClass({
             actor: this.hotbarApp.currentActor,
             token: this.hotbarApp.currentToken,
             weaponSets: weaponSetsData,
             persistenceManager: this.hotbarApp.persistenceManager,
             decorateCellElement: decorateCellElement,
+            hotbarApp: this.hotbarApp,
             ...handlers
         });
     }

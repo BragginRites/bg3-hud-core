@@ -174,6 +174,14 @@ export class InteractionCoordinator {
                 data: null
             });
         }
+        
+        // STEP 3: Notify weapon set container if this was a weapon set update
+        if (ContainerTypeDetector.isWeaponSet(cell)) {
+            const weaponContainer = this.hotbarApp.components.weaponSets;
+            if (weaponContainer?.onCellUpdated) {
+                await weaponContainer.onCellUpdated(cell.containerIndex, cell.getSlotKey());
+            }
+        }
     }
 
     /**
@@ -182,6 +190,16 @@ export class InteractionCoordinator {
      * @param {DragEvent} event
      */
     handleDragStart(cell, event) {
+        // Block drags from inactive weapon sets
+        if (ContainerTypeDetector.isWeaponSet(cell)) {
+            const weaponContainer = this.hotbarApp.components.weaponSets;
+            const activeSet = weaponContainer ? weaponContainer.getActiveSet() : 0;
+            if (!ContainerTypeDetector.isActiveWeaponSet(cell, activeSet)) {
+                event.preventDefault();
+                return;
+            }
+        }
+        
         this.dragSourceCell = cell;
     }
 
@@ -202,6 +220,21 @@ export class InteractionCoordinator {
      * @param {Object} dragData
      */
     async handleDrop(targetCell, event, dragData) {
+        // Block drops on inactive weapon sets
+        if (ContainerTypeDetector.isWeaponSet(targetCell)) {
+            const weaponContainer = this.hotbarApp.components.weaponSets;
+            const activeSet = weaponContainer ? weaponContainer.getActiveSet() : 0;
+            if (!ContainerTypeDetector.isActiveWeaponSet(targetCell, activeSet)) {
+                ui.notifications.warn('Switch to this weapon set first to modify it');
+                return;
+            }
+            
+            // Check if weapon set container wants to prevent this drop (e.g., locked slots)
+            if (weaponContainer?.shouldPreventDrop && weaponContainer.shouldPreventDrop(targetCell)) {
+                return; // Drop prevented
+            }
+        }
+        
         // Internal drop (from another cell)
         if (dragData?.sourceSlot && this.dragSourceCell) {
             await this._handleInternalDrop(targetCell, dragData);
@@ -295,6 +328,15 @@ export class InteractionCoordinator {
                     data: sourceData
                 });
             }
+            
+            // STEP 4: Notify weapon set container if this was a weapon set update
+            if (ContainerTypeDetector.isWeaponSet(sourceCell)) {
+                const weaponContainer = this.hotbarApp.components.weaponSets;
+                if (weaponContainer?.onCellUpdated) {
+                    await weaponContainer.onCellUpdated(sourceCell.containerIndex, sourceSlotKey);
+                    await weaponContainer.onCellUpdated(targetCell.containerIndex, targetSlotKey);
+                }
+            }
         } else {
             // CROSS-CONTAINER: Move item (clear source)
             
@@ -319,6 +361,17 @@ export class InteractionCoordinator {
                     slotKey: targetSlotKey,
                     data: sourceData
                 });
+            }
+            
+            // STEP 4: Notify weapon set containers if either was a weapon set update
+            const weaponContainer = this.hotbarApp.components.weaponSets;
+            if (weaponContainer?.onCellUpdated) {
+                if (ContainerTypeDetector.isWeaponSet(sourceCell)) {
+                    await weaponContainer.onCellUpdated(sourceCell.containerIndex, sourceSlotKey);
+                }
+                if (ContainerTypeDetector.isWeaponSet(targetCell)) {
+                    await weaponContainer.onCellUpdated(targetCell.containerIndex, targetSlotKey);
+                }
             }
         }
     }
@@ -379,6 +432,14 @@ export class InteractionCoordinator {
                 slotKey: targetCell.getSlotKey(),
                 data: cellData
             });
+        }
+        
+        // STEP 4: Notify weapon set container if this was a weapon set update
+        if (ContainerTypeDetector.isWeaponSet(targetCell)) {
+            const weaponContainer = this.hotbarApp.components.weaponSets;
+            if (weaponContainer?.onCellUpdated) {
+                await weaponContainer.onCellUpdated(targetCell.containerIndex, targetCell.getSlotKey());
+            }
         }
     }
 
