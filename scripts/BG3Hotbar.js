@@ -10,7 +10,7 @@ import { SocketManager } from './managers/SocketManager.js';
  * BG3 Hotbar Application
  * Main HUD application shell - delegates to specialized managers
  */
-export class BG3Hotbar extends foundry.applications.api.ApplicationV2 {
+export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMixin(foundry.applications.api.ApplicationV2) {
     /**
      * Default application options
      */
@@ -29,6 +29,15 @@ export class BG3Hotbar extends foundry.applications.api.ApplicationV2 {
             height: 'auto'
         },
         actions: {}
+    };
+
+    /**
+     * Handlebars template path
+     */
+    static PARTS = {
+        content: {
+            template: 'modules/bg3-hud-core/templates/bg3-hud.hbs'
+        }
     };
 
     /**
@@ -91,6 +100,16 @@ export class BG3Hotbar extends foundry.applications.api.ApplicationV2 {
      */
     async refresh() {
         if (!this.rendered) return;
+        
+        // Add fade-out transition before re-rendering
+        if (this.element && !this.element.classList.contains('bg3-hud-building')) {
+            this.element.classList.remove('bg3-hud-visible');
+            this.element.classList.add('bg3-hud-fading-out');
+            
+            // Wait for fade-out transition to complete
+            await new Promise(resolve => setTimeout(resolve, 300));
+        }
+        
         await this.render(false);
     }
 
@@ -100,30 +119,11 @@ export class BG3Hotbar extends foundry.applications.api.ApplicationV2 {
      * @returns {Promise<Object>} Render context
      */
     async _prepareContext(options) {
-        const context = await super._prepareContext(options);
+        const context = {
+            ...await super._prepareContext(options),
+            // Add any additional context data here if needed
+        };
         return context;
-    }
-
-    /**
-     * Render the application's HTML
-     * @param {Object} context - Render context
-     * @param {Object} options - Render options
-     * @returns {Promise<string>}
-     */
-    async _renderHTML(context, options) {
-        const template = 'modules/bg3-hud-core/templates/bg3-hud.hbs';
-        const html = await renderTemplate(template, context);
-        return html;
-    }
-
-    /**
-     * Replace the application's HTML
-     * @param {HTMLElement} result - The rendered HTML
-     * @param {HTMLElement} content - The content element
-     * @param {Object} options - Render options
-     */
-    _replaceHTML(result, content, options) {
-        content.innerHTML = result;
     }
 
     /**
@@ -131,6 +131,15 @@ export class BG3Hotbar extends foundry.applications.api.ApplicationV2 {
      * @param {Object} context - Render context
      * @param {Object} options - Render options
      */
+    async _onRender(context, options) {
+        await super._onRender(context, options);
+        
+        // Apply display settings
+        this.updateDisplaySettings();
+        
+        // Initialize components after DOM is ready
+        await this._initializeComponents();
+    }
     async _onRender(context, options) {
         await super._onRender(context, options);
         
@@ -223,16 +232,23 @@ export class BG3Hotbar extends foundry.applications.api.ApplicationV2 {
             container.appendChild(await this.components.actionButtons.render());
         }
         
-        // Create control container
-        this.components.controls = await this.componentFactory.createControlContainer();
-        this.components.hotbar.element.appendChild(await this.components.controls.render());
-        
-        // Configure adapter (InteractionCoordinator handles all logic)
-        if (BG3HUD_REGISTRY.activeAdapter) {
-            this.interactionCoordinator.setAdapter(BG3HUD_REGISTRY.activeAdapter);
-        }
-
         console.log('BG3 HUD Core | Components initialized:', Object.keys(this.components));
+        if (BG3HUD_REGISTRY.activeAdapter) {
+            console.log('BG3 HUD Core | Using adapter:', BG3HUD_REGISTRY.activeAdapter.constructor?.name);
+        } else {
+            console.log('BG3 HUD Core | Using base containers (no adapter)');
+        }
+        
+        // Show the UI with a smooth fade-in now that everything is built
+        if (this.element) {
+            // Remove building/fading classes and hidden class
+            this.element.classList.remove('bg3-hud-building', 'bg3-hud-hidden', 'bg3-hud-fading-out');
+            // Use a small delay to ensure the DOM has fully rendered
+            requestAnimationFrame(() => {
+                this.element.classList.add('bg3-hud-visible');
+            });
+        }
+        
         if (BG3HUD_REGISTRY.activeAdapter) {
             console.log('BG3 HUD Core | Using adapter:', BG3HUD_REGISTRY.activeAdapter.constructor?.name);
         } else {

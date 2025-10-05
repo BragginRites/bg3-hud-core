@@ -66,12 +66,21 @@
 /* Hide HUD during initialization to prevent visual flicker */
 .bg3-hud.bg3-hud-building,
 .bg3-hud.bg3-hud-hidden {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease-in-out;
+}
+
+/* Fade-out state for smooth transitions */
+.bg3-hud.bg3-hud-fading-out {
     opacity: 0 !important;
     pointer-events: none;
+    transition: opacity 0.3s ease-in-out;
 }
 
 /* Smooth fade-in when HUD is ready */
 .bg3-hud.bg3-hud-visible {
+    opacity: 1;
     transition: opacity 0.3s ease-in-out;
 }
 
