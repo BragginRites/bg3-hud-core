@@ -133,12 +133,11 @@ export class AutoPopulateFramework {
         
         for (const item of items) {
             if (!item.uuid) continue;
-            
+
             // If we have persistence manager, check entire HUD for duplicates
             if (persistenceManager && typeof persistenceManager.findUuidInHud === 'function') {
                 const existingLocation = persistenceManager.findUuidInHud(item.uuid);
                 if (existingLocation) {
-                    console.log(`BG3 HUD Core | AutoPopulate: Skipping ${item.uuid} - already exists at ${existingLocation.container}[${existingLocation.containerIndex}].${existingLocation.slotKey}`);
                     continue;
                 }
             } else {
@@ -226,13 +225,9 @@ export class AutoPopulateFramework {
             return;
         }
 
-        console.log(`BG3 HUD Core | Auto-populating token ${token.name} with configuration:`, configuration);
-
         try {
             // Build initial HUD state with populated items per grid
             await this._populateInitialStateByGrid(configuration, actor, persistenceManager);
-
-            console.log(`BG3 HUD Core | Auto-populated token ${token.name}`);
         } catch (error) {
             console.error('BG3 HUD Core | Error auto-populating on token creation:', error);
         }
@@ -306,9 +301,7 @@ export class AutoPopulateFramework {
                         itemIndex++;
                     }
                 }
-            }
-
-            console.log(`BG3 HUD Core | Populated grid ${gridIndex} with ${itemIndex} items`);
+        }
         }
 
         // Save the populated state

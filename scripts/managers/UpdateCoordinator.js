@@ -53,7 +53,6 @@ export class UpdateCoordinator {
                 // Single token controlled - show UI normally
                 this.hotbarApp.currentToken = token;
                 this.hotbarApp.currentActor = token.actor;
-                console.log('BG3 HUD Core | Token controlled:', token.name);
                 await this.hotbarApp.refresh();
             }
         } else {
@@ -63,11 +62,9 @@ export class UpdateCoordinator {
                 const remainingToken = controlledTokens[0];
                 this.hotbarApp.currentToken = remainingToken;
                 this.hotbarApp.currentActor = remainingToken.actor;
-                console.log('BG3 HUD Core | Token deselected, showing remaining token:', remainingToken.name);
                 await this.hotbarApp.refresh();
             } else {
                 // No tokens selected or multiple tokens selected
-                console.log('BG3 HUD Core | Token deselected');
                 this.hotbarApp.currentToken = null;
                 this.hotbarApp.currentActor = null;
                 await this.hotbarApp.refresh();
@@ -110,16 +107,13 @@ export class UpdateCoordinator {
         // Only handle updates for the current actor
         if (actor !== this.hotbarApp.currentActor) return;
 
-        console.log('BG3 HUD Core | UpdateCoordinator: Actor updated', actor.name, changes);
-
         // Check if hudState flag changed
         const hudStateChanged = changes?.flags?.[this.moduleId]?.[this.flagName];
-        
+
         if (hudStateChanged) {
             // Socket-based updates: Only update if we initiated the save (for backup/validation)
             // All other clients receive instant updates via socketlib, no hook handling needed
             if (this.persistenceManager.shouldSkipReload()) {
-                console.log('BG3 HUD Core | UpdateCoordinator: Skipping reload (local save just completed)');
                 return;
             }
             

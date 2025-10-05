@@ -40,8 +40,6 @@ export class ActionContainer extends BG3Component {
         // - Filter buttons
         // - Action grid(s)
         // - Weapon sets
-        
-        console.log('ActionContainer (abstract) | Override render() in system adapter to add content');
 
         return this.element;
     }

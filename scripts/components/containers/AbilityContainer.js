@@ -40,8 +40,6 @@ export class AbilityContainer extends BG3Component {
         // - Ability buttons (STR, DEX, CON, etc.)
         // - Skill popovers
         // - Roll handlers
-        
-        console.log('AbilityContainer (abstract) | Override render() in system adapter to add content');
 
         return this.element;
     }

@@ -262,15 +262,12 @@ export class HotbarContainer extends BG3Component {
 
             // Save to persistence - update each grid's config
             if (this.options.hotbarApp?.persistenceManager) {
-                console.log(`BG3 HUD Core | Drag bar end: Saving grid ${bar.index} cols: ${leftGridContainer.cols}`);
                 await this.options.hotbarApp.persistenceManager.updateGridConfig(bar.index, {
                     cols: leftGridContainer.cols
                 });
-                console.log(`BG3 HUD Core | Drag bar end: Saving grid ${bar.index + 1} cols: ${rightGridContainer.cols}`);
                 await this.options.hotbarApp.persistenceManager.updateGridConfig(bar.index + 1, {
                     cols: rightGridContainer.cols
                 });
-                console.log('BG3 HUD Core | Drag bar configs saved');
             }
         }
     }

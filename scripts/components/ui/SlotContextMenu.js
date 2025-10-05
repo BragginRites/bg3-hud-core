@@ -8,7 +8,26 @@ import { ContextMenu } from './ContextMenu.js';
 export class SlotContextMenu {
     constructor(options = {}) {
         this.interactionCoordinator = options.interactionCoordinator;
-        this.adapter = options.adapter;
+        this._adapterGetter = options.adapter;
+    }
+
+    /**
+     * Get the current adapter (supports getter functions)
+     * @returns {Object|null}
+     */
+    get adapter() {
+        if (typeof this._adapterGetter === 'function') {
+            return this._adapterGetter();
+        }
+        return this._adapterGetter;
+    }
+
+    /**
+     * Set the adapter (for late binding)
+     * @param {Object|Function} adapter
+     */
+    set adapter(value) {
+        this._adapterGetter = value;
     }
 
     /**
@@ -43,6 +62,20 @@ export class SlotContextMenu {
 
         // SECTION 1: Cell-level actions (if cell has data)
         if (cell.data) {
+            // Open item sheet (if cell has uuid - works for any item type)
+            if (cell.data.uuid) {
+                menuItems.push({
+                    label: 'Edit Item',
+                    icon: 'fas fa-edit',
+                    onClick: async () => {
+                        const item = await fromUuid(cell.data.uuid);
+                        if (item && item.sheet) {
+                            item.sheet.render(true);
+                        }
+                    }
+                });
+            }
+
             menuItems.push({
                 label: 'Remove Item',
                 icon: 'fas fa-trash',

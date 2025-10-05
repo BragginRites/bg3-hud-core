@@ -110,7 +110,6 @@ export class WeaponSetContainer extends BG3Component {
     async onSetSwitch(setIndex, setContainer) {
         // Base implementation: just update the active set
         // System adapters should override to handle equipping/unequipping
-        console.log(`WeaponSetContainer | Switching to set ${setIndex}`);
     }
 
     /**
@@ -199,8 +198,6 @@ export class WeaponSetContainer extends BG3Component {
         
         // Update active set
         await this.setActiveSet(setIndex);
-        
-        console.log(`WeaponSetContainer | Switched to weapon set ${setIndex + 1}`);
     }
 
     /**

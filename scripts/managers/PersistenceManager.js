@@ -40,7 +40,6 @@ export class PersistenceManager {
         this.currentToken = token;
         this.currentActor = token?.actor || null;
         this.state = null; // Clear cache
-        console.log('BG3 HUD Core | PersistenceManager: Token set, cache cleared');
     }
 
     /**
@@ -59,7 +58,6 @@ export class PersistenceManager {
         let savedState = this.currentActor.getFlag(this.MODULE_ID, this.FLAG_NAME);
         
         if (savedState && savedState.version === this.VERSION) {
-            console.log('BG3 HUD Core | PersistenceManager: Loaded state from flags');
             this.state = foundry.utils.deepClone(savedState);
             // Migrate quickAccess from array to object if needed
             this._migrateQuickAccessFormat(this.state);
@@ -110,15 +108,12 @@ export class PersistenceManager {
 
         try {
             this._saveInProgress = true;
-            console.log('BG3 HUD Core | PersistenceManager: Saving state');
-            
+
             // Mark that we're saving locally (to prevent reload on updateActor hook)
             this._lastSaveTimestamp = Date.now();
-            
+
             await this.currentActor.setFlag(this.MODULE_ID, this.FLAG_NAME, state);
             this.state = foundry.utils.deepClone(state);
-            
-            console.log('BG3 HUD Core | PersistenceManager: State saved successfully');
         } catch (error) {
             console.error('BG3 HUD Core | PersistenceManager: Error saving state:', error);
             throw error;
@@ -140,9 +135,7 @@ export class PersistenceManager {
     async updateCell(options) {
         const { container, slotKey, data } = options;
         const containerIndex = options.containerIndex ?? 0;
-        
-        console.log('BG3 HUD | PersistenceManager.updateCell called:', { container, containerIndex, slotKey, data });
-        
+
         // Use cached state if available, otherwise load fresh
         let state = this.state;
         if (!state) {

@@ -162,8 +162,6 @@ export class InteractionCoordinator {
      * @param {GridCell} cell
      */
     async removeCell(cell) {
-        console.log('BG3 HUD Core | Removing item from', `${cell.containerType}[${cell.containerIndex}].${cell.getSlotKey()}`);
-        
         // STEP 1: Update visual state
         await cell.setData(null, { skipSave: true });
 
@@ -175,8 +173,6 @@ export class InteractionCoordinator {
                 slotKey: cell.getSlotKey(),
                 data: null
             });
-            
-            console.log('BG3 HUD Core | Cell removal persisted successfully');
         }
     }
 
@@ -206,8 +202,6 @@ export class InteractionCoordinator {
      * @param {Object} dragData
      */
     async handleDrop(targetCell, event, dragData) {
-        console.log('BG3 HUD Core | Drop on cell:', targetCell.index, dragData);
-
         // Internal drop (from another cell)
         if (dragData?.sourceSlot && this.dragSourceCell) {
             await this._handleInternalDrop(targetCell, dragData);
@@ -254,16 +248,9 @@ export class InteractionCoordinator {
             
             if (existingLocation) {
                 ui.notifications.warn('This item already exists elsewhere in the HUD');
-                console.log('BG3 HUD Core | UUID conflict during swap:', targetData.uuid, 'at', existingLocation);
                 return;
             }
         }
-
-        console.log('BG3 HUD Core | Internal drop:', {
-            from: `${sourceCell.containerType}[${sourceCell.containerIndex}].${sourceSlotKey}`,
-            to: `${targetCell.containerType}[${targetCell.containerIndex}].${targetSlotKey}`,
-            sameContainer: ContainerTypeDetector.areSameContainer(sourceCell, targetCell)
-        });
 
         // Check if same container or cross-container
         const sameContainer = ContainerTypeDetector.areSameContainer(sourceCell, targetCell);
@@ -279,7 +266,6 @@ export class InteractionCoordinator {
             
             if (existingLocation) {
                 ui.notifications.warn('This item already exists elsewhere in the HUD');
-                console.log('BG3 HUD Core | UUID conflict during move:', sourceData.uuid, 'at', existingLocation);
                 return;
             }
         }
@@ -308,8 +294,6 @@ export class InteractionCoordinator {
                     slotKey: targetSlotKey,
                     data: sourceData
                 });
-                
-                console.log('BG3 HUD Core | Swap persisted successfully');
             }
         } else {
             // CROSS-CONTAINER: Move item (clear source)
@@ -335,8 +319,6 @@ export class InteractionCoordinator {
                     slotKey: targetSlotKey,
                     data: sourceData
                 });
-                
-                console.log('BG3 HUD Core | Move persisted successfully');
             }
         }
     }
@@ -351,8 +333,6 @@ export class InteractionCoordinator {
      * @private
      */
     async _handleExternalDrop(targetCell, event) {
-        console.log('BG3 HUD Core | External drop to', `${targetCell.containerType}[${targetCell.containerIndex}].${targetCell.getSlotKey()}`);
-
         // STEP 1: Get and transform item data
         const item = await this._getItemFromDragData(event);
         if (!item) {
@@ -369,7 +349,6 @@ export class InteractionCoordinator {
 
         if (item.actor && item.actor.id !== currentActor.id) {
             ui.notifications.warn(`This item belongs to ${item.actor.name}, not ${currentActor.name}`);
-            console.log('BG3 HUD Core | Actor ownership mismatch:', item.actor.name, 'vs', currentActor.name);
             return;
         }
 
@@ -385,16 +364,13 @@ export class InteractionCoordinator {
             const existingLocation = this.persistenceManager.findUuidInHud(cellData.uuid);
             if (existingLocation) {
                 ui.notifications.warn('This item is already in the HUD');
-                console.log('BG3 HUD Core | UUID already exists:', cellData.uuid, 'at', existingLocation);
                 return;
             }
         }
 
-        console.log('BG3 HUD Core | Adding item to hotbar:', item.name);
-
         // STEP 2: Update visual state
         await targetCell.setData(cellData, { skipSave: true });
-        
+
         // STEP 3: Persist the change
         if (this.persistenceManager) {
             await this.persistenceManager.updateCell({
@@ -403,8 +379,6 @@ export class InteractionCoordinator {
                 slotKey: targetCell.getSlotKey(),
                 data: cellData
             });
-            
-            console.log('BG3 HUD Core | External drop persisted successfully');
         }
     }
 

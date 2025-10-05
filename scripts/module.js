@@ -80,14 +80,17 @@ Hooks.on('createToken', async (tokenDocument, options, userId) => {
     
     if (!hasTypes) return;
 
-    console.log('BG3 HUD Core | Auto-populating new token:', token.name);
-
     try {
         // Use a temporary persistence manager for the token
         const { PersistenceManager } = await import('./managers/PersistenceManager.js');
         const tempPersistence = new PersistenceManager();
         
         await adapter.autoPopulate.populateOnTokenCreation(token, configuration, tempPersistence);
+
+        // Also auto-populate passives if adapter supports it
+        if (typeof adapter.autoPopulatePassives === 'function') {
+            await adapter.autoPopulatePassives(token);
+        }
     } catch (error) {
         console.error('BG3 HUD Core | Error in auto-populate on token creation:', error);
     }

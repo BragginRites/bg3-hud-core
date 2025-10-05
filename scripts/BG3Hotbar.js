@@ -161,7 +161,6 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
 
         // Only initialize if we have a token
         if (!this.currentToken) {
-            console.log('BG3 HUD Core | No token selected, skipping component initialization');
             // Hide the UI when no token is selected
             if (this.element) {
                 this.element.classList.add('bg3-hud-hidden');
@@ -169,21 +168,17 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
             return;
         }
 
-        console.log('BG3 HUD Core | Initializing components');
-        
         // Hide the UI during initialization to prevent visual flicker
         if (this.element) {
             this.element.classList.add('bg3-hud-building');
         }
-        
+
         // Get the main container
         const container = this.element.querySelector('#bg3-hotbar-container');
         if (!container) {
             console.error('BG3 HUD Core | Container element not found');
             return;
         }
-        
-        console.log('BG3 HUD Core | Rendering containers');
 
         // Set the current token in persistence manager and load UNIFIED state
         this.persistenceManager.setToken(this.currentToken);
@@ -231,34 +226,20 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
         if (this.components.actionButtons) {
             container.appendChild(await this.components.actionButtons.render());
         }
+
+        // Create control container
+        this.components.controls = await this.componentFactory.createControlContainer();
+        this.components.hotbar.element.appendChild(await this.components.controls.render());
         
-        console.log('BG3 HUD Core | Components initialized:', Object.keys(this.components));
-        if (BG3HUD_REGISTRY.activeAdapter) {
-            console.log('BG3 HUD Core | Using adapter:', BG3HUD_REGISTRY.activeAdapter.constructor?.name);
-        } else {
-            console.log('BG3 HUD Core | Using base containers (no adapter)');
+        // Ensure interaction coordinator has the active adapter
+        if (BG3HUD_REGISTRY?.activeAdapter && this.interactionCoordinator?.setAdapter) {
+            this.interactionCoordinator.setAdapter(BG3HUD_REGISTRY.activeAdapter);
         }
         
         // Show the UI with a smooth fade-in now that everything is built
         if (this.element) {
             // Remove building/fading classes and hidden class
             this.element.classList.remove('bg3-hud-building', 'bg3-hud-hidden', 'bg3-hud-fading-out');
-            // Use a small delay to ensure the DOM has fully rendered
-            requestAnimationFrame(() => {
-                this.element.classList.add('bg3-hud-visible');
-            });
-        }
-        
-        if (BG3HUD_REGISTRY.activeAdapter) {
-            console.log('BG3 HUD Core | Using adapter:', BG3HUD_REGISTRY.activeAdapter.constructor?.name);
-        } else {
-            console.log('BG3 HUD Core | Using base containers (no adapter)');
-        }
-        
-        // Show the UI with a smooth fade-in now that everything is built
-        if (this.element) {
-            // Remove building class and hidden class
-            this.element.classList.remove('bg3-hud-building', 'bg3-hud-hidden');
             // Use a small delay to ensure the DOM has fully rendered
             requestAnimationFrame(() => {
                 this.element.classList.add('bg3-hud-visible');

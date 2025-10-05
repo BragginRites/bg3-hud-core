@@ -54,8 +54,6 @@ export class PortraitContainer extends BG3Component {
         imageContainer.appendChild(imageSubContainer);
         this.element.appendChild(imageContainer);
 
-        console.log('PortraitContainer (base) | Rendered token image');
-
         return this.element;
     }
 
