@@ -76,6 +76,7 @@ export class GridContainer extends BG3Component {
                         data: itemData,
                         containerType: this.containerType,
                         containerIndex: this.containerIndex,
+                        parentCell: this.options.parentCell, // For containerPopover: reference to parent cell
                         persistenceManager: this.persistenceManager,
                         onClick: this.options.onCellClick,
                         onRightClick: this.options.onCellRightClick ? (cell, event) => {

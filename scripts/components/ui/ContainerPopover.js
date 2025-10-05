@@ -28,6 +28,7 @@ export class ContainerPopover extends BG3Component {
         super(options);
         this.containerItem = options.containerItem;
         this.triggerElement = options.triggerElement;
+        this.triggerCell = options.triggerCell; // The GridCell that contains the container
         this.actor = options.actor;
         this.token = options.token;
         this.adapter = options.adapter;
@@ -44,17 +45,81 @@ export class ContainerPopover extends BG3Component {
     }
 
     /**
-     * Get container contents from adapter
+     * Get container contents from saved positions or adapter
      * @returns {Promise<Object>} Grid data with items
      * @private
      */
     async _getContainerContents() {
-        if (!this.adapter || typeof this.adapter.getContainerContents !== 'function') {
-            console.warn('ContainerPopover | Adapter does not provide getContainerContents method');
-            return { rows: 3, cols: 5, items: {} };
-        }
+        // Check if we have saved positions from previous sessions
+        const savedGrid = this.triggerCell?.data?.containerGrid;
         
-        return await this.adapter.getContainerContents(this.containerItem, this.actor);
+        // Get the actual container contents from the adapter
+        let adapterContents = { rows: 3, cols: 5, items: {} };
+        if (this.adapter && typeof this.adapter.getContainerContents === 'function') {
+            adapterContents = await this.adapter.getContainerContents(this.containerItem, this.actor);
+        } else {
+            console.warn('ContainerPopover | Adapter does not provide getContainerContents method');
+        }
+
+        if (!savedGrid) {
+            // No saved data, use adapter contents as-is (first time opening)
+            console.log('ContainerPopover | First time opening, using adapter contents');
+            return adapterContents;
+        }
+
+        // We have saved positions - use them, but sync with actual container contents
+        console.log('ContainerPopover | Using saved positions, syncing with container contents', {
+            savedItems: Object.keys(savedGrid.items || {}),
+            savedItemsData: savedGrid.items
+        });
+        
+        // Build a map of UUIDs from adapter contents (what actually exists)
+        const adapterItemsByUuid = new Map();
+        for (const [slot, itemData] of Object.entries(adapterContents.items)) {
+            if (itemData?.uuid) {
+                adapterItemsByUuid.set(itemData.uuid, itemData);
+            }
+        }
+
+        // Build result from saved positions, but only include items that still exist
+        const syncedItems = {};
+        for (const [slot, itemData] of Object.entries(savedGrid.items || {})) {
+            if (itemData?.uuid && adapterItemsByUuid.has(itemData.uuid)) {
+                // Item still exists in container, use saved position with fresh data
+                syncedItems[slot] = adapterItemsByUuid.get(itemData.uuid);
+                adapterItemsByUuid.delete(itemData.uuid); // Mark as placed
+            }
+            // If item doesn't exist in adapter anymore, it's been removed - don't include it
+        }
+
+        // Add any new items that weren't in saved positions (newly added to container)
+        const cols = savedGrid.cols || adapterContents.cols || 5;
+        const rows = savedGrid.rows || adapterContents.rows || 3;
+        
+        for (const [uuid, itemData] of adapterItemsByUuid.entries()) {
+            // Find first empty slot
+            let placed = false;
+            for (let row = 0; row < rows && !placed; row++) {
+                for (let col = 0; col < cols && !placed; col++) {
+                    const slot = `${col}-${row}`;
+                    if (!syncedItems[slot]) {
+                        syncedItems[slot] = itemData;
+                        placed = true;
+                        console.log('ContainerPopover | Placed new item in empty slot:', itemData.name, 'at', slot);
+                    }
+                }
+            }
+            
+            if (!placed) {
+                console.warn('ContainerPopover | No empty slot found for new item:', itemData.name);
+            }
+        }
+
+        return {
+            rows: rows,
+            cols: cols,
+            items: syncedItems
+        };
     }
 
     /**
@@ -110,6 +175,8 @@ export class ContainerPopover extends BG3Component {
         const containerData = await this._getContainerContents();
 
         // Create grid container for items
+        // Container popovers are fully interactive internally - items can be rearranged
+        // Persistence saves nested within the parent cell's data
         this.gridContainer = new GridContainer({
             rows: containerData.rows || 3,
             cols: containerData.cols || 5,
@@ -118,7 +185,8 @@ export class ContainerPopover extends BG3Component {
             index: 0,
             containerType: 'containerPopover',
             containerIndex: 0,
-            persistenceManager: null, // Popovers don't persist
+            parentCell: this.triggerCell, // Store reference to parent cell for nested persistence
+            persistenceManager: this.persistenceManager,
             actor: this.actor,
             token: this.token,
             onCellClick: this.onCellClick,

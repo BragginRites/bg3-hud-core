@@ -29,6 +29,7 @@ export class GridCell extends BG3Component {
         this.col = options.col ?? 0;
         this.containerType = options.containerType || 'hotbar';
         this.containerIndex = options.containerIndex ?? 0;
+        this.parentCell = options.parentCell || null; // For containerPopover cells
         this.persistenceManager = options.persistenceManager || null;
         this.data = options.data || null;
         this.isEmpty = !this.data;

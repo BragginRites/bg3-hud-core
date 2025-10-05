@@ -133,7 +133,7 @@ export class PersistenceManager {
      * @returns {Promise<void>}
      */
     async updateCell(options) {
-        const { container, slotKey, data } = options;
+        const { container, slotKey, data, parentCell } = options;
         const containerIndex = options.containerIndex ?? 0;
 
         // Use cached state if available, otherwise load fresh
@@ -172,6 +172,93 @@ export class PersistenceManager {
                     return;
                 }
                 set.items[slotKey] = data;
+                break;
+            }
+            case 'containerPopover': {
+                // Container popovers save nested within their parent cell's data
+                console.log('BG3 HUD Core | PersistenceManager: containerPopover case triggered', {
+                    hasParentCell: !!parentCell,
+                    slotKey,
+                    data
+                });
+                
+                if (!parentCell) {
+                    console.error('BG3 HUD Core | PersistenceManager: No parent cell provided for containerPopover');
+                    return;
+                }
+                
+                // Get the parent container's state
+                let parentGrid;
+                switch (parentCell.containerType) {
+                    case 'hotbar':
+                        parentGrid = state.hotbar?.grids?.[parentCell.containerIndex];
+                        break;
+                    case 'quickAccess':
+                        if (!state.quickAccess?.grids) {
+                            state.quickAccess = { grids: [{ rows: 2, cols: 3, items: {} }] };
+                        }
+                        parentGrid = state.quickAccess.grids[parentCell.containerIndex];
+                        break;
+                    case 'weaponSet':
+                        parentGrid = state.weaponSets?.sets?.[parentCell.containerIndex];
+                        break;
+                    default:
+                        console.error('BG3 HUD Core | PersistenceManager: Unknown parent container type:', parentCell.containerType);
+                        return;
+                }
+                
+                if (!parentGrid) {
+                    console.error('BG3 HUD Core | PersistenceManager: Parent grid not found', {
+                        parentType: parentCell.containerType,
+                        parentIndex: parentCell.containerIndex
+                    });
+                    return;
+                }
+                
+                const parentSlotKey = parentCell.getSlotKey();
+                const parentCellData = parentGrid.items[parentSlotKey];
+                
+                if (!parentCellData) {
+                    console.error('BG3 HUD Core | PersistenceManager: Parent cell has no data', {
+                        parentSlotKey,
+                        availableSlots: Object.keys(parentGrid.items)
+                    });
+                    return;
+                }
+                
+                // Initialize containerGrid if it doesn't exist
+                if (!parentCellData.containerGrid) {
+                    parentCellData.containerGrid = {
+                        rows: 3,
+                        cols: 5,
+                        items: {}
+                    };
+                }
+                
+                // Update the nested item
+                parentCellData.containerGrid.items[slotKey] = data;
+                
+                // CRITICAL: Update the parent cell's in-memory data so it reflects the changes
+                // This ensures the popover reads the correct data when reopened
+                if (parentCell.data) {
+                    if (!parentCell.data.containerGrid) {
+                        parentCell.data.containerGrid = {
+                            rows: 3,
+                            cols: 5,
+                            items: {}
+                        };
+                    }
+                    parentCell.data.containerGrid.items[slotKey] = data;
+                }
+                
+                console.log('BG3 HUD Core | PersistenceManager: Successfully updated containerPopover cell', {
+                    parentContainer: parentCell.containerType,
+                    parentIndex: parentCell.containerIndex,
+                    parentSlot: parentSlotKey,
+                    childSlot: slotKey,
+                    totalChildItems: Object.keys(parentCellData.containerGrid.items).length,
+                    parentCellDataUpdated: !!parentCell.data
+                });
                 break;
             }
             default:
@@ -276,6 +363,12 @@ export class PersistenceManager {
                 }
                 state.quickAccess.grids[containerIndex].items = items;
                 break;
+                
+            case 'containerPopover':
+                // Container popovers save their grid state nested within the parent container item's cell data
+                // The containerIndex for popovers is actually the parent cell's slot key
+                console.log('BG3 HUD Core | PersistenceManager: Container popover saves nested in parent cell');
+                return;
                 
             default:
                 console.error('BG3 HUD Core | PersistenceManager: Unknown container type:', containerType);

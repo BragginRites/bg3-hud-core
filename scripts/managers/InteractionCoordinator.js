@@ -106,7 +106,8 @@ export class InteractionCoordinator {
             onCellRightClick: this.handleRightClick.bind(this),
             onCellDragStart: this.handleDragStart.bind(this),
             onCellDragEnd: this.handleDragEnd.bind(this),
-            onCellDrop: this.handleDrop.bind(this)
+            onCellDrop: this.handleDrop.bind(this),
+            triggerCell: cell // Pass the parent cell for nested persistence
         };
 
         // Create and render popover
@@ -248,7 +249,8 @@ export class InteractionCoordinator {
                 container: cell.containerType,
                 containerIndex: cell.containerIndex,
                 slotKey: cell.getSlotKey(),
-                data: null
+                data: null,
+                parentCell: cell.parentCell // For containerPopover
             });
         }
     }
@@ -332,6 +334,15 @@ export class InteractionCoordinator {
             return;
         }
 
+        // Block cross-container moves involving container popovers
+        const sourceIsPopover = sourceCell.containerType === 'containerPopover';
+        const targetIsPopover = targetCell.containerType === 'containerPopover';
+        
+        if (sourceIsPopover !== targetIsPopover) {
+            ui.notifications.warn('Cannot move items between the container and the hotbar');
+            return;
+        }
+
         // STEP 1: Extract data (capture current state before any changes)
         const sourceData = sourceCell.data;
         const targetData = targetCell.data;
@@ -391,20 +402,22 @@ export class InteractionCoordinator {
                 }
             }
             
-            // STEP 4: Persist both changes (single source of truth)
+            // STEP 4: Persist both changes
             if (this.persistenceManager) {
                 await this.persistenceManager.updateCell({
                     container: sourceCell.containerType,
                     containerIndex: sourceCell.containerIndex,
                     slotKey: sourceSlotKey,
-                    data: targetData
+                    data: targetData,
+                    parentCell: sourceCell.parentCell // For containerPopover
                 });
                 
                 await this.persistenceManager.updateCell({
                     container: targetCell.containerType,
                     containerIndex: targetCell.containerIndex,
                     slotKey: targetSlotKey,
-                    data: sourceData
+                    data: sourceData,
+                    parentCell: targetCell.parentCell // For containerPopover
                 });
             }
         } else {
@@ -437,14 +450,16 @@ export class InteractionCoordinator {
                     container: sourceCell.containerType,
                     containerIndex: sourceCell.containerIndex,
                     slotKey: sourceSlotKey,
-                    data: null
+                    data: null,
+                    parentCell: sourceCell.parentCell // For containerPopover
                 });
                 
                 await this.persistenceManager.updateCell({
                     container: targetCell.containerType,
                     containerIndex: targetCell.containerIndex,
                     slotKey: targetSlotKey,
-                    data: sourceData
+                    data: sourceData,
+                    parentCell: targetCell.parentCell // For containerPopover
                 });
             }
         }
@@ -512,7 +527,8 @@ export class InteractionCoordinator {
                 container: targetCell.containerType,
                 containerIndex: targetCell.containerIndex,
                 slotKey: targetCell.getSlotKey(),
-                data: cellData
+                data: cellData,
+                parentCell: targetCell.parentCell // For containerPopover
             });
         }
     }
@@ -554,5 +570,6 @@ export class InteractionCoordinator {
             img: item.img
         };
     }
+
 }
 

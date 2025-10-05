@@ -87,9 +87,10 @@
 
 /* ==========================================================================
    Hotbar Items (Cell Content)
+   Applied to ALL grid cells (hotbar, popovers, quick access, weapon sets)
    ========================================================================== */
 
-#bg3-hotbar-container .hotbar-item {
+.hotbar-item {
     width: 100%;
     height: 100%;
     object-fit: cover;
@@ -97,12 +98,12 @@
     pointer-events: none;
 }
 
-#bg3-hotbar-container .hotbar-item.depleted {
+.hotbar-item.depleted {
     filter: grayscale(100%) brightness(60%);
 }
 
 /* Item name display (bottom of cell) */
-#bg3-hotbar-container .hotbar-item-name {
+.hotbar-item-name {
     position: absolute;
     bottom: 0;
     left: 0;
@@ -124,8 +125,8 @@
 }
 
 /* Item uses (top-right) and quantity (top-left) */
-#bg3-hotbar-container .hotbar-item-uses, 
-#bg3-hotbar-container .hotbar-item-quantity {
+.hotbar-item-uses, 
+.hotbar-item-quantity {
     position: absolute;
     top: 0;
     display: none;
@@ -138,15 +139,15 @@
     pointer-events: none;
 }
 
-#bg3-hotbar-container .hotbar-item-uses {
+.hotbar-item-uses {
     right: 0;
 }
 
-#bg3-hotbar-container .hotbar-item-quantity {
+.hotbar-item-quantity {
     left: 0;
 }
 
-#bg3-hotbar-container .hotbar-item-uses.depleted {
+.hotbar-item-uses.depleted {
     color: #ff4444;
 }
 
