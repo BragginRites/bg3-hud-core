@@ -3,8 +3,10 @@
 :root {    
     /* Colors */
     --bg3-background: #111111f2;
+    --bg3-background-color: rgba(20, 20, 20, 0.95);
     --bg3-border: #2f2f2f;
     --bg3-border-width: 1px;
+    --bg3-border-radius: 10px;
     --primary-border-width: 2px;
     --primary-border-color: #000000;
     --bg3-text: #ddd;
@@ -13,19 +15,22 @@
 
     /* Cells */
     --bg3-cell-border-width: 2px;
+    --bg3-cell-border-radius: 8px;
+    --bg3-cell-background: rgba(0, 0, 0, 0.4);
+    --bg3-cell-filled-background: rgba(40, 40, 40, 0.8);
+    --bg3-cell-hover-background: rgba(255, 255, 255, 0.1);
+    --bg3-cell-filled-hover-background: rgba(60, 60, 60, 0.9);
+    --bg3-cell-hover-border-color: rgba(255, 255, 255, 0.4);
+    --bg3-cell-border-color: rgba(255, 255, 255, 0.2);
+    
+    /* Grid */
+    --bg3-grid-gap: 2px;
 
     /* Drag Bar */
     --bg3-drag-bar-background: #2b2b2b;
     --bg3-drag-bar-background-hover: #6e6e6e;
     --bg3-drag-bar-background-dragging: #5a5353;
 
-    
-    /* Filter Colors - System adapters can override these */
-    --bg3-action: var(--color-action, #2ecc71);
-    --bg3-bonus: var(--color-bonus, #e67e22);
-    --bg3-reaction: var(--color-reaction, #fe85f6);
-    --bg3-spell: var(--color-spell, #3498db);
-    --bg3-pact: var(--color-pact, #8e44ad);
     
     /* Z-indices */
     --bg3-z-base: 70;

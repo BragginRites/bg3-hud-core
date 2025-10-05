@@ -11,6 +11,7 @@
 @import './components/controls.css';
 @import './components/dragbar.css';
 @import './components/context-menu.css';
+@import './components/container-popover.css';
 @import './components/hotbar.css';
 @import './components/active-effects.css';
 @import './components/passives.css';

@@ -1,5 +1,6 @@
 import { ContainerTypeDetector } from './ContainerTypeDetector.js';
 import { SlotContextMenu } from '../components/ui/SlotContextMenu.js';
+import { ContainerPopover } from '../components/ui/ContainerPopover.js';
 
 /**
  * Interaction Coordinator
@@ -21,6 +22,9 @@ export class InteractionCoordinator {
             interactionCoordinator: this,
             adapter: this.adapter
         });
+        
+        // Container popover tracking
+        this.activePopover = null;
     }
 
     /**
@@ -37,7 +41,7 @@ export class InteractionCoordinator {
      * @param {GridCell} cell
      * @param {MouseEvent} event
      */
-    handleClick(cell, event) {
+    async handleClick(cell, event) {
         // Block clicks on inactive weapon set cells
         if (ContainerTypeDetector.isWeaponSet(cell)) {
             const weaponContainer = this.hotbarApp.components.weaponSets;
@@ -50,9 +54,19 @@ export class InteractionCoordinator {
         // If no data in cell, do nothing
         if (!cell.data) return;
 
-        // Call adapter's click handler if available
-        if (this.adapter && typeof this.adapter.onCellClick === 'function') {
-            this.adapter.onCellClick(cell, event);
+        // Check if this is a container item (ask adapter)
+        const isContainer = this.adapter && typeof this.adapter.isContainer === 'function'
+            ? await this.adapter.isContainer(cell.data)
+            : false;
+
+        if (isContainer) {
+            // Open container popover
+            await this.openContainerPopover(cell, event);
+        } else {
+            // Call adapter's click handler if available (use item normally)
+            if (this.adapter && typeof this.adapter.onCellClick === 'function') {
+                this.adapter.onCellClick(cell, event);
+            }
         }
     }
 
@@ -65,6 +79,61 @@ export class InteractionCoordinator {
      */
     async handleRightClick(cell, event, container) {
         await this.contextMenu.show(cell, event, container);
+    }
+
+    /**
+     * Open a container popover for a container item
+     * @param {GridCell} cell - The cell containing the container
+     * @param {MouseEvent} event - The click event
+     */
+    async openContainerPopover(cell, event) {
+        // Close any existing popover
+        if (this.activePopover) {
+            this.activePopover.close();
+            this.activePopover = null;
+        }
+
+        // Get the container item
+        const containerItem = cell.data?.uuid ? await fromUuid(cell.data.uuid) : null;
+        if (!containerItem) {
+            console.warn('InteractionCoordinator | Could not resolve container item');
+            return;
+        }
+
+        // Create shared interaction handlers for popover cells
+        const handlers = {
+            onCellClick: this.handleClick.bind(this),
+            onCellRightClick: this.handleRightClick.bind(this),
+            onCellDragStart: this.handleDragStart.bind(this),
+            onCellDragEnd: this.handleDragEnd.bind(this),
+            onCellDrop: this.handleDrop.bind(this)
+        };
+
+        // Create and render popover
+        this.activePopover = new ContainerPopover({
+            containerItem: containerItem,
+            triggerElement: cell.element,
+            actor: this.hotbarApp?.currentActor,
+            token: this.hotbarApp?.currentToken,
+            adapter: this.adapter,
+            persistenceManager: this.persistenceManager,
+            ...handlers,
+            onClose: () => {
+                this.activePopover = null;
+            }
+        });
+
+        await this.activePopover.render();
+    }
+
+    /**
+     * Close any active container popover
+     */
+    closeContainerPopover() {
+        if (this.activePopover) {
+            this.activePopover.close();
+            this.activePopover = null;
+        }
     }
 
 

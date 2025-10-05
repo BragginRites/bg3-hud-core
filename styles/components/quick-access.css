@@ -23,7 +23,7 @@
 #bg3-hotbar-container .bg3-quick-access-grid .bg3-grid-cell {
     width: var(--bg3-cell-size);
     height: calc(var(--bg3-cell-size) * 0.6);
-    border: var(--bg3-cell-border-width) solid var(--bg3-border);
+    border: var(--bg3-cell-border-width) solid var(--bg3-cell-border-color);
 }
 
 /* Hidden state */

@@ -1,0 +1,33 @@
+/* ==========================================================================
+   Container Popover
+   Floating grid that appears when clicking container items (bags, pouches, etc.)
+   ========================================================================== */
+
+/* Popover container */
+.bg3-container-popover {
+    position: fixed;
+    z-index: 9999;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+    pointer-events: all;
+    background: var(--bg3-background-color);
+    border: var(--bg3-border-width, 1px) solid var(--bg3-border);
+    border-radius: var(--bg3-border-radius);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+    padding: var(--bg3-grid-gap);
+}
+
+.bg3-container-popover.popover-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Grid container inside popover inherits all grid variables from base.css */
+/* Cells inside popover inherit all cell variables from base.css */
+
+/* Drag states for popover cells */
+.bg3-container-popover .bg3-grid-cell.drag-over {
+    background: rgba(100, 150, 255, 0.3);
+    border-color: rgba(100, 150, 255, 0.6);
+}

@@ -6,7 +6,7 @@
 
 .bg3-grid-container {
     display: grid;
-    gap: 4px;
+    gap: var(--bg3-grid-gap, 2px);
     grid-template-columns: repeat(var(--grid-cols, 1), var(--bg3-cell-size, 50px));
     grid-template-rows: repeat(var(--grid-rows, 1), var(--bg3-cell-size, 50px));
     overflow: hidden;
@@ -20,9 +20,9 @@
     position: relative;
     width: var(--bg3-cell-size, 50px);
     height: var(--bg3-cell-size, 50px);
-    background: var(--bg3-background);
-    border: var(--bg3-cell-border-width) solid var(--bg3-border);
-    border-radius: 4px;
+    background: var(--bg3-cell-background, var(--bg3-background));
+    border: var(--bg3-cell-border-width, 2px) solid var(--bg3-cell-border-color, var(--bg3-border));
+    border-radius: var(--bg3-cell-border-radius, 8px);
     cursor: pointer;
     transition: all 0.15s ease;
     display: flex;
@@ -40,8 +40,17 @@
 
 .bg3-grid-cell.hover,
 .bg3-grid-cell:hover {
-    border-color: var(--primary-border-color);
+    background: var(--bg3-cell-hover-background, rgba(255, 255, 255, 0.1));
+    border-color: var(--bg3-cell-hover-border-color, var(--primary-border-color));
     box-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
+}
+
+.bg3-grid-cell.filled {
+    background: var(--bg3-cell-filled-background, rgba(40, 40, 40, 0.8));
+}
+
+.bg3-grid-cell.filled:hover {
+    background: var(--bg3-cell-filled-hover-background, rgba(60, 60, 60, 0.9));
 }
 
 .bg3-grid-cell.dragging {
