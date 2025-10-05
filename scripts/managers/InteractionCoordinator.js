@@ -164,6 +164,14 @@ export class InteractionCoordinator {
     async removeCell(cell) {
         // STEP 1: Update visual state
         await cell.setData(null, { skipSave: true });
+        
+        // Update two-handed weapon display immediately (parallel with visual update)
+        if (ContainerTypeDetector.isWeaponSet(cell)) {
+            const weaponContainer = this.hotbarApp.components.weaponSets;
+            if (weaponContainer?.onCellUpdated) {
+                await weaponContainer.onCellUpdated(cell.containerIndex, cell.getSlotKey());
+            }
+        }
 
         // STEP 2: Persist the removal
         if (this.persistenceManager) {
@@ -173,14 +181,6 @@ export class InteractionCoordinator {
                 slotKey: cell.getSlotKey(),
                 data: null
             });
-        }
-        
-        // STEP 3: Notify weapon set container if this was a weapon set update
-        if (ContainerTypeDetector.isWeaponSet(cell)) {
-            const weaponContainer = this.hotbarApp.components.weaponSets;
-            if (weaponContainer?.onCellUpdated) {
-                await weaponContainer.onCellUpdated(cell.containerIndex, cell.getSlotKey());
-            }
         }
     }
 
@@ -225,7 +225,6 @@ export class InteractionCoordinator {
             const weaponContainer = this.hotbarApp.components.weaponSets;
             const activeSet = weaponContainer ? weaponContainer.getActiveSet() : 0;
             if (!ContainerTypeDetector.isActiveWeaponSet(targetCell, activeSet)) {
-                ui.notifications.warn('Switch to this weapon set first to modify it');
                 return;
             }
             
@@ -312,7 +311,18 @@ export class InteractionCoordinator {
                 targetCell.setData(sourceData, { skipSave: true })
             ]);
 
-            // STEP 3: Persist both changes (single source of truth)
+            // STEP 3: Update two-handed weapon display BEFORE persisting (for immediate visual feedback)
+            if (ContainerTypeDetector.isWeaponSet(sourceCell)) {
+                const weaponContainer = this.hotbarApp.components.weaponSets;
+                if (weaponContainer?.onCellUpdated) {
+                    await Promise.all([
+                        weaponContainer.onCellUpdated(sourceCell.containerIndex, sourceSlotKey),
+                        weaponContainer.onCellUpdated(targetCell.containerIndex, targetSlotKey)
+                    ]);
+                }
+            }
+            
+            // STEP 4: Persist both changes (single source of truth)
             if (this.persistenceManager) {
                 await this.persistenceManager.updateCell({
                     container: sourceCell.containerType,
@@ -328,15 +338,6 @@ export class InteractionCoordinator {
                     data: sourceData
                 });
             }
-            
-            // STEP 4: Notify weapon set container if this was a weapon set update
-            if (ContainerTypeDetector.isWeaponSet(sourceCell)) {
-                const weaponContainer = this.hotbarApp.components.weaponSets;
-                if (weaponContainer?.onCellUpdated) {
-                    await weaponContainer.onCellUpdated(sourceCell.containerIndex, sourceSlotKey);
-                    await weaponContainer.onCellUpdated(targetCell.containerIndex, targetSlotKey);
-                }
-            }
         } else {
             // CROSS-CONTAINER: Move item (clear source)
             
@@ -346,7 +347,22 @@ export class InteractionCoordinator {
                 targetCell.setData(sourceData, { skipSave: true })
             ]);
 
-            // STEP 3: Persist both changes (clear source, set target)
+            // STEP 3: Update two-handed weapon display BEFORE persisting (for immediate visual feedback)
+            const weaponContainer = this.hotbarApp.components.weaponSets;
+            if (weaponContainer?.onCellUpdated) {
+                const updates = [];
+                if (ContainerTypeDetector.isWeaponSet(sourceCell)) {
+                    updates.push(weaponContainer.onCellUpdated(sourceCell.containerIndex, sourceSlotKey));
+                }
+                if (ContainerTypeDetector.isWeaponSet(targetCell)) {
+                    updates.push(weaponContainer.onCellUpdated(targetCell.containerIndex, targetSlotKey));
+                }
+                if (updates.length > 0) {
+                    await Promise.all(updates);
+                }
+            }
+            
+            // STEP 4: Persist both changes (clear source, set target)
             if (this.persistenceManager) {
                 await this.persistenceManager.updateCell({
                     container: sourceCell.containerType,
@@ -361,17 +377,6 @@ export class InteractionCoordinator {
                     slotKey: targetSlotKey,
                     data: sourceData
                 });
-            }
-            
-            // STEP 4: Notify weapon set containers if either was a weapon set update
-            const weaponContainer = this.hotbarApp.components.weaponSets;
-            if (weaponContainer?.onCellUpdated) {
-                if (ContainerTypeDetector.isWeaponSet(sourceCell)) {
-                    await weaponContainer.onCellUpdated(sourceCell.containerIndex, sourceSlotKey);
-                }
-                if (ContainerTypeDetector.isWeaponSet(targetCell)) {
-                    await weaponContainer.onCellUpdated(targetCell.containerIndex, targetSlotKey);
-                }
             }
         }
     }
@@ -421,8 +426,16 @@ export class InteractionCoordinator {
             }
         }
 
-        // STEP 2: Update visual state
+        // STEP 2: Update visual state and two-handed weapon display simultaneously
         await targetCell.setData(cellData, { skipSave: true });
+        
+        // Update two-handed weapon display immediately (parallel with visual update)
+        if (ContainerTypeDetector.isWeaponSet(targetCell)) {
+            const weaponContainer = this.hotbarApp.components.weaponSets;
+            if (weaponContainer?.onCellUpdated) {
+                await weaponContainer.onCellUpdated(targetCell.containerIndex, targetCell.getSlotKey());
+            }
+        }
 
         // STEP 3: Persist the change
         if (this.persistenceManager) {
@@ -432,14 +445,6 @@ export class InteractionCoordinator {
                 slotKey: targetCell.getSlotKey(),
                 data: cellData
             });
-        }
-        
-        // STEP 4: Notify weapon set container if this was a weapon set update
-        if (ContainerTypeDetector.isWeaponSet(targetCell)) {
-            const weaponContainer = this.hotbarApp.components.weaponSets;
-            if (weaponContainer?.onCellUpdated) {
-                await weaponContainer.onCellUpdated(targetCell.containerIndex, targetCell.getSlotKey());
-            }
         }
     }
 
