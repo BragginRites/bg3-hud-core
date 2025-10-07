@@ -122,6 +122,12 @@
     display: none;
     pointer-events: none;
     z-index: 10; /* Above image */
+    text-shadow: 
+        -1px -1px 2px rgba(0, 0, 0, 0.8),
+        1px -1px 2px rgba(0, 0, 0, 0.8),
+        -1px 1px 2px rgba(0, 0, 0, 0.8),
+        1px 1px 2px rgba(0, 0, 0, 0.8),
+        0 0 3px rgba(0, 0, 0, 0.9);
 }
 
 #bg3-hotbar-container[data-item-name="true"] .hotbar-item-name {
@@ -141,6 +147,12 @@
     font-weight: bold;
     z-index: 10; /* Above image but below drag overlay */
     pointer-events: none;
+    text-shadow: 
+        -1px -1px 2px rgba(0, 0, 0, 0.8),
+        1px -1px 2px rgba(0, 0, 0, 0.8),
+        -1px 1px 2px rgba(0, 0, 0, 0.8),
+        1px 1px 2px rgba(0, 0, 0, 0.8),
+        0 0 3px rgba(0, 0, 0, 0.9);
 }
 
 .hotbar-item-uses {

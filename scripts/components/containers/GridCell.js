@@ -107,6 +107,15 @@ export class GridCell extends BG3Component {
         this.element.setAttribute('data-slot', slotKey);
         this.element.setAttribute('draggable', true);
 
+        // DEBUG: Log cell data being rendered
+        console.log(`BG3 HUD Core | GridCell: Rendering ${this.containerType}[${this.containerIndex}][${slotKey}]:`, {
+            name: this.data.name,
+            quantity: this.data.quantity,
+            uses: this.data.uses,
+            img: this.data.img ? 'present' : 'missing',
+            fullData: this.data
+        });
+
         // Store UUID for later retrieval
         if (this.data.uuid) {
             this.element.dataset.uuid = this.data.uuid;
@@ -119,12 +128,8 @@ export class GridCell extends BG3Component {
             img.alt = this.data.name || '';
             img.draggable = false;
             
-            // Mark as depleted if uses are 0
-            if (this.data.uses && this.data.uses.value === 0) {
-                img.classList.add('depleted');
-            }
-            
             this.element.appendChild(img);
+            console.log(`BG3 HUD Core | GridCell: ✓ Added image for ${this.data.name}`);
         }
 
         // Add item name (optional, usually hidden)
@@ -132,18 +137,32 @@ export class GridCell extends BG3Component {
             const nameDiv = this.createElement('div', ['hotbar-item-name']);
             nameDiv.textContent = this.data.name;
             this.element.appendChild(nameDiv);
+            console.log(`BG3 HUD Core | GridCell: ✓ Added name div for ${this.data.name}`);
         }
 
         // Add uses counter
         if (this.data.uses && this.data.uses.max > 0) {
             const usesDiv = this.createElement('div', ['hotbar-item-uses']);
-            usesDiv.textContent = `${this.data.uses.value}/${this.data.uses.max}`;
+            // Show only the current remaining value (not value/max)
+            usesDiv.textContent = `${this.data.uses.value}`;
             
+            // Optional: add depleted class for styling (but don't desaturate image)
             if (this.data.uses.value === 0) {
                 usesDiv.classList.add('depleted');
             }
             
             this.element.appendChild(usesDiv);
+            console.log(`BG3 HUD Core | GridCell: ✓ Added uses div: ${this.data.uses.value}/${this.data.uses.max}`, {
+                element: usesDiv,
+                computedStyle: window.getComputedStyle(usesDiv).display,
+                classList: Array.from(usesDiv.classList)
+            });
+        } else {
+            console.log(`BG3 HUD Core | GridCell: ✗ No uses data for ${this.data.name}:`, {
+                hasUses: !!this.data.uses,
+                usesValue: this.data.uses,
+                maxValue: this.data.uses?.max
+            });
         }
 
         // Add quantity counter
@@ -151,6 +170,25 @@ export class GridCell extends BG3Component {
             const quantityDiv = this.createElement('div', ['hotbar-item-quantity']);
             quantityDiv.textContent = this.data.quantity;
             this.element.appendChild(quantityDiv);
+            console.log(`BG3 HUD Core | GridCell: ✓ Added quantity div: ${this.data.quantity}`, {
+                element: quantityDiv,
+                computedStyle: window.getComputedStyle(quantityDiv).display,
+                classList: Array.from(quantityDiv.classList)
+            });
+        } else {
+            console.log(`BG3 HUD Core | GridCell: ✗ No quantity for ${this.data.name}:`, {
+                quantity: this.data.quantity,
+                greaterThan1: this.data.quantity > 1
+            });
+        }
+        
+        // DEBUG: Check parent container data attribute
+        const container = document.getElementById('bg3-hotbar-container');
+        if (container) {
+            console.log(`BG3 HUD Core | GridCell: Container data attributes:`, {
+                itemName: container.dataset.itemName,
+                itemUse: container.dataset.itemUse
+            });
         }
     }
 

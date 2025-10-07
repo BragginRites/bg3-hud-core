@@ -5,6 +5,7 @@ import { InteractionCoordinator } from './managers/InteractionCoordinator.js';
 import { UpdateCoordinator } from './managers/UpdateCoordinator.js';
 import { ComponentFactory } from './managers/ComponentFactory.js';
 import { SocketManager } from './managers/SocketManager.js';
+import { HotbarViewsContainer } from './components/containers/HotbarViewsContainer.js';
 
 /**
  * BG3 Hotbar Application
@@ -84,15 +85,50 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
 
     /**
      * Update display settings (item names, uses, etc.)
+     * Gets settings from the active adapter if available
      */
     updateDisplaySettings() {
         if (!this.element) return;
 
-        const showItemNames = game.settings.get('bg3-hud-core', 'showItemNames');
-        const showItemUses = game.settings.get('bg3-hud-core', 'showItemUses');
+        // Get display settings from active adapter
+        const adapter = BG3HUD_REGISTRY.activeAdapter;
+        if (adapter && typeof adapter.getDisplaySettings === 'function') {
+            const settings = adapter.getDisplaySettings();
 
-        this.element.dataset.itemName = showItemNames;
-        this.element.dataset.itemUse = showItemUses;
+            console.log('BG3 HUD Core | updateDisplaySettings: Got settings from adapter:', settings);
+
+            // Convert boolean to string for data attributes (CSS checks for string "true")
+            const itemName = String(!!settings.showItemNames);
+            const itemUse = String(!!settings.showItemUses);
+
+            // Apply to the container element which CSS targets
+            const container = this.element?.querySelector('#bg3-hotbar-container');
+            if (container) {
+                container.dataset.itemName = itemName;
+                container.dataset.itemUse = itemUse;
+
+                console.log('BG3 HUD Core | updateDisplaySettings: Applied to container:', {
+                    itemName: container.dataset.itemName,
+                    itemUse: container.dataset.itemUse,
+                    elementId: container.id
+                });
+            } else {
+                console.warn('BG3 HUD Core | updateDisplaySettings: #bg3-hotbar-container not found; will apply to root element');
+                this.element.dataset.itemName = itemName;
+                this.element.dataset.itemUse = itemUse;
+            }
+        } else {
+            // Fallback: no display options if no adapter
+            console.warn('BG3 HUD Core | updateDisplaySettings: No adapter or getDisplaySettings method');
+            const container = this.element?.querySelector('#bg3-hotbar-container');
+            if (container) {
+                container.dataset.itemName = 'false';
+                container.dataset.itemUse = 'false';
+            } else {
+                this.element.dataset.itemName = 'false';
+                this.element.dataset.itemUse = 'false';
+            }
+        }
     }
 
     /**
@@ -182,7 +218,10 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
 
         // Set the current token in persistence manager and load UNIFIED state
         this.persistenceManager.setToken(this.currentToken);
-        const state = await this.persistenceManager.loadState();
+        let state = await this.persistenceManager.loadState();
+        
+        // Hydrate state to ensure fresh item data (quantity, uses, etc.)
+        state = await this.persistenceManager.hydrateState(state);
 
         // Create shared interaction handlers (delegates to InteractionCoordinator)
         const handlers = {
@@ -219,6 +258,16 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
         this.components.filters = await this.componentFactory.createFilterContainer();
         if (this.components.filters) {
             this.components.hotbar.element.appendChild(await this.components.filters.render());
+        }
+
+        // Create views container - positioned at bottom center of hotbar
+        // Only show for player characters (not NPCs)
+        const isPlayerCharacter = this.currentActor?.hasPlayerOwner || this.currentActor?.type === 'character';
+        if (isPlayerCharacter) {
+            this.components.views = new HotbarViewsContainer({
+                hotbarApp: this
+            });
+            this.components.hotbar.element.appendChild(await this.components.views.render());
         }
 
         // Create action buttons container (rest/turn buttons if adapter provides them)

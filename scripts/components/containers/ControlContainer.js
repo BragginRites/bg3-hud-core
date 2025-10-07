@@ -410,7 +410,7 @@ export class ControlContainer extends BG3Component {
 
     /**
      * Export layout as JSON (ALL PANELS by default)
-     * Includes hotbar, weapon sets, active set index, and quick access
+     * Includes hotbar, weapon sets, active set index, quick access, and views
      * @private
      */
     _exportLayout() {
@@ -425,11 +425,12 @@ export class ControlContainer extends BG3Component {
         const weaponSets = state?.weaponSets?.sets || [];
         const activeWeaponSet = state?.weaponSets?.activeSet ?? 0;
         const quickAccess = state?.quickAccess || { rows: 2, cols: 3, items: {} };
+        const views = state?.views || { list: [], activeViewId: null };
 
         const exportPayload = {
             meta: {
                 module: 'bg3-hud-core',
-                version: 'prototype',
+                version: 2, // Bumped for views support
                 timestamp: new Date().toISOString(),
                 actorUuid: actor?.uuid || null,
                 tokenId: token?.id || null
@@ -437,7 +438,8 @@ export class ControlContainer extends BG3Component {
             hotbar,
             weaponSets,
             activeWeaponSet,
-            quickAccess
+            quickAccess,
+            views
         };
 
         const dataStr = JSON.stringify(exportPayload, null, 2);
@@ -446,14 +448,15 @@ export class ControlContainer extends BG3Component {
         
         const link = document.createElement('a');
         link.href = url;
-        link.download = `bg3-hud-full-layout-${Date.now()}.json`;
+        link.download = `bg3-hud-layout-${Date.now()}.json`;
         link.click();
         
-        URL.revokeObjectURL(url);  
+        URL.revokeObjectURL(url);
     }
 
     /**
      * Import layout from JSON
+     * Supports both legacy (v1) and new (v2) format with views
      * @private
      */
     _importLayout() {
@@ -468,42 +471,116 @@ export class ControlContainer extends BG3Component {
             const reader = new FileReader();
             reader.onload = async (e) => {
                 try {
-                    const layout = JSON.parse(e.target.result);
+                    const importData = JSON.parse(e.target.result);
                     
-                    // Validate layout
-                    if (!Array.isArray(layout)) {
-                        throw new Error('Invalid layout format');
-                    }
-
-                    // Update grids data
-                    const hotbarContainer = this.hotbarApp.components.hotbar;
-                    hotbarContainer.grids = layout;
-
-                    // Update each grid container individually
-                    for (let i = 0; i < layout.length && i < hotbarContainer.gridContainers.length; i++) {
-                        const gridContainer = hotbarContainer.gridContainers[i];
-                        gridContainer.rows = layout[i].rows;
-                        gridContainer.cols = layout[i].cols;
-                        gridContainer.items = layout[i].items || {};
-                        await gridContainer.render();
-                    }
-
-                    // Save layout - update each grid's config and items
-                    for (let i = 0; i < layout.length; i++) {
-                        await this.hotbarApp.persistenceManager.updateGridConfig(i, {
-                            rows: layout[i].rows,
-                            cols: layout[i].cols
-                        });
-                        await this.hotbarApp.persistenceManager.updateContainer('hotbar', i, layout[i].items || {});
-                    }
+                    // Check format version
+                    const version = importData.meta?.version || 1;
                     
+                    if (version === 2) {
+                        // New format with views
+                        await this._importLayoutV2(importData);
+                    } else {
+                        // Legacy format (just hotbar arrays)
+                        await this._importLayoutV1(importData);
+                    }
                 } catch (error) {
                     console.error('BG3 HUD Core | Failed to import layout:', error);
+                    ui.notifications.error('Failed to import layout');
                 }
             };
             reader.readAsText(file);
         };
         
         input.click();
+    }
+
+    /**
+     * Import layout V2 format (with views)
+     * @param {Object} importData - Import data
+     * @private
+     */
+    async _importLayoutV2(importData) {
+        const state = await this.hotbarApp.persistenceManager.loadState();
+        
+        // Import views if present
+        if (importData.views && Array.isArray(importData.views.list)) {
+            state.views = foundry.utils.deepClone(importData.views);
+            
+            // If there's an active view, load its hotbar state (views only affect hotbar)
+            if (state.views.activeViewId) {
+                const activeView = state.views.list.find(v => v.id === state.views.activeViewId);
+                if (activeView?.hotbarState?.hotbar) {
+                    state.hotbar = foundry.utils.deepClone(activeView.hotbarState.hotbar);
+                }
+            }
+            
+            // Import weapon sets and quick access separately (not part of views)
+            if (importData.weaponSets) {
+                state.weaponSets = {
+                    sets: foundry.utils.deepClone(importData.weaponSets),
+                    activeSet: importData.activeWeaponSet ?? 0
+                };
+            }
+            if (importData.quickAccess) {
+                state.quickAccess = foundry.utils.deepClone(importData.quickAccess);
+            }
+        } else {
+            // Import legacy data directly (no views)
+            if (importData.hotbar) {
+                state.hotbar = { grids: foundry.utils.deepClone(importData.hotbar) };
+            }
+            if (importData.weaponSets) {
+                state.weaponSets = {
+                    sets: foundry.utils.deepClone(importData.weaponSets),
+                    activeSet: importData.activeWeaponSet ?? 0
+                };
+            }
+            if (importData.quickAccess) {
+                state.quickAccess = foundry.utils.deepClone(importData.quickAccess);
+            }
+            
+            // Sync to active view
+            this.hotbarApp.persistenceManager._syncCurrentStateToActiveView(state);
+        }
+        
+        // Save the imported state
+        await this.hotbarApp.persistenceManager.saveState(state);
+        
+        // Refresh the hotbar to show imported data
+        await this.hotbarApp.refresh();
+    }
+
+    /**
+     * Import layout V1 format (legacy - just hotbar grids)
+     * @param {Array} layout - Legacy layout array
+     * @private
+     */
+    async _importLayoutV1(layout) {
+        // Validate layout
+        if (!Array.isArray(layout)) {
+            throw new Error('Invalid layout format');
+        }
+
+        // Update grids data
+        const hotbarContainer = this.hotbarApp.components.hotbar;
+        hotbarContainer.grids = layout;
+
+        // Update each grid container individually
+        for (let i = 0; i < layout.length && i < hotbarContainer.gridContainers.length; i++) {
+            const gridContainer = hotbarContainer.gridContainers[i];
+            gridContainer.rows = layout[i].rows;
+            gridContainer.cols = layout[i].cols;
+            gridContainer.items = layout[i].items || {};
+            await gridContainer.render();
+        }
+
+        // Save layout - update each grid's config and items
+        for (let i = 0; i < layout.length; i++) {
+            await this.hotbarApp.persistenceManager.updateGridConfig(i, {
+                rows: layout[i].rows,
+                cols: layout[i].cols
+            });
+            await this.hotbarApp.persistenceManager.updateContainer('hotbar', i, layout[i].items || {});
+        }
     }
 }

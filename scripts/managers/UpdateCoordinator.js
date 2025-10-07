@@ -29,6 +29,11 @@ export class UpdateCoordinator {
         Hooks.on('createActiveEffect', this._onActiveEffectChange.bind(this));
         Hooks.on('updateActiveEffect', this._onActiveEffectChange.bind(this));
         Hooks.on('deleteActiveEffect', this._onActiveEffectChange.bind(this));
+
+        // Item hooks to react to quantity / uses changes immediately
+        Hooks.on('createItem', this._onEmbeddedItemChange.bind(this));
+        Hooks.on('updateItem', this._onEmbeddedItemChange.bind(this));
+        Hooks.on('deleteItem', this._onEmbeddedItemChange.bind(this));
     }
 
     /**
@@ -153,11 +158,19 @@ export class UpdateCoordinator {
         }
 
         // Check for item changes (uses, quantity, etc.)
+        // Foundry provides item updates via embedded document hooks; here we detect shallow indicators
         const itemsChanged = changes?.items;
         if (itemsChanged) {
             if (await this._handleItemsChange(itemsChanged)) {
                 return;
             }
+        }
+
+        // Also react when the system's items update via embedded Documents
+        // We register dedicated hooks once to handle create/update/delete Item on the actor
+        if (!this._itemHooksRegistered) {
+            this._registerItemHooks();
+            this._itemHooksRegistered = true;
         }
 
         // Check for resource changes (ki, rage, etc.)
@@ -372,6 +385,69 @@ export class UpdateCoordinator {
         const filters = this.hotbarApp.components?.filters;
         if (filters && typeof filters.resetUsedFilters === 'function') {
             filters.resetUsedFilters();
+        }
+    }
+
+    /**
+     * React to embedded Item changes (uses, quantity, etc.)
+     * @private
+     */
+    async _onEmbeddedItemChange(item, changes, options, userId) {
+        // Only react for current actor's items
+        const parent = item?.parent;
+        if (!parent || parent !== this.hotbarApp.currentActor) return;
+
+        console.log('BG3 HUD Core | UpdateCoordinator: Item changed, hydrating and updating UI', {
+            itemName: item.name,
+            changes: changes
+        });
+
+        // Hydrate latest state and update all containers with fresh data
+        try {
+            let state = await this.persistenceManager.loadState();
+            state = await this.persistenceManager.hydrateState(state);
+            
+            // Update hotbar grids with hydrated data
+            if (this.hotbarApp.components?.hotbar) {
+                const hotbar = this.hotbarApp.components.hotbar;
+                for (let i = 0; i < state.hotbar.grids.length; i++) {
+                    const gridData = state.hotbar.grids[i];
+                    const gridContainer = hotbar.gridContainers[i];
+                    if (gridContainer) {
+                        gridContainer.items = gridData.items;
+                        await gridContainer.render();
+                    }
+                }
+            }
+            
+            // Update weapon sets with hydrated data
+            if (this.hotbarApp.components?.weaponSets) {
+                const weaponSets = this.hotbarApp.components.weaponSets;
+                for (let i = 0; i < state.weaponSets.sets.length; i++) {
+                    const setData = state.weaponSets.sets[i];
+                    const gridContainer = weaponSets.gridContainers[i];
+                    if (gridContainer) {
+                        gridContainer.items = setData.items;
+                        await gridContainer.render();
+                    }
+                }
+            }
+            
+            // Update quick access with hydrated data
+            if (this.hotbarApp.components?.quickAccess && state.quickAccess?.grids?.[0]) {
+                const quickAccess = this.hotbarApp.components.quickAccess;
+                const gridData = state.quickAccess.grids[0];
+                const gridContainer = quickAccess.gridContainers[0];
+                if (gridContainer) {
+                    gridContainer.items = gridData.items;
+                    await gridContainer.render();
+                }
+            }
+            
+            console.log('BG3 HUD Core | UpdateCoordinator: Item change update complete');
+        } catch (e) {
+            console.error('BG3 HUD Core | UpdateCoordinator: Failed to handle embedded item change', e);
+            await this.hotbarApp.refresh();
         }
     }
 

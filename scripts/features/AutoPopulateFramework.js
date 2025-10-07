@@ -162,17 +162,29 @@ export class AutoPopulateFramework {
             return 0;
         }
 
-        // Enrich items with full data (name, img, etc.)
+        // Enrich items with full data (name, img, uses, quantity, etc.)
         const enrichedItems = [];
         for (const item of newItems) {
             const itemData = await fromUuid(item.uuid);
             if (itemData) {
-                enrichedItems.push({
-                    uuid: item.uuid,
-                    name: itemData.name,
-                    img: itemData.img,
-                    type: itemData.type
-                });
+                // Try to use adapter's transformation if available (for system-specific data like uses/quantity)
+                let cellData;
+                const adapter = ui.BG3HOTBAR?.registry?.activeAdapter;
+                if (adapter && typeof adapter.transformItemToCellData === 'function') {
+                    cellData = await adapter.transformItemToCellData(itemData);
+                } else {
+                    // Fallback: basic transformation
+                    cellData = {
+                        uuid: item.uuid,
+                        name: itemData.name,
+                        img: itemData.img,
+                        type: itemData.type
+                    };
+                }
+                
+                if (cellData) {
+                    enrichedItems.push(cellData);
+                }
             }
         }
 
@@ -272,17 +284,29 @@ export class AutoPopulateFramework {
             // Sort items
             const sortedItems = await this.sortItems(items);
 
-            // Enrich items with full data
+            // Enrich items with full data (name, img, uses, quantity, etc.)
             const enrichedItems = [];
             for (const item of sortedItems) {
                 const itemData = await fromUuid(item.uuid);
                 if (itemData) {
-                    enrichedItems.push({
-                        uuid: item.uuid,
-                        name: itemData.name,
-                        img: itemData.img,
-                        type: itemData.type
-                    });
+                    // Try to use adapter's transformation if available (for system-specific data like uses/quantity)
+                    let cellData;
+                    const adapter = ui.BG3HOTBAR?.registry?.activeAdapter;
+                    if (adapter && typeof adapter.transformItemToCellData === 'function') {
+                        cellData = await adapter.transformItemToCellData(itemData);
+                    } else {
+                        // Fallback: basic transformation
+                        cellData = {
+                            uuid: item.uuid,
+                            name: itemData.name,
+                            img: itemData.img,
+                            type: itemData.type
+                        };
+                    }
+                    
+                    if (cellData) {
+                        enrichedItems.push(cellData);
+                    }
                 }
             }
 

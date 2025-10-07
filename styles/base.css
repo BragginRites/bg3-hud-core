@@ -62,7 +62,7 @@
     padding-bottom: var(--position-bottom, 10px);
     transition: transform .3s ease-in-out, opacity .3s ease-in-out var(--bg3-faded-delay);
     width: fit-content;
-    bottom: 20px;
+    bottom: 30px;
     left: 0;
     right: 0;
     opacity: var(--bg3-faded-opacity, var(--bg3-normal-opacity));

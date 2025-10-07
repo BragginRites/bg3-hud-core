@@ -1,0 +1,116 @@
+/* BG3 HUD Core - Hotbar Views Container */
+
+/* ==========================================================================
+   Views Container
+   Positioned at bottom-center of hotbar, hover-activated
+   ========================================================================== */
+
+   .bg3-views-container {
+    position: absolute;
+    bottom: -20px;
+    left: 50%;
+    transform: translate(-50%, 50%);
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    padding: 9px 20px;
+    border-radius: var(--bg3-cell-border-radius);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 200ms ease, transform 200ms ease;
+    z-index: var(--bg3-z-filter-container);
+    white-space: nowrap;
+}
+
+/* Show control container when hovering over grid cells, drag bar, or itself */
+.bg3-hotbar-container .bg3-grid-container:hover ~ .bg3-views-container,
+.bg3-hotbar-container .bg3-drag-bar:hover ~ .bg3-views-container,
+.bg3-hotbar-container .bg3-views-container:hover {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+
+/* ==========================================================================
+   View Buttons
+   ========================================================================== */
+
+.bg3-view-button {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background: var(--bg3-cell-background);
+    border-color: var(--bg3-cell-border-color);
+    border-radius: 4px;
+    color: var(--bg3-text);
+    cursor: pointer;
+    transition: all 150ms ease;
+    font-size: 0.9em;
+    font-weight: 500;
+    min-width: 36px;
+    justify-content: center;
+}
+
+.bg3-view-button:hover {
+    border-color: var(--bg3-cell-hover-border-color);
+}
+
+.bg3-view-button:active {
+    transform: translateY(0);
+}
+
+/* Active view */
+.bg3-view-button.active {
+    background: var(--bg3-background);
+    color: var(--bg3-text);
+}
+
+.bg3-view-button.active:hover {
+    background: var(--bg3-background-highlight);
+    border-color: rgba(255, 255, 255, 0.85);
+}
+
+/* View button icon */
+.bg3-view-button i {
+    font-size: 1.1em;
+}
+
+/* View button label text */
+.bg3-view-button .button-label {
+    font-size: 0.9em;
+    white-space: nowrap;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ==========================================================================
+   New View Button
+   ========================================================================== */
+
+.bg3-view-button-new {
+    background: var(--bg3-cell-background);
+    border-color: var(--bg3-cell-border-color);
+}
+
+.bg3-view-button-new:hover {
+    background: var(--bg3-cell-hover-background);
+    border-color: var(--bg3-cell-hover-border-color);
+}
+
+/* Hide label on new view button (icon only) */
+.bg3-view-button-new .button-label {
+    display: none;
+}
+
+/* ==========================================================================
+   Separator
+   ========================================================================== */
+
+.bg3-views-separator {
+    width: 1px;
+    height: 20px;
+    background: var(--bg3-border);
+    margin: 0 4px;
+}

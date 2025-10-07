@@ -79,8 +79,8 @@ export class AutoPopulateConfigDialog extends BG3Component {
         cancelButton.innerHTML = '<i class="fas fa-times"></i> Cancel';
         cancelButton.addEventListener('click', () => this._onCancel());
         
-        buttons.appendChild(confirmButton);
         buttons.appendChild(cancelButton);
+        buttons.appendChild(confirmButton);
         dialogBox.appendChild(buttons);
 
         this.element.appendChild(dialogBox);

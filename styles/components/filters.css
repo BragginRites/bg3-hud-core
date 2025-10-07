@@ -10,26 +10,30 @@
   /* Filter Container */
   .bg3-filter-container {
       position: absolute;
-      top: -35px;
+      top: -20px;
       left: 50%;
       transform: translate(-50%, -50%);
       display: flex;
       gap: 2px;
       align-items: center;
-      padding: 1px;
-      background: rgba(0,0,0,0.35);
+      padding: 8px;
+      background: rgb(0 0 0 / 0%);
       opacity: 0;
       pointer-events: none;
-      transition: opacity 120ms ease, transform 120ms ease;
+      transition: opacity 120ms ease;
       white-space: nowrap; /* Prevent wrapping */
+      z-index: 100; /* Above passives and active effects containers */
+      border-radius: 6px;
   }
   
   
-  .bg3-hotbar-container:hover .bg3-filter-container {
-      opacity: 1;
-      pointer-events: auto;
-      transform: translateX(-50%) translateY(0);
-  }
+/* Show control container when hovering over grid cells, drag bar, or itself */
+.bg3-hotbar-container .bg3-grid-container:hover ~ .bg3-filter-container,
+.bg3-hotbar-container .bg3-drag-bar:hover ~ .bg3-filter-container,
+.bg3-hotbar-container .bg3-filter-container:hover {
+    opacity: 1;
+    pointer-events: auto;
+}
   
   /* Filter Button Base */
   .bg3-filter-button {
@@ -126,15 +130,6 @@
   
   .bg3-filter-button .slot-box.filled {
       background: var(--filter-color, #ddd);
-  }
-  
-  /* Special backgrounds */
-  .bg3-filter-button.spell-cantrip-box {
-      background: linear-gradient(135deg, var(--bg3-background, #1a1a1a) 0%, rgba(106, 13, 173, 0.2) 100%);
-  }
-  
-  .bg3-filter-button.spell-pact-box {
-      background: linear-gradient(135deg, var(--bg3-background, #1a1a1a) 0%, rgba(156, 39, 176, 0.2) 100%);
   }
   
   /* Custom Resource Buttons */
