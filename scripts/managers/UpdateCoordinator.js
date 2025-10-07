@@ -124,7 +124,6 @@ export class UpdateCoordinator {
             
             // For observers: socketlib already handled the update instantly
             // This hook fires after the server roundtrip, which we can ignore
-            console.log('BG3 HUD Core | UpdateCoordinator: Skipping hook-based update (socketlib handles real-time sync)');
             
             // Update our cached state to stay in sync with the server
             this.persistenceManager.state = foundry.utils.deepClone(actor.getFlag(this.moduleId, this.flagName));
@@ -397,11 +396,6 @@ export class UpdateCoordinator {
         const parent = item?.parent;
         if (!parent || parent !== this.hotbarApp.currentActor) return;
 
-        console.log('BG3 HUD Core | UpdateCoordinator: Item changed, hydrating and updating UI', {
-            itemName: item.name,
-            changes: changes
-        });
-
         // Hydrate latest state and update all containers with fresh data
         try {
             let state = await this.persistenceManager.loadState();
@@ -443,8 +437,6 @@ export class UpdateCoordinator {
                     await gridContainer.render();
                 }
             }
-            
-            console.log('BG3 HUD Core | UpdateCoordinator: Item change update complete');
         } catch (e) {
             console.error('BG3 HUD Core | UpdateCoordinator: Failed to handle embedded item change', e);
             await this.hotbarApp.refresh();

@@ -63,15 +63,10 @@ export class ContainerPopover extends BG3Component {
 
         if (!savedGrid) {
             // No saved data, use adapter contents as-is (first time opening)
-            console.log('ContainerPopover | First time opening, using adapter contents');
             return adapterContents;
         }
 
         // We have saved positions - use them, but sync with actual container contents
-        console.log('ContainerPopover | Using saved positions, syncing with container contents', {
-            savedItems: Object.keys(savedGrid.items || {}),
-            savedItemsData: savedGrid.items
-        });
         
         // Build a map of UUIDs from adapter contents (what actually exists)
         const adapterItemsByUuid = new Map();
@@ -105,7 +100,6 @@ export class ContainerPopover extends BG3Component {
                     if (!syncedItems[slot]) {
                         syncedItems[slot] = itemData;
                         placed = true;
-                        console.log('ContainerPopover | Placed new item in empty slot:', itemData.name, 'at', slot);
                     }
                 }
             }

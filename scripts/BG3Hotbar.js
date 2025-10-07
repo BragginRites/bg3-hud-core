@@ -95,8 +95,6 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
         if (adapter && typeof adapter.getDisplaySettings === 'function') {
             const settings = adapter.getDisplaySettings();
 
-            console.log('BG3 HUD Core | updateDisplaySettings: Got settings from adapter:', settings);
-
             // Convert boolean to string for data attributes (CSS checks for string "true")
             const itemName = String(!!settings.showItemNames);
             const itemUse = String(!!settings.showItemUses);
@@ -106,20 +104,12 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
             if (container) {
                 container.dataset.itemName = itemName;
                 container.dataset.itemUse = itemUse;
-
-                console.log('BG3 HUD Core | updateDisplaySettings: Applied to container:', {
-                    itemName: container.dataset.itemName,
-                    itemUse: container.dataset.itemUse,
-                    elementId: container.id
-                });
             } else {
-                console.warn('BG3 HUD Core | updateDisplaySettings: #bg3-hotbar-container not found; will apply to root element');
                 this.element.dataset.itemName = itemName;
                 this.element.dataset.itemUse = itemUse;
             }
         } else {
             // Fallback: no display options if no adapter
-            console.warn('BG3 HUD Core | updateDisplaySettings: No adapter or getDisplaySettings method');
             const container = this.element?.querySelector('#bg3-hotbar-container');
             if (container) {
                 container.dataset.itemName = 'false';
@@ -232,8 +222,15 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
             onCellDrop: this.interactionCoordinator.handleDrop.bind(this.interactionCoordinator)
         };
 
+        // Create info container (if adapter provides one)
+        this.components.info = await this.componentFactory.createInfoContainer();
+        
         // Create portrait container (uses adapter if available)
+        // Pass info container to portrait so it can be positioned above it
         this.components.portrait = await this.componentFactory.createPortraitContainer();
+        if (this.components.info) {
+            this.components.portrait.infoContainer = this.components.info;
+        }
         container.appendChild(await this.components.portrait.render());
 
         // Create wrapper for weapon sets and quick access

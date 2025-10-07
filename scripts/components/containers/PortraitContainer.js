@@ -17,11 +17,13 @@ export class PortraitContainer extends BG3Component {
      * @param {Object} options - Panel configuration
      * @param {Actor} options.actor - The actor to display
      * @param {Token} options.token - The token to display
+     * @param {InfoContainer} options.infoContainer - Info container instance (optional)
      */
     constructor(options = {}) {
         super(options);
         this.actor = options.actor;
         this.token = options.token;
+        this.infoContainer = options.infoContainer || null;
     }
 
     /**
@@ -38,6 +40,12 @@ export class PortraitContainer extends BG3Component {
         if (!this.token) {
             console.warn('PortraitContainer | No token provided');
             return this.element;
+        }
+
+        // Add info container if provided (positioned above portrait)
+        if (this.infoContainer) {
+            const infoElement = await this.infoContainer.render();
+            this.element.appendChild(infoElement);
         }
 
         // Create portrait image container

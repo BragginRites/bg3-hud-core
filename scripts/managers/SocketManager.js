@@ -72,8 +72,6 @@ export class SocketManager {
             return;
         }
 
-        console.log('BG3 HUD Core | Received socket update:', updateData.type, 'from user', updateData.userId);
-
         // Add to queue and batch process
         this._updateQueue.push(updateData);
         
@@ -99,8 +97,6 @@ export class SocketManager {
         this._updateQueue = [];
         this._updateTimeout = null;
         
-        console.log(`BG3 HUD Core | Processing ${updates.length} batched updates`);
-        
         // Process all updates
         for (const updateData of updates) {
             switch (updateData.type) {
@@ -120,8 +116,6 @@ export class SocketManager {
                     console.warn('BG3 HUD Core | Unknown socket update type:', updateData.type);
             }
         }
-        
-        console.log('BG3 HUD Core | Batch update complete');
     }
 
     /**

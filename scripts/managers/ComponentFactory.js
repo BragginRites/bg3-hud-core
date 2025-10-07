@@ -164,5 +164,25 @@ export class ComponentFactory {
             hotbarApp: this.hotbarApp
         });
     }
+
+    /**
+     * Create info container
+     * Uses adapter implementation if available, otherwise returns null
+     * @returns {Promise<InfoContainer|null>}
+     */
+    async createInfoContainer() {
+        const { InfoContainer } = await import('../components/containers/InfoContainer.js');
+        
+        // Check if adapter provides an info container class
+        const InfoClass = BG3HUD_REGISTRY.infoContainer;
+        
+        // Only create if adapter registered a custom class and we have an actor
+        if (!this.hotbarApp.currentActor || !InfoClass) return null;
+        
+        return new InfoClass({
+            actor: this.hotbarApp.currentActor,
+            token: this.hotbarApp.currentToken
+        });
+    }
 }
 

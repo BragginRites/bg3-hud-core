@@ -11,6 +11,7 @@ export const BG3HUD_REGISTRY = {
     actionButtonsContainer: null,
     filterContainer: null,
     weaponSetContainer: null,
+    infoContainer: null,
     
     // Additional containers registered by adapters (e.g., rest/turn, weapon)
     containers: {},
@@ -88,6 +89,15 @@ export const BG3HUD_API = {
     registerWeaponSetContainer(containerClass) {
         console.log('BG3 HUD Core | Registering weapon set container:', containerClass.name);
         BG3HUD_REGISTRY.weaponSetContainer = containerClass;
+    },
+
+    /**
+     * Register an info container class
+     * @param {Class} containerClass - Class that extends InfoContainer
+     */
+    registerInfoContainer(containerClass) {
+        console.log('BG3 HUD Core | Registering info container:', containerClass.name);
+        BG3HUD_REGISTRY.infoContainer = containerClass;
     },
 
     /**

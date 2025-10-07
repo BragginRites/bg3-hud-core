@@ -113,7 +113,6 @@ export class PersistenceManager {
             return state;
         }
 
-        console.log('BG3 HUD Core | PersistenceManager: Starting state hydration');
         let totalItems = 0;
         let hydratedItems = 0;
 
@@ -153,7 +152,6 @@ export class PersistenceManager {
             }
         }
 
-        console.log(`BG3 HUD Core | PersistenceManager: Hydration complete - ${hydratedItems}/${totalItems} items hydrated`);
         return state;
     }
 
@@ -175,15 +173,6 @@ export class PersistenceManager {
 
             if (cellData?.uuid) {
                 try {
-                    console.log(`BG3 HUD Core | Hydrating ${containerPath}[${slotKey}]:`, {
-                        name: cellData.name,
-                        uuid: cellData.uuid,
-                        beforeHydration: {
-                            quantity: cellData.quantity,
-                            uses: cellData.uses
-                        }
-                    });
-
                     const item = await fromUuid(cellData.uuid);
                     if (item) {
                         // Re-transform using adapter to get fresh data
@@ -191,14 +180,6 @@ export class PersistenceManager {
                         if (freshData) {
                             items[slotKey] = freshData;
                             hydrated++;
-                            
-                            console.log(`BG3 HUD Core | ✓ Hydrated ${containerPath}[${slotKey}]:`, {
-                                name: freshData.name,
-                                afterHydration: {
-                                    quantity: freshData.quantity,
-                                    uses: freshData.uses
-                                }
-                            });
                         } else {
                             console.warn(`BG3 HUD Core | ✗ Transform returned null for ${containerPath}[${slotKey}]`);
                         }
@@ -208,8 +189,6 @@ export class PersistenceManager {
                 } catch (error) {
                     console.error(`BG3 HUD Core | ✗ Failed to hydrate ${containerPath}[${slotKey}]:`, error);
                 }
-            } else {
-                console.log(`BG3 HUD Core | Skipping ${containerPath}[${slotKey}] - no UUID`);
             }
         }
 
@@ -303,12 +282,6 @@ export class PersistenceManager {
             }
             case 'containerPopover': {
                 // Container popovers save nested within their parent cell's data
-                console.log('BG3 HUD Core | PersistenceManager: containerPopover case triggered', {
-                    hasParentCell: !!parentCell,
-                    slotKey,
-                    data
-                });
-                
                 if (!parentCell) {
                     console.error('BG3 HUD Core | PersistenceManager: No parent cell provided for containerPopover');
                     return;
@@ -378,14 +351,6 @@ export class PersistenceManager {
                     parentCell.data.containerGrid.items[slotKey] = data;
                 }
                 
-                console.log('BG3 HUD Core | PersistenceManager: Successfully updated containerPopover cell', {
-                    parentContainer: parentCell.containerType,
-                    parentIndex: parentCell.containerIndex,
-                    parentSlot: parentSlotKey,
-                    childSlot: slotKey,
-                    totalChildItems: Object.keys(parentCellData.containerGrid.items).length,
-                    parentCellDataUpdated: !!parentCell.data
-                });
                 break;
             }
             default:
@@ -504,7 +469,6 @@ export class PersistenceManager {
             case 'containerPopover':
                 // Container popovers save their grid state nested within the parent container item's cell data
                 // The containerIndex for popovers is actually the parent cell's slot key
-                console.log('BG3 HUD Core | PersistenceManager: Container popover saves nested in parent cell');
                 return;
                 
             default:
