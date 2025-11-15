@@ -48,6 +48,8 @@ export class GridContainer extends BG3Component {
             this.element = this.createElement('div', ['bg3-grid-container', ...this.classes]);
             this.element.dataset.id = this.id;
             this.element.dataset.index = this.index;
+            // Mark as UI element for tooltip setting control
+            this.element.dataset.bg3Ui = 'true';
         }
 
         // Set CSS custom properties for grid size (CSS will handle the actual layout)

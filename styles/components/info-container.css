@@ -231,6 +231,42 @@
     overflow: hidden;
 }
 
+/* Ability check (in right column) */
+.bg3-info-check {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 8px;
+    background: var(--bg3-cell-background);
+    border-radius: calc(var(--bg3-cell-border-radius) / 2);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-size: 0.85em;
+}
+
+.bg3-info-check:hover {
+    background: var(--bg3-cell-hover-background);
+    transform: translateX(-2px);
+}
+
+.bg3-info-check-name {
+    color: var(--bg3-text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+}
+
+.bg3-info-check-modifier {
+    font-weight: bold;
+    color: var(--bg3-text);
+}
+
+.bg3-info-check-modifier.positive::before {
+    content: '+';
+}
+
+/* Saving throw (in right column) */
 .bg3-info-save {
     display: flex;
     justify-content: space-between;

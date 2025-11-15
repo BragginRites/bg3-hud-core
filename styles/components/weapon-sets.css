@@ -22,8 +22,8 @@
     flex-direction: column;
     align-items: center;
     align-self: flex-end;
-    margin-left: 20px;
-    margin-right: 20px;
+    margin-left: 5px;
+    margin-right: 5px;
 }
 
 #bg3-hotbar-container .bg3-weapon-container {

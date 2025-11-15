@@ -32,13 +32,23 @@ export class InfoContainer extends BG3Component {
 
         // Create toggle button (positioned above portrait)
         const button = this.createElement('button', ['bg3-info-button']);
+        // Mark as UI element to prevent system tooltips (dnd5e2, etc.) from showing
+        button.dataset.bg3Ui = 'true';
         button.innerHTML = '<i class="fas fa-user-circle"></i>';
-        button.title = 'Character Info';
+        button.setAttribute('data-tooltip', 'Character Info<br><small>Right-click for Initiative</small>');
+        button.setAttribute('data-tooltip-direction', 'UP');
         
         this.addEventListener(button, 'click', (e) => {
             e.preventDefault();
             e.stopPropagation();
             this.toggle();
+        });
+
+        // Right-click for initiative roll (system adapters can override)
+        this.addEventListener(button, 'contextmenu', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            await this.onButtonRightClick(e);
         });
 
         // Create sliding panel (hidden by default)
@@ -163,6 +173,16 @@ export class InfoContainer extends BG3Component {
             document.removeEventListener('click', this._clickOutsideHandler, true);
             this._clickOutsideHandler = null;
         }
+    }
+
+    /**
+     * Handle right-click on info button
+     * Override in system adapters to provide custom behavior (e.g., initiative roll)
+     * @param {MouseEvent} event - The context menu event
+     */
+    async onButtonRightClick(event) {
+        // Default: no action
+        // System adapters should override this
     }
 
     /**

@@ -1,4 +1,6 @@
 import { BG3Component } from '../BG3Component.js';
+import { ContextMenu } from '../ui/ContextMenu.js';
+import { BG3HUD_API } from '../../utils/registry.js';
 
 /**
  * Portrait Container - Abstract Base Class
@@ -62,7 +64,82 @@ export class PortraitContainer extends BG3Component {
         imageContainer.appendChild(imageSubContainer);
         this.element.appendChild(imageContainer);
 
+        // Register context menu for portrait image
+        this._registerPortraitMenu(imageContainer);
+
         return this.element;
+    }
+
+    /**
+     * Register context menu handler for portrait image
+     * @param {HTMLElement} imageContainer - The portrait image container element
+     * @private
+     */
+    _registerPortraitMenu(imageContainer) {
+        imageContainer.addEventListener('contextmenu', async (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            await this._showPortraitMenu(event);
+        });
+    }
+
+    /**
+     * Show portrait menu
+     * Uses adapter's MenuBuilder if available, otherwise falls back to core menu
+     * @param {MouseEvent} event - The triggering event
+     * @private
+     */
+    async _showPortraitMenu(event) {
+        const menuBuilder = BG3HUD_API.getMenuBuilder();
+        let menuItems = [];
+
+        // Try to get menu items from adapter's MenuBuilder
+        if (menuBuilder && typeof menuBuilder.buildPortraitMenu === 'function') {
+            menuItems = await menuBuilder.buildPortraitMenu(this, event);
+        }
+
+        // Fallback to core portrait menu if adapter didn't provide items
+        if (menuItems.length === 0) {
+            menuItems = this._getCorePortraitMenuItems();
+        }
+
+        if (menuItems.length > 0) {
+            const menu = new ContextMenu({
+                items: menuItems,
+                event: event,
+                parent: document.body
+            });
+            await menu.render();
+        }
+    }
+
+    /**
+     * Get core portrait menu items (fallback)
+     * System adapters should override via MenuBuilder.buildPortraitMenu()
+     * @returns {Array} Menu items array
+     * @private
+     */
+    _getCorePortraitMenuItems() {
+        // Core implementation: basic token vs character portrait toggle
+        // System adapters should provide richer menus via MenuBuilder
+        return [
+            {
+                label: 'Use Token Image',
+                icon: 'fas fa-chess-pawn',
+                onClick: async () => {
+                    // Override in subclass or via MenuBuilder
+                    console.warn('PortraitContainer | Use Token Image not implemented');
+                }
+            },
+            {
+                label: 'Use Character Portrait',
+                icon: 'fas fa-user',
+                onClick: async () => {
+                    // Override in subclass or via MenuBuilder
+                    console.warn('PortraitContainer | Use Character Portrait not implemented');
+                }
+            }
+        ];
     }
 
     /**

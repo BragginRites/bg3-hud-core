@@ -4,6 +4,8 @@
  * Monitors single hudState flag for simplified state management
  * Note: HUD state updates are now handled via socketlib for real-time sync
  */
+import { BG3HUD_REGISTRY } from '../utils/registry.js';
+
 export class UpdateCoordinator {
     constructor(options = {}) {
         this.hotbarApp = options.hotbarApp;
@@ -43,19 +45,33 @@ export class UpdateCoordinator {
      * @private
      */
     async _onControlToken(token, controlled) {
+        // Check if GM hotbar lock is enabled
+        const gmHotbarLock = game.settings.get('bg3-hud-core', 'gmHotbarLock');
+        if (gmHotbarLock && this.hotbarApp.canGMHotbar()) {
+            // Keep GM hotbar visible even when token is selected
+            this.hotbarApp.overrideGMHotbar = true;
+            return;
+        }
+
+        // Check if GM hotbar override is active
+        if (this.hotbarApp.overrideGMHotbar && game.settings.get('bg3-hud-core', 'enableGMHotbar')) {
+            return; // Don't switch away from GM hotbar if override is set
+        }
+
         // Check how many tokens are currently controlled
         const controlledTokens = canvas.tokens.controlled;
         const multipleTokensControlled = controlledTokens.length > 1;
         
         if (controlled) {
             if (multipleTokensControlled) {
-                // Hide UI when multiple tokens are selected to prevent confusion
-                console.log('BG3 HUD Core | Multiple tokens controlled, hiding UI');
+                // Multiple tokens selected - show GM hotbar if enabled, otherwise hide
+                console.log('BG3 HUD Core | Multiple tokens controlled');
                 this.hotbarApp.currentToken = null;
                 this.hotbarApp.currentActor = null;
                 await this.hotbarApp.refresh();
             } else {
                 // Single token controlled - show UI normally
+                this.hotbarApp.overrideGMHotbar = false; // Clear override when selecting token
                 this.hotbarApp.currentToken = token;
                 this.hotbarApp.currentActor = token.actor;
                 await this.hotbarApp.refresh();
@@ -64,12 +80,14 @@ export class UpdateCoordinator {
             // When deselecting, check if we still have a single token selected
             if (controlledTokens.length === 1) {
                 // Another token is still selected, show it
+                this.hotbarApp.overrideGMHotbar = false; // Clear override when selecting token
                 const remainingToken = controlledTokens[0];
                 this.hotbarApp.currentToken = remainingToken;
                 this.hotbarApp.currentActor = remainingToken.actor;
                 await this.hotbarApp.refresh();
             } else {
                 // No tokens selected or multiple tokens selected
+                // Show GM hotbar if enabled, otherwise hide
                 this.hotbarApp.currentToken = null;
                 this.hotbarApp.currentActor = null;
                 await this.hotbarApp.refresh();
@@ -131,10 +149,14 @@ export class UpdateCoordinator {
         }
 
         // Check for adapter flags (system-specific)
-        const adapterFlags = changes?.flags?.['bg3-hud-dnd5e']; // TODO: Make this dynamic
-        if (adapterFlags) {
-            if (await this._handleAdapterFlags(adapterFlags)) {
-                return; // Handled with targeted update
+        // Get adapter module ID dynamically
+        const adapter = BG3HUD_REGISTRY.activeAdapter;
+        if (adapter && adapter.MODULE_ID) {
+            const adapterFlags = changes?.flags?.[adapter.MODULE_ID];
+            if (adapterFlags) {
+                if (await this._handleAdapterFlags(adapterFlags)) {
+                    return; // Handled with targeted update
+                }
             }
         }
 
@@ -165,17 +187,21 @@ export class UpdateCoordinator {
             }
         }
 
-        // Also react when the system's items update via embedded Documents
-        // We register dedicated hooks once to handle create/update/delete Item on the actor
-        if (!this._itemHooksRegistered) {
-            this._registerItemHooks();
-            this._itemHooksRegistered = true;
-        }
+        // Item hooks are already registered in registerHooks() method
+        // No need to register them again here
 
         // Check for resource changes (ki, rage, etc.)
         const resourcesChanged = changes?.system?.resources;
         if (resourcesChanged) {
             if (await this._handleResourceChange()) {
+                return;
+            }
+        }
+
+        // Check for ability score changes (affects info container)
+        const abilitiesChanged = changes?.system?.abilities;
+        if (abilitiesChanged) {
+            if (await this._handleAbilityChange()) {
                 return;
             }
         }
@@ -264,6 +290,32 @@ export class UpdateCoordinator {
             }
         }
 
+        // Portrait image preference (D&D 5e specific)
+        if (Object.prototype.hasOwnProperty.call(adapterFlags, 'useTokenImage')) {
+            const portraitContainer = this.hotbarApp.components?.portrait;
+            if (portraitContainer) {
+                // Re-render the portrait to show the new image
+                await portraitContainer.render();
+                handled = true;
+            }
+        }
+
+        // Situational bonuses state (e.g., advState, advOnce for D&D 5e)
+        // Only update button states, no full re-render
+        const advStateKeys = ['advState', '-=advState'];
+        const advOnceKeys = ['advOnce', '-=advOnce'];
+        const advStateChanged = advStateKeys.some((key) => Object.prototype.hasOwnProperty.call(adapterFlags, key));
+        const advOnceChanged = advOnceKeys.some((key) => Object.prototype.hasOwnProperty.call(adapterFlags, key));
+
+        if (advStateChanged || advOnceChanged) {
+            const situationalBonusesContainer = this.hotbarApp.components?.situationalBonuses;
+            if (situationalBonusesContainer && typeof situationalBonusesContainer.updateButtons === 'function') {
+                // Only update button visual states, not full re-render
+                situationalBonusesContainer.updateButtons();
+                handled = true;
+            }
+        }
+
         // Add more adapter-specific flag handlers here as needed
         // This keeps the core system-agnostic while allowing adapter updates
 
@@ -295,6 +347,21 @@ export class UpdateCoordinator {
         const filters = this.hotbarApp.components?.filters;
         if (filters && typeof filters.update === 'function') {
             await filters.update();
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Handle ability score changes
+     * Targeted update: only update info container
+     * @returns {Promise<boolean>} True if handled
+     * @private
+     */
+    async _handleAbilityChange() {
+        const infoContainer = this.hotbarApp.components?.info;
+        if (infoContainer && typeof infoContainer.render === 'function') {
+            await infoContainer.render();
             return true;
         }
         return false;

@@ -50,6 +50,7 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
         this.components = {};
         this.currentToken = null;
         this.currentActor = null;
+        this.overrideGMHotbar = false; // Flag to manually override GM hotbar
         
         // Initialize managers
         this.persistenceManager = new PersistenceManager();
@@ -73,6 +74,16 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
         
         // Link socket manager to persistence manager
         this.persistenceManager.setSocketManager(this.socketManager);
+    }
+
+    /**
+     * Check if GM hotbar should be shown
+     * @returns {boolean} True if GM hotbar should be shown
+     */
+    canGMHotbar() {
+        return !this.currentActor && 
+               game.user.isGM && 
+               game.settings.get('bg3-hud-core', 'enableGMHotbar');
     }
 
     /**
@@ -185,9 +196,12 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
         // Clear existing components
         this._destroyComponents();
 
-        // Only initialize if we have a token
-        if (!this.currentToken) {
-            // Hide the UI when no token is selected
+        // Check if in GM hotbar mode
+        const isGMHotbarMode = this.canGMHotbar() || this.overrideGMHotbar;
+        
+        // Only initialize if we have a token OR we're in GM hotbar mode
+        if (!this.currentToken && !isGMHotbarMode) {
+            // Hide the UI when no token is selected and not in GM mode
             if (this.element) {
                 this.element.classList.add('bg3-hud-hidden');
             }
@@ -206,12 +220,21 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
             return;
         }
 
-        // Set the current token in persistence manager and load UNIFIED state
-        this.persistenceManager.setToken(this.currentToken);
+        // Set the current token in persistence manager and load state
+        if (isGMHotbarMode) {
+            // GM hotbar mode: set token to null to trigger GM mode in persistence manager
+            this.persistenceManager.setToken(null);
+        } else {
+            this.persistenceManager.setToken(this.currentToken);
+        }
+        
         let state = await this.persistenceManager.loadState();
         
         // Hydrate state to ensure fresh item data (quantity, uses, etc.)
-        state = await this.persistenceManager.hydrateState(state);
+        // Only hydrate if we have an actor (not in GM mode)
+        if (!isGMHotbarMode) {
+            state = await this.persistenceManager.hydrateState(state);
+        }
 
         // Create shared interaction handlers (delegates to InteractionCoordinator)
         const handlers = {
@@ -222,60 +245,80 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
             onCellDrop: this.interactionCoordinator.handleDrop.bind(this.interactionCoordinator)
         };
 
-        // Create info container (if adapter provides one)
-        this.components.info = await this.componentFactory.createInfoContainer();
-        
-        // Create portrait container (uses adapter if available)
-        // Pass info container to portrait so it can be positioned above it
-        this.components.portrait = await this.componentFactory.createPortraitContainer();
-        if (this.components.info) {
-            this.components.portrait.infoContainer = this.components.info;
+        // GM hotbar mode: only create hotbar and control container
+        if (isGMHotbarMode) {
+            // Create hotbar container from GM hotbar state
+            this.components.hotbar = await this.componentFactory.createHotbarContainer(state.hotbar.grids, handlers);
+            container.appendChild(await this.components.hotbar.render());
+
+            // Create control container
+            this.components.controls = await this.componentFactory.createControlContainer();
+            this.components.hotbar.element.appendChild(await this.components.controls.render());
+        } else {
+            // Normal token mode: create all components
+            // Create info container (if adapter provides one)
+            this.components.info = await this.componentFactory.createInfoContainer();
+            
+            // Create portrait container (uses adapter if available)
+            // Pass info container to portrait so it can be positioned above it
+            this.components.portrait = await this.componentFactory.createPortraitContainer();
+            if (this.components.info) {
+                this.components.portrait.infoContainer = this.components.info;
+            }
+            container.appendChild(await this.components.portrait.render());
+
+            // Create wrapper for weapon sets and quick access
+            const weaponQuickWrapper = document.createElement('div');
+            weaponQuickWrapper.className = 'bg3-weapon-quick-wrapper';
+            container.appendChild(weaponQuickWrapper);
+
+            // Create weapon sets container from UNIFIED state
+            this.components.weaponSets = await this.componentFactory.createWeaponSetsContainer(state.weaponSets.sets, handlers);
+            weaponQuickWrapper.appendChild(await this.components.weaponSets.render());
+            await this.components.weaponSets.setActiveSet(state.weaponSets.activeSet, true);
+
+            // Create quick access container from UNIFIED state (now arrays of grids)
+            this.components.quickAccess = await this.componentFactory.createQuickAccessContainer(state.quickAccess, handlers);
+            weaponQuickWrapper.appendChild(await this.components.quickAccess.render());
+
+            // Create situational bonuses container (if adapter provides one) - positioned between weapon sets and hotbar
+            // Always create and append (container handles its own visibility)
+            this.components.situationalBonuses = await this.componentFactory.createSituationalBonusesContainer();
+            if (this.components.situationalBonuses) {
+                const situationalBonusesElement = await this.components.situationalBonuses.render();
+                container.appendChild(situationalBonusesElement);
+            }
+
+            // Create hotbar container from UNIFIED state
+            this.components.hotbar = await this.componentFactory.createHotbarContainer(state.hotbar.grids, handlers);
+            container.appendChild(await this.components.hotbar.render());
+
+            // Create filter container (if adapter provides one) - positioned over hotbar, centered at top
+            this.components.filters = await this.componentFactory.createFilterContainer();
+            if (this.components.filters) {
+                this.components.hotbar.element.appendChild(await this.components.filters.render());
+            }
+
+            // Create views container - positioned at bottom center of hotbar
+            // Only show for player characters (not NPCs)
+            const isPlayerCharacter = this.currentActor?.hasPlayerOwner || this.currentActor?.type === 'character';
+            if (isPlayerCharacter) {
+                this.components.views = new HotbarViewsContainer({
+                    hotbarApp: this
+                });
+                this.components.hotbar.element.appendChild(await this.components.views.render());
+            }
+
+            // Create action buttons container (rest/turn buttons if adapter provides them)
+            this.components.actionButtons = await this.componentFactory.createActionButtonsContainer();
+            if (this.components.actionButtons) {
+                container.appendChild(await this.components.actionButtons.render());
+            }
+
+            // Create control container
+            this.components.controls = await this.componentFactory.createControlContainer();
+            this.components.hotbar.element.appendChild(await this.components.controls.render());
         }
-        container.appendChild(await this.components.portrait.render());
-
-        // Create wrapper for weapon sets and quick access
-        const weaponQuickWrapper = document.createElement('div');
-        weaponQuickWrapper.className = 'bg3-weapon-quick-wrapper';
-        container.appendChild(weaponQuickWrapper);
-
-        // Create weapon sets container from UNIFIED state
-        this.components.weaponSets = await this.componentFactory.createWeaponSetsContainer(state.weaponSets.sets, handlers);
-        weaponQuickWrapper.appendChild(await this.components.weaponSets.render());
-        await this.components.weaponSets.setActiveSet(state.weaponSets.activeSet, true);
-
-        // Create quick access container from UNIFIED state (now arrays of grids)
-        this.components.quickAccess = await this.componentFactory.createQuickAccessContainer(state.quickAccess, handlers);
-        weaponQuickWrapper.appendChild(await this.components.quickAccess.render());
-
-        // Create hotbar container from UNIFIED state
-        this.components.hotbar = await this.componentFactory.createHotbarContainer(state.hotbar.grids, handlers);
-        container.appendChild(await this.components.hotbar.render());
-
-        // Create filter container (if adapter provides one) - positioned over hotbar, centered at top
-        this.components.filters = await this.componentFactory.createFilterContainer();
-        if (this.components.filters) {
-            this.components.hotbar.element.appendChild(await this.components.filters.render());
-        }
-
-        // Create views container - positioned at bottom center of hotbar
-        // Only show for player characters (not NPCs)
-        const isPlayerCharacter = this.currentActor?.hasPlayerOwner || this.currentActor?.type === 'character';
-        if (isPlayerCharacter) {
-            this.components.views = new HotbarViewsContainer({
-                hotbarApp: this
-            });
-            this.components.hotbar.element.appendChild(await this.components.views.render());
-        }
-
-        // Create action buttons container (rest/turn buttons if adapter provides them)
-        this.components.actionButtons = await this.componentFactory.createActionButtonsContainer();
-        if (this.components.actionButtons) {
-            container.appendChild(await this.components.actionButtons.render());
-        }
-
-        // Create control container
-        this.components.controls = await this.componentFactory.createControlContainer();
-        this.components.hotbar.element.appendChild(await this.components.controls.render());
         
         // Ensure interaction coordinator has the active adapter
         if (BG3HUD_REGISTRY?.activeAdapter && this.interactionCoordinator?.setAdapter) {

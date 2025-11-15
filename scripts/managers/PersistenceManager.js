@@ -43,12 +43,38 @@ export class PersistenceManager {
     }
 
     /**
-     * Load complete state from actor flags
+     * Check if currently in GM hotbar mode
+     * @returns {boolean} True if in GM hotbar mode
+     */
+    isGMHotbarMode() {
+        return !this.currentActor && 
+               game.user.isGM && 
+               game.settings.get(this.MODULE_ID, 'enableGMHotbar');
+    }
+
+    /**
+     * Load complete state from actor flags or GM hotbar data
      * Always returns a valid state object with defaults
      * Includes automatic migration from old flag format
      * @returns {Promise<Object>} Complete HUD state
      */
     async loadState() {
+        // Check if in GM hotbar mode
+        if (this.isGMHotbarMode()) {
+            const gmHotbarData = game.settings.get(this.MODULE_ID, 'gmHotbarData');
+            if (gmHotbarData) {
+                this.state = foundry.utils.deepClone(gmHotbarData);
+                // Ensure GM hotbar state has proper structure
+                if (!this.state.hotbar || !this.state.hotbar.grids) {
+                    this.state = this._getDefaultGMHotbarState();
+                }
+                return this.state;
+            }
+            // No GM hotbar data, return default GM hotbar state
+            this.state = this._getDefaultGMHotbarState();
+            return this.state;
+        }
+
         if (!this.currentActor) {
             console.warn('BG3 HUD Core | PersistenceManager: No actor, returning defaults');
             return this._getDefaultState();
@@ -196,12 +222,20 @@ export class PersistenceManager {
     }
 
     /**
-     * Save complete state to actor flags
+     * Save complete state to actor flags or GM hotbar data
      * Includes concurrency protection
      * @param {Object} state - Complete HUD state
      * @returns {Promise<void>}
      */
     async saveState(state) {
+        // Check if in GM hotbar mode
+        if (this.isGMHotbarMode()) {
+            // Save to GM hotbar data setting
+            await game.settings.set(this.MODULE_ID, 'gmHotbarData', state);
+            this.state = foundry.utils.deepClone(state);
+            return;
+        }
+
         if (!this.currentActor) {
             console.warn('BG3 HUD Core | PersistenceManager: No actor to save to');
             return;
@@ -569,6 +603,30 @@ export class PersistenceManager {
             };
             console.log('BG3 HUD Core | PersistenceManager: QuickAccess wrapped into grids[]');
         }
+    }
+
+    /**
+     * Get default GM hotbar state structure
+     * GM hotbar only includes hotbar grids (no weapon sets, quick access, or views)
+     * @returns {Object} Default GM hotbar state
+     * @private
+     */
+    _getDefaultGMHotbarState() {
+        const grids = [];
+        for (let i = 0; i < this.DEFAULT_GRID_CONFIG.gridCount; i++) {
+            grids.push({
+                rows: this.DEFAULT_GRID_CONFIG.rows,
+                cols: this.DEFAULT_GRID_CONFIG.cols,
+                items: {}
+            });
+        }
+
+        return {
+            version: this.VERSION,
+            hotbar: {
+                grids: grids
+            }
+        };
     }
 
     /**

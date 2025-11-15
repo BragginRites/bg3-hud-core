@@ -96,6 +96,8 @@ export class WeaponSetContainer extends BG3Component {
                 // Tooltip direction based on position relative to active set
                 const isAbove = (i === activeIndex + 1) || (activeIndex === this.gridContainers.length - 1 && i === 0);
                 container.element.dataset.tooltipDirection = isAbove ? 'UP' : 'DOWN';
+                // Ensure UI flag is set for tooltip setting control
+                container.element.dataset.bg3Ui = 'true';
             }
         }
     }
@@ -155,6 +157,8 @@ export class WeaponSetContainer extends BG3Component {
             gridContainer.element.classList.add('bg3-weapon-set');
             gridContainer.element.dataset.containerIndex = i;
             gridContainer.element.dataset.setId = i;
+            // Mark as UI element to prevent system tooltips (dnd5e2, etc.) from showing
+            gridContainer.element.dataset.bg3Ui = 'true';
             
             // Add click handler to switch sets
             this.addEventListener(gridContainer.element, 'click', async (event) => {

@@ -83,7 +83,7 @@ export class ViewButton extends BaseButton {
             }
 
             // Update label
-            const labelElement = this.element.querySelector('.button-label');
+            const labelElement = this.element.querySelector('.bg3-button-label');
             if (labelElement) {
                 labelElement.textContent = view.name;
             }

@@ -284,30 +284,34 @@ export class AutoPopulateFramework {
             // Sort items
             const sortedItems = await this.sortItems(items);
 
+            // Global duplicate filtering
+            const filteredItems = [];
+            for (const item of sortedItems) {
+                if (!item.uuid) continue;
+
+                const exists = persistenceManager?.findUuidInHud?.(item.uuid);
+                if (!exists) filteredItems.push(item);
+            }
+
+            if (filteredItems.length === 0) continue;
+
             // Enrich items with full data (name, img, uses, quantity, etc.)
             const enrichedItems = [];
-            for (const item of sortedItems) {
+            for (const item of filteredItems) {
                 const itemData = await fromUuid(item.uuid);
-                if (itemData) {
-                    // Try to use adapter's transformation if available (for system-specific data like uses/quantity)
-                    let cellData;
-                    const adapter = ui.BG3HOTBAR?.registry?.activeAdapter;
-                    if (adapter && typeof adapter.transformItemToCellData === 'function') {
-                        cellData = await adapter.transformItemToCellData(itemData);
-                    } else {
-                        // Fallback: basic transformation
-                        cellData = {
-                            uuid: item.uuid,
-                            name: itemData.name,
-                            img: itemData.img,
-                            type: itemData.type
-                        };
-                    }
-                    
-                    if (cellData) {
-                        enrichedItems.push(cellData);
-                    }
-                }
+                if (!itemData) continue;
+
+                const adapter = ui.BG3HOTBAR?.registry?.activeAdapter;
+                const cellData = adapter?.transformItemToCellData
+                    ? await adapter.transformItemToCellData(itemData)
+                    : {
+                        uuid: item.uuid,
+                        name: itemData.name,
+                        img: itemData.img,
+                        type: itemData.type
+                    };
+
+                if (cellData) enrichedItems.push(cellData);
             }
 
             // Populate this grid with items

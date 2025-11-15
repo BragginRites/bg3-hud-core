@@ -22,6 +22,74 @@ export function registerSettings() {
         }
     });
 
+    // Tooltip delay setting
+    game.settings.register(MODULE_ID, 'tooltipDelay', {
+        name: 'Tooltip Delay (ms)',
+        hint: 'Delay before tooltips appear on hover (in milliseconds)',
+        scope: 'client',
+        config: true,
+        type: Number,
+        range: {
+            min: 0,
+            max: 2000,
+            step: 100
+        },
+        default: 500,
+        onChange: (value) => {
+            // Update tooltip manager delay if it exists
+            const tooltipManager = ui.BG3HOTBAR?.tooltipManager;
+            if (tooltipManager) {
+                tooltipManager.delay = value;
+            }
+        }
+    });
+
+    // Tooltip debug setting
+    game.settings.register(MODULE_ID, 'debugTooltips', {
+        name: 'Debug Tooltips',
+        hint: 'Enable debug logging for tooltip system (check browser console)',
+        scope: 'client',
+        config: true,
+        type: Boolean,
+        default: false
+    });
+
+    // GM Hotbar settings
+    game.settings.register(MODULE_ID, 'enableGMHotbar', {
+        name: 'Enable GM Hotbar',
+        hint: 'Show a special hotbar for GMs when no token or multiple tokens are selected',
+        scope: 'world',
+        config: true,
+        type: Boolean,
+        default: false,
+        onChange: () => {
+            // Refresh hotbar if it exists and no token is selected
+            if (ui.BG3HUD_APP && !ui.BG3HUD_APP.currentToken) {
+                ui.BG3HUD_APP.refresh();
+            }
+        }
+    });
+
+    game.settings.register(MODULE_ID, 'gmHotbarData', {
+        name: 'GM Hotbar Data',
+        hint: 'Stores GM hotbar layout and items (restricted to GM)',
+        restricted: true,
+        scope: 'world',
+        config: false,
+        type: Object,
+        default: null
+    });
+
+    // GM Hotbar lock setting (keep GM hotbar visible when token selected)
+    game.settings.register(MODULE_ID, 'gmHotbarLock', {
+        name: 'Keep GM Hotbar',
+        hint: 'Keep GM hotbar visible even when a token is selected',
+        scope: 'world',
+        config: false,
+        type: Boolean,
+        default: false
+    });
+
     // Note: Display settings (showItemNames, showItemUses) are now registered
     // by system adapters, as they are system-specific in their implementation
 }

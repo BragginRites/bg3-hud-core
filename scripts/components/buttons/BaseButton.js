@@ -32,6 +32,9 @@ export class BaseButton extends BG3Component {
         // Create button element
         this.element = this.createElement('button', ['bg3-button', ...this.classes]);
 
+        // Mark as UI element to prevent system tooltips (dnd5e2, etc.) from showing
+        this.element.dataset.bg3Ui = 'true';
+
         // Add data-key attribute if provided
         if (this.key) {
             this.element.dataset.key = this.key;

@@ -41,6 +41,9 @@ export class FilterButton extends BG3Component {
             ...this.data.classes
         ]);
 
+        // Mark as UI element to prevent system tooltips (dnd5e2, etc.) from showing
+        this.element.dataset.bg3Ui = 'true';
+
         // Set color
         if (this.data.color) {
             this.element.style.setProperty('--filter-color', this.data.color);

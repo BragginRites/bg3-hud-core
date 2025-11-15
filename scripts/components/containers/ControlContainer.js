@@ -1,5 +1,7 @@
 import { BG3Component } from '../BG3Component.js';
 import { BaseButton } from '../buttons/BaseButton.js';
+import { ContextMenu } from '../ui/ContextMenu.js';
+import { BG3HUD_API } from '../../utils/registry.js';
 
 /**
  * Control Container
@@ -19,6 +21,8 @@ export class ControlContainer extends BG3Component {
     async render() {
         if (!this.element) {
             this.element = this.createElement('div', ['bg3-control-container']);
+            // Mark as UI element to prevent system tooltips
+            this.element.dataset.bg3Ui = 'true';
         }
 
         // Create buttons
@@ -39,12 +43,63 @@ export class ControlContainer extends BG3Component {
      * @private
      */
     _getButtons() {
-        return [
+        const buttons = [
             this._getAddRowButton(),
             this._getRemoveRowButton(),
             this._getLockButton(),
             this._getSettingsButton()
         ];
+
+        // Add GM hotbar toggle button if appropriate
+        if (this._shouldShowGMHotbarToggle()) {
+            buttons.unshift(this._getGMHotbarToggleButton());
+        }
+
+        return buttons;
+    }
+
+    /**
+     * Check if GM hotbar toggle button should be shown
+     * @returns {boolean} True if toggle should be shown
+     * @private
+     */
+    _shouldShowGMHotbarToggle() {
+        return game.user.isGM && 
+               game.settings.get('bg3-hud-core', 'enableGMHotbar');
+    }
+
+    /**
+     * Get GM hotbar toggle button
+     * @returns {Object} Button data
+     * @private
+     */
+    _getGMHotbarToggleButton() {
+        const isUsingGM = !this.hotbarApp.currentToken;
+        
+        return {
+            key: 'toggle-gm-hotbar',
+            classes: ['hotbar-control-button'],
+            icon: 'fa-random',
+            tooltip: 'Toggle between GM Hotbar and Token Hotbar',
+            onClick: async () => {
+                const token = canvas.tokens.controlled[0];
+                const isCurrentlyGM = !this.hotbarApp.currentToken;
+
+                if (isCurrentlyGM && token) {
+                    // Switch from GM hotbar to token hotbar
+                    this.hotbarApp.overrideGMHotbar = false;
+                    this.hotbarApp.currentToken = token;
+                    this.hotbarApp.currentActor = token.actor;
+                    await this.hotbarApp.refresh();
+                } else {
+                    // Switch from token hotbar to GM hotbar
+                    this.hotbarApp.overrideGMHotbar = true;
+                    this.hotbarApp.currentToken = null;
+                    this.hotbarApp.currentActor = null;
+                    await this.hotbarApp.refresh();
+                }
+            }
+        };
     }
 
     /**
@@ -203,15 +258,65 @@ export class ControlContainer extends BG3Component {
 
     /**
      * Show lock settings menu
+     * Uses adapter's MenuBuilder if available, otherwise falls back to core menu
      * @param {MouseEvent} event - Right-click event
      * @private
      */
     async _showLockMenu(event) {
         event.preventDefault();
         
-        const { ContextMenu } = await import('../ui/ContextMenu.js');
+        const menuBuilder = BG3HUD_API.getMenuBuilder();
+        let menuItems = [];
 
-        const menuItems = [
+        // Try to get menu items from adapter's MenuBuilder
+        if (menuBuilder && typeof menuBuilder.buildLockMenu === 'function') {
+            menuItems = await menuBuilder.buildLockMenu(this, event);
+        }
+
+        // Fallback to core lock menu if adapter didn't provide items
+        if (menuItems.length === 0) {
+            menuItems = this._getCoreLockMenuItems();
+        }
+
+        if (menuItems.length > 0) {
+            const menu = new ContextMenu({
+                items: menuItems,
+                event: event,
+                parent: document.body
+            });
+            await menu.render();
+        }
+    }
+
+    /**
+     * Get core lock menu items (fallback)
+     * System adapters should override via MenuBuilder.buildLockMenu()
+     * @returns {Array} Menu items array
+     * @private
+     */
+    _getCoreLockMenuItems() {
+        const menuItems = [];
+
+        // Add GM hotbar lock option if GM hotbar is enabled
+        if (game.user.isGM && game.settings.get('bg3-hud-core', 'enableGMHotbar')) {
+            const isLocked = game.settings.get('bg3-hud-core', 'gmHotbarLock');
+            menuItems.push({
+                label: 'Keep GM Hotbar',
+                icon: 'fas fa-shield-alt',
+                class: isLocked ? 'checked' : '',
+                custom: '<div class="menu-item-checkbox"><i class="fas fa-check"></i></div>',
+                onClick: async () => {
+                    const newValue = !isLocked;
+                    await game.settings.set('bg3-hud-core', 'gmHotbarLock', newValue);
+                    // Update override flag if locking
+                    if (newValue && this.hotbarApp.canGMHotbar()) {
+                        this.hotbarApp.overrideGMHotbar = true;
+                    }
+                }
+            });
+        }
+
+        menuItems.push(
             {
                 label: 'Deselecting Token',
                 icon: 'fas fa-user-slash',
@@ -236,15 +341,9 @@ export class ControlContainer extends BG3Component {
                     ui.notifications.info('Drag & Drop lock - to be implemented');
                 }
             }
-        ];
+        );
 
-        const menu = new ContextMenu({
-            items: menuItems,
-            event: event,
-            parent: document.body
-        });
-
-        await menu.render();
+        return menuItems;
     }
 
     /**
@@ -274,13 +373,42 @@ export class ControlContainer extends BG3Component {
 
     /**
      * Show settings menu (right-click context menu)
+     * Uses adapter's MenuBuilder if available, otherwise falls back to core menu
      * @param {MouseEvent} event - Click event
      * @private
      */
     async _showSettingsMenu(event) {
-        const { ContextMenu } = await import('../ui/ContextMenu.js');
+        const menuBuilder = BG3HUD_API.getMenuBuilder();
+        let menuItems = [];
 
-        const menuItems = [
+        // Try to get menu items from adapter's MenuBuilder
+        if (menuBuilder && typeof menuBuilder.buildSettingsMenu === 'function') {
+            menuItems = await menuBuilder.buildSettingsMenu(this, event);
+        }
+
+        // Fallback to core settings menu if adapter didn't provide items
+        if (menuItems.length === 0) {
+            menuItems = this._getCoreSettingsMenuItems();
+        }
+
+        if (menuItems.length > 0) {
+            const menu = new ContextMenu({
+                items: menuItems,
+                event: event,
+                parent: document.body
+            });
+            await menu.render();
+        }
+    }
+
+    /**
+     * Get core settings menu items (fallback)
+     * System adapters should override via MenuBuilder.buildSettingsMenu()
+     * @returns {Array} Menu items array
+     * @private
+     */
+    _getCoreSettingsMenuItems() {
+        return [
             {
                 label: 'Reset Layout',
                 icon: 'fas fa-rotate',
@@ -294,6 +422,9 @@ export class ControlContainer extends BG3Component {
                 onClick: async () => {
                     await this._clearAllItems();
                 }
+            },
+            {
+                separator: true
             },
             {
                 label: 'Export Layout',
@@ -310,14 +441,6 @@ export class ControlContainer extends BG3Component {
                 }
             }
         ];
-
-        const menu = new ContextMenu({
-            items: menuItems,
-            event: event,
-            parent: document.body
-        });
-
-        await menu.render();
     }
 
     /**

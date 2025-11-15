@@ -49,3 +49,48 @@
     opacity: 0.5;
 }
 
+/* Submenu support */
+.bg3-context-menu-has-submenu {
+    position: relative;
+}
+
+.bg3-context-menu-submenu-icon {
+    margin-left: auto;
+    font-size: 10px;
+    opacity: 0.7;
+}
+
+.bg3-context-menu-has-submenu:hover .bg3-context-menu-submenu-icon {
+    opacity: 1;
+}
+
+/* Custom HTML content */
+.bg3-context-menu-custom {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.bg3-context-menu-custom input[type="checkbox"] {
+    cursor: pointer;
+}
+
+/* Value display */
+.bg3-context-menu-value {
+    margin-left: auto;
+    font-weight: 600;
+    font-size: 13px;
+    padding-left: 8px;
+}
+
+.bg3-context-menu-item {
+    position: relative;
+}
+
+/* Submenu positioning - appears top-right of parent menu item */
+.bg3-context-menu .bg3-context-menu {
+    margin-left: 0;
+    z-index: 10001;
+}
+

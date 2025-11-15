@@ -1,0 +1,246 @@
+/**
+ * BG3 HUD Tooltip Styles
+ * System-agnostic tooltip styling matching BG3 HUD theme
+ */
+
+:root {
+    /* Tooltip Colors */
+    --bg3-tooltip-background: var(--bg3-background-color, rgba(20, 20, 20, 0.95));
+    --bg3-tooltip-border-color: var(--bg3-border, #2f2f2f);
+    --bg3-tooltip-border-width: var(--bg3-border-width, 1px);
+    --bg3-tooltip-border-radius: var(--bg3-border-radius, 10px);
+    --bg3-tooltip-text-color: var(--bg3-text, #ddd);
+    --bg3-tooltip-text-secondary: var(--bg3-text-muted, #999);
+    --bg3-tooltip-text-component: #aaaaaa;
+    
+    /* Tooltip Sizing */
+    --bg3-tooltip-max-width: 400px;
+    --bg3-tooltip-min-width: 200px;
+    --bg3-tooltip-padding: 12px;
+    --bg3-tooltip-spacing: 8px;
+    
+    /* Tooltip Z-index */
+    --bg3-tooltip-z-index: 10000;
+    
+    /* Tooltip Animation */
+    --bg3-tooltip-transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+/* Base Tooltip Container */
+#bg3-tooltip,
+.bg3-tooltip {
+    position: fixed;
+    z-index: var(--bg3-tooltip-z-index);
+    pointer-events: none;
+    opacity: 0;
+    transform: scale(0.95);
+    transition: var(--bg3-tooltip-transition);
+    display: block;
+    visibility: hidden;
+    
+    /* Guardrails: ensure no hidden offsets */
+    margin: 0;
+    box-sizing: border-box;
+    
+    /* Styling */
+    background: var(--bg3-tooltip-background);
+    border: var(--bg3-tooltip-border-width) solid var(--bg3-tooltip-border-color);
+    border-radius: var(--bg3-tooltip-border-radius);
+    color: var(--bg3-tooltip-text-color);
+    
+    /* Sizing */
+    max-width: min(640px, 95vw);
+    min-width: var(--bg3-tooltip-min-width);
+    padding: var(--bg3-tooltip-padding);
+    
+    /* Typography */
+    font-family: "Signika", sans-serif;
+    font-size: 13px;
+    line-height: 1.4;
+    
+    /* Shadow */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+/* Visible State */
+.bg3-tooltip.visible {
+    opacity: 1 !important;
+    transform: scale(1);
+    pointer-events: auto;
+    display: block !important;
+    visibility: visible !important;
+}
+
+/* Ensure content is visible */
+.bg3-tooltip.visible .content {
+    display: block !important;
+}
+
+/* Ensure rich tooltip content displays */
+.bg3-tooltip.rich-tooltip.visible {
+    min-height: 50px; /* Ensure tooltip has minimum height */
+}
+
+.bg3-tooltip.rich-tooltip.visible .content {
+    display: block !important;
+    visibility: visible !important;
+}
+
+/* Simple Tooltip (text-only) */
+.bg3-tooltip.simple-tooltip {
+    white-space: nowrap;
+    min-width: auto;
+    max-width: none;
+    padding: 6px 10px;
+}
+
+/* Rich Tooltip (content with structure) */
+.bg3-tooltip.rich-tooltip {
+    white-space: normal;
+}
+
+/* Tooltip Content Structure */
+.bg3-tooltip .tooltip-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: var(--bg3-tooltip-spacing);
+    padding-bottom: var(--bg3-tooltip-spacing);
+    border-bottom: 1px solid var(--bg3-tooltip-border-color);
+}
+
+.bg3-tooltip .tooltip-header img {
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    object-fit: cover;
+}
+
+.bg3-tooltip .tooltip-title {
+    font-weight: bold;
+    font-size: 14px;
+    color: var(--bg3-tooltip-text-color);
+    margin: 0;
+}
+
+.bg3-tooltip .tooltip-subtitle {
+    font-size: 11px;
+    color: var(--bg3-tooltip-text-secondary);
+    margin: 0;
+}
+
+.bg3-tooltip .tooltip-content {
+    margin: var(--bg3-tooltip-spacing) 0;
+}
+
+.bg3-tooltip .tooltip-description {
+    color: var(--bg3-tooltip-text-color);
+    margin: var(--bg3-tooltip-spacing) 0;
+}
+
+.bg3-tooltip .tooltip-properties {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: var(--bg3-tooltip-spacing);
+}
+
+.bg3-tooltip .tooltip-property {
+    display: inline-block;
+    padding: 2px 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    font-size: 11px;
+    color: var(--bg3-tooltip-text-secondary);
+}
+
+/* Locked/Pinned Tooltip */
+.bg3-tooltip.locked-tooltip {
+    position: fixed; /* already set in code */
+    max-height: calc(100vh - 48px); /* leave room for top/bottom dragging */
+    overflow: hidden; /* clip content that exceeds bounds */
+    cursor: move;
+    pointer-events: auto !important;
+    user-select: none; /* Prevent text selection while dragging */
+}
+
+/* Ensure locked tooltip content doesn't block pointer events */
+.bg3-tooltip.locked-tooltip * {
+    pointer-events: auto;
+}
+
+/* Dismiss hint for locked tooltips - system adapters should override this */
+.bg3-tooltip.locked-tooltip .content::after {
+    content: "Middle-click to dismiss";
+    display: block;
+    text-align: center;
+    font-size: 10px;
+    color: var(--bg3-tooltip-text-secondary);
+    margin-top: var(--bg3-tooltip-spacing);
+    padding-top: var(--bg3-tooltip-spacing);
+    border-top: 1px solid var(--bg3-tooltip-border-color);
+    opacity: 0.7;
+}
+
+/* Loading State */
+.bg3-tooltip .loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    gap: 8px;
+    color: var(--bg3-tooltip-text-secondary);
+}
+
+.bg3-tooltip .loading i {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Tooltip Direction Indicators (optional, for future enhancement) */
+.bg3-tooltip[data-direction="UP"] {
+    transform-origin: bottom center;
+}
+
+.bg3-tooltip[data-direction="DOWN"] {
+    transform-origin: top center;
+}
+
+.bg3-tooltip[data-direction="LEFT"] {
+    transform-origin: right center;
+}
+
+.bg3-tooltip[data-direction="RIGHT"] {
+    transform-origin: left center;
+}
+
+/* Prevent system tooltips (dnd5e2, etc.) from showing on UI elements */
+/* UI elements are marked with data-bg3-ui attribute */
+[data-bg3-ui] {
+    /* Prevent browser tooltips */
+    pointer-events: auto;
+}
+
+/* Hide system tooltips on UI elements */
+/* This targets common system tooltip containers */
+#tooltip:has(~ [data-bg3-ui]),
+#tooltip[data-bg3-ui],
+.bg3-hud [data-bg3-ui] ~ #tooltip,
+.bg3-hud #tooltip:not([data-uuid]) {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .bg3-tooltip {
+        max-width: calc(100vw - 40px);
+        font-size: 12px;
+    }
+}
+

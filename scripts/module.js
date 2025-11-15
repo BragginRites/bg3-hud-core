@@ -1,6 +1,7 @@
 import { BG3Hotbar } from './BG3Hotbar.js';
 import { BG3HUD_REGISTRY, BG3HUD_API } from './utils/registry.js';
 import { registerSettings, applyMacrobarCollapseSetting } from './utils/settings.js';
+import { TooltipManager } from './managers/TooltipManager.js';
 
 /**
  * BG3 HUD Core Module
@@ -22,10 +23,16 @@ Hooks.once('init', () => {
 Hooks.once('ready', async () => {
     console.log('BG3 HUD Core | Initializing');
 
+    // Initialize TooltipManager
+    const tooltipDelay = game.settings.get(MODULE_ID, 'tooltipDelay') || 500;
+    const tooltipManager = new TooltipManager({ delay: tooltipDelay });
+    BG3HUD_API.setTooltipManager(tooltipManager);
+
     // Make registry and API globally accessible
     ui.BG3HOTBAR = ui.BG3HOTBAR || {};
     ui.BG3HOTBAR.registry = BG3HUD_REGISTRY;
     ui.BG3HOTBAR.api = BG3HUD_API;
+    ui.BG3HOTBAR.tooltipManager = tooltipManager;
 
     // Call hook to allow system adapters to register
     console.log('BG3 HUD Core | Calling bg3HudReady hook for system adapters');

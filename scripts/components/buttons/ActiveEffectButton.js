@@ -53,10 +53,6 @@ export class ActiveEffectButton extends BG3Component {
 
         this.element.appendChild(img);
 
-        // Add custom tooltip
-        this.element.dataset.tooltip = effectName;
-        this.element.dataset.tooltipDirection = 'UP';
-
         // Update disabled state
         this._updateDisabledState();
 
@@ -144,12 +140,6 @@ export class ActiveEffectButton extends BG3Component {
             if (img.alt !== newAlt) {
                 img.alt = newAlt;
             }
-        }
-
-        // Update tooltip
-        const newTooltip = this._getEffectName();
-        if (this.element.dataset.tooltip !== newTooltip) {
-            this.element.dataset.tooltip = newTooltip;
         }
 
         // Update data attributes

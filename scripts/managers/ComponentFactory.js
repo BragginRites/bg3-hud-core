@@ -184,5 +184,23 @@ export class ComponentFactory {
             token: this.hotbarApp.currentToken
         });
     }
+
+    /**
+     * Create situational bonuses container
+     * Uses adapter implementation if available, otherwise returns null
+     * @returns {Promise<BG3Component|null>}
+     */
+    async createSituationalBonusesContainer() {
+        // Check if adapter provides a situational bonuses container class
+        const SituationalBonusesClass = BG3HUD_REGISTRY.containers['situationalBonuses'];
+        
+        // Only create if adapter registered a custom class and we have an actor
+        if (!this.hotbarApp.currentActor || !SituationalBonusesClass) return null;
+        
+        return new SituationalBonusesClass({
+            actor: this.hotbarApp.currentActor,
+            token: this.hotbarApp.currentToken
+        });
+    }
 }
 
