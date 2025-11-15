@@ -15,7 +15,7 @@
     z-index: var(--bg3-z-base, 100);
     cursor: pointer;
     flex-wrap: wrap;
-    gap: 0;
+    gap: 2px;
     flex-direction: row-reverse;
     margin-bottom: 0;
 }
