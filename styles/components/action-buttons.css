@@ -3,15 +3,13 @@
  * System-agnostic styling for rest/turn/action buttons
  */
 
-.bg3-action-buttons-container {
+ .bg3-action-buttons-container {
     position: relative;
     display: flex;
     width: calc(var(--bg3-hotbar-cell-size, 60px) * 1.5 + 16px);
     flex-direction: column;
-    gap: 0.25rem;
-    margin-left: 20px;
-    padding-bottom: 29px;
-    align-self: stretch;
+    margin-left: 2px;
+    padding-bottom: 3px;
     justify-content: flex-end;
 }
 
@@ -20,31 +18,30 @@
     display: flex;
     padding: 0 8px;
     position: relative;
-    transition: all 0.3s ease-in-out;
-    border-radius: 8px;
+    transition: all 0.15s ease;
+    border-radius: var(--bg3-cell-border-radius, 8px);
     align-items: center;
     justify-content: center;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-    border: var(--bg3-rest-border-size, 2px) solid var(--bg3-rest-border-color, #6b4423);
+    border: var(--bg3-cell-border-width, 2px) solid var(--bg3-cell-border-color, rgba(255, 255, 255, 0.2));
     flex-direction: column-reverse;
     justify-content: space-evenly;
-    height: calc(var(--bg3-hotbar-cell-size, 60px) * 1.5 - 8px);
-    background: var(--bg3-rest-background-color, #3a2415) center no-repeat;
+    height: 100px;
+    width: 50px;
+    background: var(--bg3-background, rgba(0, 0, 0, 0.4));
     background-origin: content-box;
     background-size: contain;
-    color: var(--bg3-rest-text-color, #f0e6d2);
+    color: var(--bg3-text, #ddd);
     cursor: pointer;
-}
-
-.bg3-action-button {
-    /* Legacy class support */
+    text-shadow: var(--shadow-text-stroke);
 }
 
 .bg3-action-buttons-container .bg3-button:hover,
 .bg3-action-buttons-container .bg3-button.hover {
-    background-color: var(--bg3-rest-background-color-hover, #4a3525);
-    border-color: var(--bg3-rest-border-color-hover, #8b6433);
-    color: var(--bg3-rest-text-color-hover, #ffffff);
+    background: var(--bg3-cell-hover-background, rgba(255, 255, 255, 0.1));
+    border-color: var(--bg3-cell-hover-border-color, rgba(255, 255, 255, 0.4));
+    color: var(--bg3-text, #ddd);
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
 }
 
 /* Icon sizing */
@@ -84,10 +81,7 @@
     color: var(--bg3-turn-text-color-hover, #ff8888);
 }
 
-/* Rest button */
-.bg3-action-buttons-container .bg3-button.rest-button {
-    /* Base rest button styling - inherits from .bg3-button */
-}
+/* Rest button - inherits base styles from .bg3-button */
 
 /* Hidden state */
 .bg3-action-button[style*="display: none"] {

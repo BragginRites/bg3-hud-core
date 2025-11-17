@@ -25,6 +25,8 @@ export class FilterButton extends BG3Component {
             symbol: options.symbol,
             color: options.color,
             classes: options.classes || [],
+            value: options.value,
+            max: options.max,
             ...options.data
         };
         this.container = options.container;
