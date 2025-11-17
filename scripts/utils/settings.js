@@ -44,16 +44,6 @@ export function registerSettings() {
         }
     });
 
-    // Tooltip debug setting
-    game.settings.register(MODULE_ID, 'debugTooltips', {
-        name: 'Debug Tooltips',
-        hint: 'Enable debug logging for tooltip system (check browser console)',
-        scope: 'client',
-        config: true,
-        type: Boolean,
-        default: false
-    });
-
     // GM Hotbar settings
     game.settings.register(MODULE_ID, 'enableGMHotbar', {
         name: 'Enable GM Hotbar',
@@ -88,6 +78,42 @@ export function registerSettings() {
         config: false,
         type: Boolean,
         default: false
+    });
+
+    // Passives container icons per row setting
+    game.settings.register(MODULE_ID, 'passivesContainerIconsPerRow', {
+        name: 'Passives Container Icons Per Row',
+        hint: 'Number of icons per row in the passives container before wrapping to the next row',
+        scope: 'client',
+        config: true,
+        type: Number,
+        range: {
+            min: 1,
+            max: 20,
+            step: 1
+        },
+        default: 8,
+        onChange: () => {
+            applyContainerRowSettings();
+        }
+    });
+
+    // Active effects container icons per row setting
+    game.settings.register(MODULE_ID, 'activeEffectsContainerIconsPerRow', {
+        name: 'Active Effects Container Icons Per Row',
+        hint: 'Number of icons per row in the active effects container before wrapping to the next row',
+        scope: 'client',
+        config: true,
+        type: Number,
+        range: {
+            min: 1,
+            max: 20,
+            step: 1
+        },
+        default: 8,
+        onChange: () => {
+            applyContainerRowSettings();
+        }
     });
 
     // Note: Display settings (showItemNames, showItemUses) are now registered
@@ -133,4 +159,38 @@ export function applyMacrobarCollapseSetting() {
             hotbarDiv.style.display = 'none';
         }
     }
+}
+
+/**
+ * Apply container row settings
+ * Sets CSS custom properties for max-width of passives and active effects containers
+ * based on user settings for icons per row
+ */
+export function applyContainerRowSettings() {
+    const MODULE_ID = 'bg3-hud-core';
+    
+    // Get settings values (default to 8 if not set)
+    const passivesIconsPerRow = game.settings.get(MODULE_ID, 'passivesContainerIconsPerRow') ?? 8;
+    const activesIconsPerRow = game.settings.get(MODULE_ID, 'activeEffectsContainerIconsPerRow') ?? 8;
+    
+    // Get cell sizes from CSS variables (with fallbacks)
+    const passivesCellSize = getComputedStyle(document.documentElement)
+        .getPropertyValue('--bg3-passive-cell-size')
+        .trim() || '40px';
+    const activesCellSize = getComputedStyle(document.documentElement)
+        .getPropertyValue('--bg3-active-cell-size')
+        .trim() || '40px';
+    
+    // Extract numeric value from cell size (e.g., "40px" -> 40)
+    const passivesCellSizeNum = parseFloat(passivesCellSize) || 40;
+    const activesCellSizeNum = parseFloat(activesCellSize) || 40;
+    
+    // Calculate max-width: cell-size * icons-per-row
+    // Gap is handled by flexbox gap property, so we don't need to add it here
+    const passivesMaxWidth = `${passivesCellSizeNum * passivesIconsPerRow}px`;
+    const activesMaxWidth = `${activesCellSizeNum * activesIconsPerRow}px`;
+    
+    // Set CSS custom properties on :root
+    document.documentElement.style.setProperty('--bg3-passives-container-max-width', passivesMaxWidth);
+    document.documentElement.style.setProperty('--bg3-actives-container-max-width', activesMaxWidth);
 }

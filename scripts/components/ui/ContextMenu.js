@@ -46,6 +46,11 @@ export class ContextMenu extends BG3Component {
 
             const menuItem = this.createElement('div', ['bg3-context-menu-item']);
             
+            // Add tooltip if provided
+            if (item.title) {
+                menuItem.title = item.title;
+            }
+            
             if (item.icon) {
                 const icon = document.createElement('i');
                 // Split icon classes (e.g., "fas fa-trash" -> ["fas", "fa-trash"])

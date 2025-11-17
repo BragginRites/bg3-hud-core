@@ -54,7 +54,8 @@ export class AutoPopulateConfigDialog extends BG3Component {
 
         // Description
         const description = this.createElement('p', ['bg3-dialog-description']);
-        description.textContent = 'Assign item types to hotbar grids. Each type can only be assigned to one grid.';
+        description.innerHTML = 'Assign item types to hotbar grids for <strong>NPCs only</strong>. Each type can only be assigned to one grid.<br>' +
+                              '<small>Note: This auto-populates when NPC tokens are created. Player characters should use right-click → Auto-Populate Container instead.</small>';
         dialogBox.appendChild(description);
 
         // Content area with 3 grid containers

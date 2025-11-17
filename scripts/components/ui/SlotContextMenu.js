@@ -129,10 +129,12 @@ export class SlotContextMenu {
             });
 
             // Auto-populate (if adapter supports it)
+            // Note: This is for player characters. NPCs auto-populate on token creation.
             if (this.adapter && this.adapter.autoPopulate) {
                 menuItems.push({
                     label: 'Auto-Populate Container',
                     icon: 'fas fa-magic',
+                    title: 'Manually populate this container with items from the actor. Note: NPCs auto-populate on token creation, but player characters should use this option.',
                     onClick: async () => {
                         await this.interactionCoordinator.autoPopulateContainer(container);
                     }

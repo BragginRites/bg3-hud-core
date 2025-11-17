@@ -7,14 +7,14 @@
     bottom: calc(100% + var(--bg3-hotbar-border-size, 2px));
     right: 0;
     min-width: var(--bg3-active-cell-size, 40px);
-    max-width: calc(var(--bg3-active-cell-size, 40px) * 10);
+    max-width: var(--bg3-actives-container-max-width, calc(var(--bg3-active-cell-size, 40px) * 8));
     display: flex;
     align-items: center;
     padding: 0;
     box-sizing: border-box;
     z-index: var(--bg3-z-base, 100);
     cursor: pointer;
-    flex-wrap: wrap;
+    flex-wrap: wrap-reverse;
     gap: 2px;
     flex-direction: row-reverse;
     margin-bottom: 0;

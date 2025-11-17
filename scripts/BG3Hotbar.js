@@ -5,6 +5,7 @@ import { InteractionCoordinator } from './managers/InteractionCoordinator.js';
 import { UpdateCoordinator } from './managers/UpdateCoordinator.js';
 import { ComponentFactory } from './managers/ComponentFactory.js';
 import { SocketManager } from './managers/SocketManager.js';
+import { ItemUpdateManager } from './managers/ItemUpdateManager.js';
 import { HotbarViewsContainer } from './components/containers/HotbarViewsContainer.js';
 
 /**
@@ -62,6 +63,10 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
             get adapter() { return BG3HUD_REGISTRY.activeAdapter; }
         });
         this.updateCoordinator = new UpdateCoordinator({
+            hotbarApp: this,
+            persistenceManager: this.persistenceManager
+        });
+        this.itemUpdateManager = new ItemUpdateManager({
             hotbarApp: this,
             persistenceManager: this.persistenceManager
         });

@@ -33,9 +33,9 @@ export class UpdateCoordinator {
         Hooks.on('deleteActiveEffect', this._onActiveEffectChange.bind(this));
 
         // Item hooks to react to quantity / uses changes immediately
-        Hooks.on('createItem', this._onEmbeddedItemChange.bind(this));
+        // Note: createItem and deleteItem are handled by ItemUpdateManager
+        // We only handle updateItem here for UI refresh of existing items
         Hooks.on('updateItem', this._onEmbeddedItemChange.bind(this));
-        Hooks.on('deleteItem', this._onEmbeddedItemChange.bind(this));
     }
 
     /**
@@ -456,12 +456,30 @@ export class UpdateCoordinator {
 
     /**
      * React to embedded Item changes (uses, quantity, etc.)
+     * Focused on UI refresh for items already in the hotbar
+     * Item creation/deletion and hotbar data updates are handled by ItemUpdateManager
      * @private
      */
     async _onEmbeddedItemChange(item, changes, options, userId) {
         // Only react for current actor's items
         const parent = item?.parent;
         if (!parent || parent !== this.hotbarApp.currentActor) return;
+
+        // Skip if this is a creation/deletion (handled by ItemUpdateManager)
+        // We only care about updates to existing items (quantity, uses, etc.)
+        if (!changes || Object.keys(changes).length === 0) return;
+
+        // Skip if only equipped state changed (cosmetic change, no UI update needed)
+        if (changes.system && Object.keys(changes.system).length === 1 && changes.system.hasOwnProperty('equipped')) {
+            return;
+        }
+
+        // Check if item exists in hotbar before refreshing
+        const existingLocation = this.persistenceManager.findUuidInHud(item.uuid);
+        if (!existingLocation) {
+            // Item not in hotbar, ItemUpdateManager will handle adding it if needed
+            return;
+        }
 
         // Hydrate latest state and update all containers with fresh data
         try {

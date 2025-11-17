@@ -7,13 +7,13 @@
     bottom: calc(100% + var(--bg3-hotbar-border-size, 2px));
     left: 0;
     min-width: var(--bg3-passive-cell-size, 40px);
-    max-width: calc(var(--bg3-passive-cell-size, 40px) * 10);
+    max-width: var(--bg3-passives-container-max-width, calc(var(--bg3-passive-cell-size, 40px) * 8));
     display: flex;
     align-items: center;
     padding: 0;
     box-sizing: border-box;
     z-index: var(--bg3-z-base, 100);
-    flex-wrap: wrap;
+    flex-wrap: wrap-reverse;
     gap: 2px;
     flex-direction: row; /* Left to right, opposite of active effects */
     margin-bottom: 0;

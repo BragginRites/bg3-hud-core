@@ -1,6 +1,6 @@
 import { BG3Hotbar } from './BG3Hotbar.js';
 import { BG3HUD_REGISTRY, BG3HUD_API } from './utils/registry.js';
-import { registerSettings, applyMacrobarCollapseSetting } from './utils/settings.js';
+import { registerSettings, applyMacrobarCollapseSetting, applyContainerRowSettings } from './utils/settings.js';
 import { TooltipManager } from './managers/TooltipManager.js';
 
 /**
@@ -55,6 +55,9 @@ Hooks.once('ready', async () => {
     // Apply macrobar collapse setting
     applyMacrobarCollapseSetting();
 
+    // Apply container row settings
+    applyContainerRowSettings();
+
     console.log('BG3 HUD Core | Initialization complete');
 });
 
@@ -68,6 +71,12 @@ Hooks.on('createToken', async (tokenDocument, options, userId) => {
 
     const token = tokenDocument.object;
     if (!token || !token.actor) return;
+
+    // Only auto-populate for NPCs (non-character actors)
+    // Player characters should use right-click to auto-populate containers manually
+    if (token.actor.type === 'character' || token.actor.hasPlayerOwner) {
+        return;
+    }
 
     // Check if adapter provides auto-populate on token creation
     const adapter = BG3HUD_REGISTRY.activeAdapter;
