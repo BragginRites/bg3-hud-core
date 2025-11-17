@@ -1,0 +1,91 @@
+/* ==========================================================================
+   Passives Container
+   ========================================================================== */
+
+   #bg3-hotbar-container .bg3-passives-container {
+    position: absolute;
+    bottom: calc(100% + var(--bg3-hotbar-border-size, 2px));
+    left: 0;
+    min-width: var(--bg3-passive-cell-size, 40px);
+    max-width: var(--bg3-passives-container-max-width, calc(var(--bg3-passive-cell-size, 40px) * 8));
+    display: flex;
+    align-items: center;
+    padding: 0;
+    box-sizing: border-box;
+    z-index: var(--bg3-z-base, 100);
+    flex-wrap: wrap-reverse;
+    gap: 2px;
+    flex-direction: row; /* Left to right, opposite of active effects */
+    margin-bottom: 0;
+}
+
+/* Configuration trigger button (gear icon, only shown when no passives or on hotbar hover) */
+#bg3-hotbar-container .bg3-passives-container::before {
+    content: '⚙';
+    width: var(--bg3-passive-cell-size, 40px);
+    height: var(--bg3-passive-cell-size, 40px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: transparent;
+    border: var(--primary-border-width) solid transparent;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1.2em;
+    color: transparent;
+    transition: all 0.2s ease-in-out;
+    flex-shrink: 0;
+    opacity: 0;
+}
+
+/* Show gear icon on hotbar hover (only when visible) */
+#bg3-hotbar-container:hover .bg3-passives-container::before {
+    background-color: var(--bg3-background);
+    border-color: var(--bg3-border);
+    color: var(--bg3-text);
+    opacity: 0.6;
+}
+
+/* Gear icon hover state */
+#bg3-hotbar-container .bg3-passives-container::before:hover {
+    background-color: var(--bg3-background);
+    border-color: var(--bg3-background-highlight);
+    color: var(--bg3-text);
+    opacity: 1;
+    transform: scale(1.05);
+}
+
+/* Hide gear icon when passives are displayed */
+#bg3-hotbar-container .bg3-passives-container.has-passives::before {
+    display: none;
+}
+
+/* ==========================================================================
+   Passive Feature Button/Icon
+   ========================================================================== */
+
+#bg3-hotbar-container .passive-feature-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px;
+    border-radius: 2px;
+}
+
+#bg3-hotbar-container .passive-feature-icon img {
+    width: var(--bg3-passive-cell-size, 30px);
+    height: var(--bg3-passive-cell-size, 30px);
+    display: block;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    border: var(--primary-border-width) solid var(--bg3-border);
+    background-color: var(--bg3-background);
+    border-radius: 4px;
+}
+
+/* Hover state */
+#bg3-hotbar-container .passive-feature-icon:hover img {
+    border-color: var(--bg3-background-highlight);
+    transform: scale(1.05);
+}

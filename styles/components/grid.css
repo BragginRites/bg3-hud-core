@@ -1,0 +1,198 @@
+/* BG3 HUD Core - Grid Container & Cell Styles */
+
+/* ==========================================================================
+   Grid Container
+   ========================================================================== */
+
+.bg3-grid-container {
+    display: grid;
+    gap: var(--bg3-grid-gap, 2px);
+    grid-template-columns: repeat(var(--grid-cols, 1), var(--bg3-cell-size, 50px));
+    grid-template-rows: repeat(var(--grid-rows, 1), var(--bg3-cell-size, 50px));
+    overflow: hidden;
+}
+
+/* ==========================================================================
+   Grid Cell (from GridCell.js component)
+   ========================================================================== */
+
+.bg3-grid-cell {
+    position: relative;
+    width: var(--bg3-cell-size, 50px);
+    height: var(--bg3-cell-size, 50px);
+    background: var(--bg3-cell-background, var(--bg3-background));
+    border: var(--bg3-cell-border-width, 2px) solid var(--bg3-cell-border-color, var(--bg3-border));
+    border-radius: var(--bg3-cell-border-radius, 8px);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden; /* Mask content to cell bounds */
+}
+
+.bg3-grid-cell.empty {
+    opacity: 0.5;
+}
+
+.bg3-grid-cell.filled {
+    opacity: 1;
+}
+
+.bg3-grid-cell.hover,
+.bg3-grid-cell:hover {
+    background: var(--bg3-cell-hover-background, rgba(255, 255, 255, 0.1));
+    border-color: var(--bg3-cell-hover-border-color, var(--primary-border-color));
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
+}
+
+.bg3-grid-cell.filled {
+    background: var(--bg3-cell-filled-background, rgba(40, 40, 40, 0.8));
+}
+
+.bg3-grid-cell.filled:hover {
+    background: var(--bg3-cell-filled-hover-background, rgba(60, 60, 60, 0.9));
+}
+
+.bg3-grid-cell.dragging {
+    opacity: 0.5;
+    transform: scale(0.95);
+}
+
+.bg3-grid-cell.drag-over {
+    border-color: #3498db;
+    background: rgba(52, 152, 219, 0.2);
+}
+
+.bg3-cell-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.2);
+    font-size: 20px;
+}
+
+.bg3-cell-content {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    font-size: 11px;
+    text-align: center;
+    overflow: hidden;
+}
+
+/* ==========================================================================
+   Hotbar Items (Cell Content)
+   Applied to ALL grid cells (hotbar, popovers, quick access, weapon sets)
+   ========================================================================== */
+
+.hotbar-item {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 2px;
+    pointer-events: none;
+    position: relative;
+    z-index: 1; /* Behind borders and overlays */
+}
+
+.hotbar-item.depleted {
+    filter: grayscale(100%) brightness(60%);
+}
+
+/* Item name display (bottom of cell) */
+.hotbar-item-name {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    font-size: 0.7em;
+    padding: 2px;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: none;
+    pointer-events: none;
+    z-index: 10; /* Above image */
+    text-shadow: 
+        -1px -1px 2px rgba(0, 0, 0, 0.8),
+        1px -1px 2px rgba(0, 0, 0, 0.8),
+        -1px 1px 2px rgba(0, 0, 0, 0.8),
+        1px 1px 2px rgba(0, 0, 0, 0.8),
+        0 0 3px rgba(0, 0, 0, 0.9);
+}
+
+#bg3-hotbar-container[data-item-name="true"] .hotbar-item-name {
+    display: block;
+}
+
+/* Item uses (top-right) and quantity (top-left) */
+.hotbar-item-uses, 
+.hotbar-item-quantity {
+    position: absolute;
+    top: 0;
+    display: none;
+    color: #fff;
+    border-radius: 3px;
+    padding: 1px 4px;
+    font-size: 0.8em;
+    font-weight: bold;
+    z-index: 10; /* Above image but below drag overlay */
+    pointer-events: none;
+    text-shadow: 
+        -1px -1px 2px rgba(0, 0, 0, 0.8),
+        1px -1px 2px rgba(0, 0, 0, 0.8),
+        -1px 1px 2px rgba(0, 0, 0, 0.8),
+        1px 1px 2px rgba(0, 0, 0, 0.8),
+        0 0 3px rgba(0, 0, 0, 0.9);
+}
+
+.hotbar-item-uses {
+    right: 0;
+}
+
+.hotbar-item-quantity {
+    left: 0;
+}
+
+.hotbar-item-uses.depleted {
+    color: #ff4444;
+}
+
+/* Show uses/quantity when enabled */
+#bg3-hotbar-container[data-item-use="true"] .hotbar-item-uses, 
+#bg3-hotbar-container[data-item-use="true"] .hotbar-item-quantity {
+    display: block !important;
+}
+
+/* Triangle background for uses/quantity */
+#bg3-hotbar-container[data-item-use="true"] .hotbar-item-uses::before, 
+#bg3-hotbar-container[data-item-use="true"] .hotbar-item-quantity::before {
+    border-top: 1.5rem solid rgba(0, 0, 0, 0);
+    content: "";
+    height: 0;
+    position: absolute;
+    top: 0;
+    width: 0;
+    border-top-color: rgba(255, 255, 255, 0.5);
+    z-index: -1;
+}
+
+#bg3-hotbar-container[data-item-use="true"] .hotbar-item-uses::before {
+    border-left: 1.5rem solid rgba(0, 0, 0, 0);
+    right: 0;
+}
+
+#bg3-hotbar-container[data-item-use="true"] .hotbar-item-quantity::before {
+    border-right: 1.5rem solid rgba(0, 0, 0, 0);
+    left: 0;
+}
+

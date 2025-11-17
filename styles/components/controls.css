@@ -1,0 +1,51 @@
+/* BG3 HUD Core - Control Container & Buttons */
+
+/* ==========================================================================
+   Control Container
+   ========================================================================== */
+
+   .bg3-control-container {
+    position: absolute;
+    right: 0;
+    bottom: -30px;
+    transform: translateY(-50%);
+    display: flex;
+    gap: 4px;
+    z-index: 100;
+    opacity: 0;
+    transition: opacity 0.2s ease; /* smooth fade-in */
+}
+
+/* Show control container when hovering over grid cells, drag bar, or itself */
+.bg3-hotbar-container .bg3-grid-container:hover ~ .bg3-control-container,
+.bg3-hotbar-container .bg3-drag-bar:hover ~ .bg3-control-container,
+.bg3-hotbar-container .bg3-control-container:hover {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+
+
+.hotbar-control-button {
+    width: 25px;
+    height: 25px;
+    background: var(--bg3-background);
+    border: 2px solid var(--primary-border-color);
+    border-radius: 50%;
+    color: var(--bg3-text);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    font-size: 12px;
+}
+
+.hotbar-control-button:hover {
+    background: var(--bg3-background-highlight);
+    transform: scale(1.05);
+}
+
+.hotbar-control-button i {
+    pointer-events: none;
+}

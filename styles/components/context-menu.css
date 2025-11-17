@@ -1,0 +1,96 @@
+/* BG3 HUD Core - Context Menu */
+
+/* ==========================================================================
+   Context Menu
+   ========================================================================== */
+
+.bg3-context-menu {
+    position: fixed;
+    background: var(--bg3-background);
+    border: 2px solid var(--primary-border-color);
+    border-radius: 4px;
+    padding: 4px;
+    min-width: 180px;
+    z-index: 10000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+.bg3-context-menu-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+    color: var(--bg3-text);
+    transition: all 0.15s ease;
+    border-radius: 2px;
+}
+
+.bg3-context-menu-item:hover {
+    background: var(--bg3-background-highlight);
+    color: #fff;
+}
+
+.bg3-context-menu-item i {
+    width: 16px;
+    text-align: center;
+    font-size: 14px;
+}
+
+.bg3-context-menu-label {
+    flex: 1;
+    font-size: 13px;
+}
+
+.bg3-context-menu-separator {
+    height: 1px;
+    background: var(--primary-border-color);
+    margin: 4px 8px;
+    opacity: 0.5;
+}
+
+/* Submenu support */
+.bg3-context-menu-has-submenu {
+    position: relative;
+}
+
+.bg3-context-menu-submenu-icon {
+    margin-left: auto;
+    font-size: 10px;
+    opacity: 0.7;
+}
+
+.bg3-context-menu-has-submenu:hover .bg3-context-menu-submenu-icon {
+    opacity: 1;
+}
+
+/* Custom HTML content */
+.bg3-context-menu-custom {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.bg3-context-menu-custom input[type="checkbox"] {
+    cursor: pointer;
+}
+
+/* Value display */
+.bg3-context-menu-value {
+    margin-left: auto;
+    font-weight: 600;
+    font-size: 13px;
+    padding-left: 8px;
+}
+
+.bg3-context-menu-item {
+    position: relative;
+}
+
+/* Submenu positioning - appears top-right of parent menu item */
+.bg3-context-menu .bg3-context-menu {
+    margin-left: 0;
+    z-index: 10001;
+}
+

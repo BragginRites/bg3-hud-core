@@ -1,0 +1,629 @@
+/* ==========================================================================
+   BG3 Selection Dialog
+   ========================================================================== */
+
+/* Dialog container (shared by both selection and confirm dialogs) */
+.bg3-selection-dialog,
+.bg3-confirm-dialog {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--bg3-background, #111111f2);
+    border: var(--primary-border-width, 2px) solid var(--primary-border-color, #000);
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+    min-width: 400px;
+    max-width: 600px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    z-index: 9999;
+    animation: slideIn 0.3s ease-out;
+}
+
+/* Confirm dialog is smaller */
+.bg3-confirm-dialog {
+    min-width: 350px;
+    max-width: 500px;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translate(-50%, -50%) scale(0.9);
+        opacity: 0;
+    }
+    to {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+    }
+}
+
+/* Dialog header */
+.bg3-selection-dialog .dialog-header,
+.bg3-confirm-dialog .dialog-header {
+    padding: 16px 20px;
+    border-bottom: var(--bg3-border-width, 1px) solid var(--bg3-border, #2f2f2f);
+    background: var(--bg3-background-highlight, #5a5353);
+}
+
+.bg3-selection-dialog .dialog-title,
+.bg3-confirm-dialog .dialog-title {
+    margin: 0;
+    font-size: 1.3em;
+    font-weight: bold;
+    color: var(--bg3-text, #ddd);
+    text-shadow: var(--shadow-text-stroke);
+}
+
+/* Dialog content */
+.bg3-selection-dialog .dialog-content,
+.bg3-confirm-dialog .dialog-content {
+    padding: 12px;
+    overflow-y: auto;
+    flex: 1;
+    min-height: 200px;
+    max-height: 60vh;
+}
+
+/* Confirm dialog content is simpler */
+.bg3-confirm-dialog .dialog-content {
+    min-height: auto;
+    padding: 24px;
+}
+
+/* Confirm dialog message */
+.bg3-confirm-dialog .dialog-message {
+    color: var(--bg3-text, #ddd);
+    font-size: 1.1em;
+    line-height: 1.5;
+    text-align: center;
+    text-shadow: var(--shadow-text-stroke);
+}
+
+/* Custom scrollbar */
+.bg3-selection-dialog .dialog-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.bg3-selection-dialog .dialog-content::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+}
+
+.bg3-selection-dialog .dialog-content::-webkit-scrollbar-thumb {
+    background: var(--bg3-background-highlight, #5a5353);
+    border-radius: 4px;
+}
+
+.bg3-selection-dialog .dialog-content::-webkit-scrollbar-thumb:hover {
+    background: #6e6e6e;
+}
+
+/* Item row */
+.bg3-selection-dialog .dialog-item-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    margin-bottom: 4px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.bg3-selection-dialog .dialog-item-row:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-color: var(--bg3-border, #2f2f2f);
+}
+
+/* Checkbox */
+.bg3-selection-dialog .dialog-checkbox {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    flex-shrink: 0;
+    accent-color: var(--bg3-action, #2ecc71);
+}
+
+/* Item icon */
+.bg3-selection-dialog .dialog-item-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 4px;
+    border: var(--bg3-border-width, 1px) solid var(--bg3-border, #2f2f2f);
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+/* Item label */
+.bg3-selection-dialog .dialog-item-label {
+    flex: 1;
+    color: var(--bg3-text, #ddd);
+    font-size: 1em;
+    text-shadow: var(--shadow-text-stroke);
+}
+
+/* Dialog footer */
+.bg3-selection-dialog .dialog-footer,
+.bg3-confirm-dialog .dialog-footer {
+    padding: 16px 20px;
+    border-top: var(--bg3-border-width, 1px) solid var(--bg3-border, #2f2f2f);
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    background: var(--bg3-background-highlight, #5a5353);
+}
+
+/* Dialog buttons */
+.bg3-selection-dialog .dialog-button,
+.bg3-confirm-dialog .dialog-button {
+    padding: 8px 20px;
+    border-radius: 4px;
+    font-size: 1em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: var(--bg3-border-width, 1px) solid var(--bg3-border, #2f2f2f);
+    text-shadow: var(--shadow-text-stroke);
+}
+
+.bg3-selection-dialog .dialog-button:hover,
+.bg3-confirm-dialog .dialog-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.bg3-selection-dialog .dialog-button:active,
+.bg3-confirm-dialog .dialog-button:active {
+    transform: scale(0.98);
+}
+
+/* Primary button (Save/Confirm) */
+.bg3-selection-dialog .dialog-button-primary,
+.bg3-confirm-dialog .dialog-button-primary {
+    background: var(--bg3-action, #2ecc71);
+    color: #fff;
+}
+
+.bg3-selection-dialog .dialog-button-primary:hover,
+.bg3-confirm-dialog .dialog-button-primary:hover {
+    background: #27ae60;
+}
+
+/* Danger button (Delete/Destructive actions) */
+.bg3-confirm-dialog .dialog-button-danger {
+    background: #e74c3c;
+    color: #fff;
+}
+
+.bg3-confirm-dialog .dialog-button-danger:hover {
+    background: #c0392b;
+}
+
+/* Secondary button (Cancel) */
+.bg3-selection-dialog .dialog-button-secondary,
+.bg3-confirm-dialog .dialog-button-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--bg3-text, #ddd);
+}
+
+.bg3-selection-dialog .dialog-button-secondary:hover,
+.bg3-confirm-dialog .dialog-button-secondary:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* ==========================================================================
+   Auto-Populate Dialog (Pill-based selection)
+   ========================================================================== */
+
+.bg3-dialog-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    pointer-events: none;
+    animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes dialogFadeIn {
+    from { 
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to { 
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.bg3-dialog {
+    background: var(--bg3-background, #111111f2);
+    border: var(--primary-border-width, 2px) solid var(--primary-border-color, #000);
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
+    min-width: 400px;
+    max-width: 600px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    animation: dialogFadeIn 0.2s ease-out;
+    pointer-events: auto;
+}
+
+.bg3-dialog-title {
+    margin: 0;
+    padding: 16px 20px;
+    font-size: 1.3em;
+    font-weight: bold;
+    color: var(--bg3-text, #ddd);
+    text-shadow: var(--shadow-text-stroke);
+    border-bottom: var(--bg3-border-width, 1px) solid var(--bg3-border, #2f2f2f);
+    background: var(--bg3-background-highlight, #5a5353);
+}
+
+.bg3-dialog-content {
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.bg3-dialog-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.bg3-dialog-content::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+}
+
+.bg3-dialog-content::-webkit-scrollbar-thumb {
+    background: var(--bg3-background-highlight, #5a5353);
+    border-radius: 4px;
+}
+
+.bg3-dialog-content::-webkit-scrollbar-thumb:hover {
+    background: #6e6e6e;
+}
+
+/* Pills group header */
+.bg3-pills-group-header {
+    font-size: 0.85em;
+    font-weight: bold;
+    color: var(--bg3-text, #ddd);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 12px;
+    margin-bottom: 8px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--bg3-border, #2f2f2f);
+    opacity: 0.7;
+}
+
+.bg3-pills-group-header:first-child {
+    margin-top: 0;
+}
+
+/* Pills container */
+.bg3-pills-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
+/* Pill button */
+.bg3-pill {
+    padding: 8px 16px;
+    border-radius: 20px;
+    border: 2px solid var(--bg3-border, #2f2f2f);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--bg3-text, #ddd);
+    font-size: 0.95em;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-shadow: var(--shadow-text-stroke);
+}
+
+.bg3-pill:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--bg3-action, #2ecc71);
+    transform: translateY(-1px);
+}
+
+.bg3-pill.active {
+    background: var(--bg3-action, #2ecc71);
+    border-color: var(--bg3-action, #2ecc71);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(46, 204, 113, 0.4);
+}
+
+.bg3-pill:active {
+    transform: scale(0.98);
+}
+
+/* Dialog buttons */
+.bg3-dialog-buttons {
+    padding: 16px 20px;
+    border-top: var(--bg3-border-width, 1px) solid var(--bg3-border, #2f2f2f);
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    background: var(--bg3-background-highlight, #5a5353);
+}
+
+.bg3-dialog-buttons .bg3-button {
+    padding: 8px 20px;
+    border-radius: 4px;
+    font-size: 1em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: var(--bg3-border-width, 1px) solid var(--bg3-border, #2f2f2f);
+    text-shadow: var(--shadow-text-stroke);
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--bg3-text, #ddd);
+}
+
+.bg3-dialog-buttons .bg3-button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.bg3-dialog-buttons .bg3-button:active {
+    transform: scale(0.98);
+}
+
+.bg3-dialog-buttons .bg3-button-primary {
+    background: var(--bg3-action, #2ecc71);
+    color: #fff;
+}
+
+.bg3-dialog-buttons .bg3-button-primary:hover {
+    background: #27ae60;
+}
+
+.bg3-dialog-buttons .bg3-button-secondary {
+    background: rgba(100, 100, 100, 0.3);
+    color: var(--bg3-text, #ddd);
+}
+
+.bg3-dialog-buttons .bg3-button-secondary:hover {
+    background: rgba(100, 100, 100, 0.5);
+}
+
+/* ==========================================================================
+   Auto-Populate Configuration Dialog (Grid-based assignment)
+   ========================================================================== */
+
+.auto-populate-config-dialog {
+    min-width: 700px;
+    max-width: 900px;
+    min-height: 600px;
+    max-height: 90vh;
+}
+
+.auto-populate-config-dialog .bg3-dialog-content {
+    max-height: 75vh;
+}
+
+.bg3-dialog-description {
+    color: var(--bg3-text, #ddd);
+    font-size: 0.9em;
+    margin: 0;
+    padding: 12px 20px;
+    border-bottom: var(--bg3-border-width, 1px) solid var(--bg3-border, #2f2f2f);
+    background: rgba(255, 255, 255, 0.03);
+    opacity: 0.85;
+    text-align: center;
+}
+
+.grids-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 0;
+}
+
+.grid-section {
+    border: 2px solid var(--bg3-border, #2f2f2f);
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 16px;
+    transition: all 0.2s ease;
+}
+
+.grid-section:hover {
+    border-color: rgba(46, 204, 113, 0.4);
+    background: rgba(0, 0, 0, 0.4);
+}
+
+.grid-section-header {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: var(--bg3-action, #2ecc71);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid rgba(46, 204, 113, 0.4);
+    text-shadow: var(--shadow-text-stroke);
+}
+
+/* Reuse group headers from regular auto-populate */
+.grid-section .bg3-pills-group-header {
+    font-size: 0.8em;
+    margin-top: 8px;
+    margin-bottom: 6px;
+}
+
+.grid-section .bg3-pills-group-header:first-of-type {
+    margin-top: 0;
+}
+
+/* Pills container spacing within grid sections */
+.grid-section .bg3-pills-container {
+    margin-bottom: 8px;
+}
+
+.grid-section .bg3-pills-container:last-child {
+    margin-bottom: 0;
+}
+
+/* Disabled pills for types assigned to other grids */
+.bg3-pill.disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    background: rgba(80, 80, 80, 0.2);
+    border-color: rgba(80, 80, 80, 0.4);
+    pointer-events: none;
+    filter: grayscale(0.8);
+}
+
+/* ==========================================================================
+   Create View Dialog (Icon selection)
+   ========================================================================== */
+
+.bg3-create-view-dialog {
+    min-width: 600px;
+}
+
+/* Content area with proper padding */
+.bg3-create-view-dialog .dialog-content {
+    padding: 20px;
+}
+
+.bg3-create-view-dialog .dialog-section {
+    margin-bottom: 20px;
+}
+
+.bg3-create-view-dialog .dialog-section:last-of-type {
+    margin-bottom: 0;
+}
+
+.bg3-create-view-dialog .dialog-label {
+    display: block;
+    font-size: 0.95em;
+    font-weight: 600;
+    color: var(--bg3-text, #ddd);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    opacity: 0.9;
+}
+
+.bg3-create-view-dialog .dialog-label-small {
+    font-size: 0.85em;
+    text-transform: none;
+    letter-spacing: normal;
+    opacity: 0.7;
+}
+
+.bg3-create-view-dialog .dialog-input {
+    width: 100%;
+    padding: 10px 12px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 2px solid var(--bg3-border, #2f2f2f);
+    border-radius: 4px;
+    color: var(--bg3-text, #ddd);
+    font-size: 1em;
+    font-family: inherit;
+    transition: all 0.2s ease;
+}
+
+.bg3-create-view-dialog .dialog-input:focus {
+    outline: none;
+    border-color: var(--bg3-action, #2ecc71);
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.bg3-create-view-dialog .dialog-input-small {
+    padding: 8px 10px;
+    font-size: 0.9em;
+}
+
+/* Icon Grid */
+.bg3-create-view-dialog .icon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+    gap: 8px;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--bg3-border, #2f2f2f);
+    border-radius: 4px;
+    max-height: 320px;
+    overflow-y: auto;
+}
+
+.bg3-create-view-dialog .icon-grid::-webkit-scrollbar {
+    width: 6px;
+}
+
+.bg3-create-view-dialog .icon-grid::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+}
+
+.bg3-create-view-dialog .icon-grid::-webkit-scrollbar-thumb {
+    background: var(--bg3-background-highlight, #5a5353);
+    border-radius: 3px;
+}
+
+/* Icon Button */
+.bg3-create-view-dialog .icon-button {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg3-cell-background);
+    border: 2px solid var(--bg3-cell-border-color);
+    border-radius: 4px;
+    color: var(--bg3-text, #ddd);
+    font-size: 1.3em;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.bg3-create-view-dialog .icon-button:hover {
+    background: var(--bg3-cell-hover-background);
+    border-color: var(--bg3-cell-hover-border-color);
+    transform: scale(1.1);
+}
+
+.bg3-create-view-dialog .icon-button.selected {
+    background: var(--bg3-action, #2ecc71);
+    border-color: var(--bg3-action, #2ecc71);
+    color: white;
+    box-shadow: 0 0 8px rgba(46, 204, 113, 0.6);
+    transform: scale(1.05);
+}
+
+.bg3-create-view-dialog .icon-button.selected:hover {
+    transform: scale(1.15);
+}
+
+.bg3-create-view-dialog .icon-button:active {
+    transform: scale(0.95);
+}
+

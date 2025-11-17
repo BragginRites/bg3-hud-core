@@ -1,0 +1,90 @@
+/**
+ * Action Buttons Container Styles
+ * System-agnostic styling for rest/turn/action buttons
+ */
+
+ .bg3-action-buttons-container {
+    position: relative;
+    display: flex;
+    width: calc(var(--bg3-hotbar-cell-size, 60px) * 1.5 + 16px);
+    flex-direction: column;
+    margin-left: 2px;
+    padding-bottom: 3px;
+    justify-content: flex-end;
+}
+
+/* Action button base styles */
+.bg3-action-buttons-container .bg3-button {
+    display: flex;
+    padding: 0 8px;
+    position: relative;
+    transition: all 0.15s ease;
+    border-radius: var(--bg3-cell-border-radius, 8px);
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    border: var(--bg3-cell-border-width, 2px) solid var(--bg3-cell-border-color, rgba(255, 255, 255, 0.2));
+    flex-direction: column-reverse;
+    justify-content: space-evenly;
+    height: 100px;
+    width: 50px;
+    background: var(--bg3-background, rgba(0, 0, 0, 0.4));
+    background-origin: content-box;
+    background-size: contain;
+    color: var(--bg3-text, #ddd);
+    cursor: pointer;
+    text-shadow: var(--shadow-text-stroke);
+}
+
+.bg3-action-buttons-container .bg3-button:hover,
+.bg3-action-buttons-container .bg3-button.hover {
+    background: var(--bg3-cell-hover-background, rgba(255, 255, 255, 0.1));
+    border-color: var(--bg3-cell-hover-border-color, rgba(255, 255, 255, 0.4));
+    color: var(--bg3-text, #ddd);
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
+}
+
+/* Icon sizing */
+.bg3-action-buttons-container .bg3-button-icon {
+    font-size: calc(var(--bg3-hotbar-cell-size, 60px) / 2);
+}
+
+/* Label */
+.bg3-action-buttons-container .bg3-button-label {
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    text-transform: uppercase;
+    width: 100%;
+    text-align: center;
+    overflow: hidden;
+    font-size: calc(var(--bg3-hotbar-cell-size, 60px) / 4);
+    white-space: nowrap;
+}
+
+/* End Turn button specific styling */
+.bg3-action-buttons-container .bg3-button.end-turn-button {
+    background-color: var(--bg3-turn-background-color, #2a1a1a);
+    border-color: var(--bg3-turn-border-color, #8b0000);
+    color: var(--bg3-turn-text-color, #ff6b6b);
+    height: calc(var(--bg3-hotbar-cell-size, 60px) * 3 - 12px);
+}
+
+.bg3-action-buttons-container .bg3-button.end-turn-button .bg3-button-icon {
+    font-size: calc(var(--bg3-hotbar-cell-size, 60px) * 2 / 3);
+}
+
+.bg3-action-buttons-container .bg3-button.end-turn-button:hover,
+.bg3-action-buttons-container .bg3-button.end-turn-button.hover {
+    background-color: var(--bg3-turn-background-color-hover, #3a2525);
+    border-color: var(--bg3-turn-border-color-hover, #a00000);
+    color: var(--bg3-turn-text-color-hover, #ff8888);
+}
+
+/* Rest button - inherits base styles from .bg3-button */
+
+/* Hidden state */
+.bg3-action-button[style*="display: none"] {
+    display: none !important;
+}
+
