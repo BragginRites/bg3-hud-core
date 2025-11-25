@@ -69,12 +69,14 @@ Hooks.on('createToken', async (tokenDocument, options, userId) => {
     // Only run for GMs or if the user created the token
     if (!game.user.isGM && game.userId !== userId) return;
 
-    const token = tokenDocument.object;
-    if (!token || !token.actor) return;
+    // Get actor directly from tokenDocument (more reliable than tokenDocument.object.actor
+    // since the canvas token object may not exist yet during async token creation)
+    const actor = tokenDocument.actor;
+    if (!actor) return;
 
     // Only auto-populate for NPCs (non-character actors)
     // Player characters should use right-click to auto-populate containers manually
-    if (token.actor.type === 'character' || token.actor.hasPlayerOwner) {
+    if (actor.type === 'character' || actor.hasPlayerOwner) {
         return;
     }
 
@@ -101,11 +103,12 @@ Hooks.on('createToken', async (tokenDocument, options, userId) => {
         const { PersistenceManager } = await import('./managers/PersistenceManager.js');
         const tempPersistence = new PersistenceManager();
         
-        await adapter.autoPopulate.populateOnTokenCreation(token, configuration, tempPersistence);
+        // Pass actor directly instead of token object (which may not exist yet)
+        await adapter.autoPopulate.populateOnTokenCreation(actor, configuration, tempPersistence);
 
         // Also auto-populate passives if adapter supports it
         if (typeof adapter.autoPopulatePassives === 'function') {
-            await adapter.autoPopulatePassives(token);
+            await adapter.autoPopulatePassives(actor, tokenDocument);
         }
     } catch (error) {
         console.error('BG3 HUD Core | Error in auto-populate on token creation:', error);

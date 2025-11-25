@@ -32,6 +32,13 @@
   "styles": [
     "styles/index.css"
   ],
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json"
+    }
+  ],
   "url": "https://github.com/BragginRites/bg3-hud-core",
   "manifest": "https://github.com/BragginRites/bg3-hud-core/releases/download/0.1.0/module.json",
   "download": "https://github.com/BragginRites/bg3-hud-core/releases/download/0.1.0/bg3-hud-core.zip",

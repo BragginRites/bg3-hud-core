@@ -226,13 +226,12 @@ export class AutoPopulateFramework {
     /**
      * Auto-populate on token creation
      * Called when a new token is created on the canvas
-     * @param {Token} token - The newly created token
+     * @param {Actor} actor - The actor for the newly created token
      * @param {Object} configuration - Configuration object {grid0: [], grid1: [], grid2: []}
      * @param {PersistenceManager} persistenceManager - Persistence manager
      * @returns {Promise<void>}
      */
-    async populateOnTokenCreation(token, configuration, persistenceManager) {
-        const actor = token.actor;
+    async populateOnTokenCreation(actor, configuration, persistenceManager) {
         if (!actor || !configuration) {
             return;
         }
