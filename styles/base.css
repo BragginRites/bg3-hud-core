@@ -29,8 +29,8 @@
     --bg3-hotbar-text-color-hover: var(--bg3-text-color-hover);
     --bg3-hotbar-cell-size: 50px;
     --bg3-hotbar-border-size: var(--bg3-border-size);
-    --bg3-hotbar-drag-color: #cc3333;
-    --bg3-hotbar-drag-color-hover: #d10000;
+    --bg3-hotbar-drag-color: var(--bg3-border-color);
+    --bg3-hotbar-drag-color-hover: var(--bg3-border-color-hover);
     
     /* Weapon Sets */
     --bg3-weapon-border-color: var(--bg3-border-color);

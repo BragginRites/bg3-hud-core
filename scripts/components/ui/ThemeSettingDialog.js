@@ -39,11 +39,11 @@ export class ThemeSettingDialog extends foundry.applications.api.ApplicationV2 {
       {
         legend: 'bg3-hud-core.Settings.Theme.Hotbar',
         fields: [
-          { id: 'bg3-hotbar-sub-background-color', label: 'bg3-hud-core.Settings.Theme.SubBackgroundColor', type: 'color', hasHover: false },
           { id: 'bg3-hotbar-drag-color', label: 'bg3-hud-core.Settings.Theme.DragbarColor', type: 'color', hasHover: true },
           { id: 'bg3-hotbar-border-color', label: 'bg3-hud-core.Settings.Theme.BorderColor', type: 'color', hasHover: true },
           { id: 'bg3-hotbar-background-color', label: 'bg3-hud-core.Settings.Theme.BackgroundColor', type: 'color', hasHover: true },
           { id: 'bg3-hotbar-text-color', label: 'bg3-hud-core.Settings.Theme.TextColor', type: 'color', hasHover: true },
+          { id: 'bg3-hotbar-sub-background-color', label: 'bg3-hud-core.Settings.Theme.SubBackgroundColor', type: 'color', hasHover: false },
           { id: 'bg3-hotbar-cell-size', label: 'bg3-hud-core.Settings.Theme.CellSize', type: 'number', min: 30, max: 100, unit: 'px' },
           { id: 'bg3-hotbar-border-size', label: 'bg3-hud-core.Settings.Theme.BorderSize', type: 'number', min: 0, max: 10, unit: 'px' }
         ]

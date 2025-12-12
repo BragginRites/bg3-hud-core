@@ -663,6 +663,25 @@
     box-shadow: none !important;
 }
 
+/* Color column headers for theme settings dialog */
+#bg3-hud-core-theme-settings .color-column-headers {
+    display: grid;
+    grid-template-columns: 10fr 1fr;
+    gap: 0px;
+    margin-bottom: 12px;
+    padding: 0px 50px;
+}
+
+#bg3-hud-core-theme-settings .color-column-label {
+    font-size: 0.85em;
+    font-weight: bold;
+    color: var(--bg3-text, #ddd);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-align: center;
+    opacity: 0.8;
+}
+
 /* Custom scrollbar for theme settings dialog */
 #bg3-hud-core-theme-settings .standard-form {
     overflow-y: auto;
