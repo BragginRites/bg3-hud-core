@@ -21,6 +21,7 @@
         "Portrait": "Portrait",
         "Hotbar": "Hotbar",
         "SubContainer": "Sub-Container",
+        "SubBackgroundColor": "Sub-Container Background",
         "Cell": "Cell",
         "DragbarColor": "Dragbar/Controls Color",
         "WeaponSets": "Weapon Sets",
@@ -66,6 +67,23 @@
         "Name": "Bottom Padding",
         "Hint": "Padding from the bottom of the screen (pixels)"
       },
+      "PassivesContainerIconsPerRow": {
+        "Name": "Passives Icons Per Row",
+        "Hint": "Number of passive effect icons displayed per row before wrapping"
+      },
+      "ActiveEffectsContainerIconsPerRow": {
+        "Name": "Active Effects Icons Per Row",
+        "Hint": "Number of active effect icons displayed per row before wrapping"
+      },
+      "LayoutAppearance": {
+        "MenuTitle": "Layout & Appearance",
+        "MenuName": "Layout & Appearance",
+        "MenuLabel": "Layout & Appearance Settings",
+        "MenuHint": "Adjust opacity, scaling, positioning, and container density",
+        "OpacityLegend": "Opacity & Fading",
+        "ScalePositionLegend": "Scale & Position",
+        "ContainerDensityLegend": "Container Density"
+      },
       "Appearance": {
         "MenuTitle": "Appearance Settings",
         "MenuName": "Appearance Settings",
@@ -91,7 +109,7 @@
         "MenuTitle": "GM Hotbar",
         "MenuName": "GM Hotbar",
         "MenuLabel": "GM Hotbar Settings",
-        "MenuHint": "Configure GM hotbar visibility and container density",
+        "MenuHint": "Configure GM hotbar visibility",
         "Legend": "GM Hotbar"
       }
     },

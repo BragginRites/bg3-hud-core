@@ -72,19 +72,23 @@ export const BASE_THEME = {
 export function registerSettings() {
     const MODULE_ID = 'bg3-hud-core';
 
-    const AppearanceSettingsMenu = createSettingsSubmenu({
+    // Combined Layout & Appearance submenu with logical sections
+    const LayoutAppearanceSettingsMenu = createSettingsSubmenu({
         moduleId: MODULE_ID,
-        titleKey: 'bg3-hud-core.Settings.Appearance.MenuTitle',
+        titleKey: 'bg3-hud-core.Settings.LayoutAppearance.MenuTitle',
         sections: [
-            { legend: 'bg3-hud-core.Settings.Appearance.Legend', keys: ['normalOpacity', 'fadedOpacity', 'fadeOutDelay'] }
-        ]
-    });
-
-    const LayoutSettingsMenu = createSettingsSubmenu({
-        moduleId: MODULE_ID,
-        titleKey: 'bg3-hud-core.Settings.Layout.MenuTitle',
-        sections: [
-            { legend: 'bg3-hud-core.Settings.Layout.Legend', keys: ['autoScale', 'uiScale', 'uiPosition', 'posPadding', 'posPaddingBottom'] }
+            { 
+                legend: 'bg3-hud-core.Settings.LayoutAppearance.OpacityLegend', 
+                keys: ['normalOpacity', 'fadedOpacity', 'fadeOutDelay'] 
+            },
+            { 
+                legend: 'bg3-hud-core.Settings.LayoutAppearance.ScalePositionLegend', 
+                keys: ['autoScale', 'uiScale', 'uiPosition', 'posPadding', 'posPaddingBottom'] 
+            },
+            { 
+                legend: 'bg3-hud-core.Settings.LayoutAppearance.ContainerDensityLegend', 
+                keys: ['passivesContainerIconsPerRow', 'activeEffectsContainerIconsPerRow'] 
+            }
         ]
     });
 
@@ -100,7 +104,7 @@ export function registerSettings() {
         moduleId: MODULE_ID,
         titleKey: 'bg3-hud-core.Settings.GMHotbar.MenuTitle',
         sections: [
-            { legend: 'bg3-hud-core.Settings.GMHotbar.Legend', keys: ['enableGMHotbar', 'passivesContainerIconsPerRow', 'activeEffectsContainerIconsPerRow'] }
+            { legend: 'bg3-hud-core.Settings.GMHotbar.Legend', keys: ['enableGMHotbar'] }
         ]
     });
 
@@ -128,23 +132,13 @@ export function registerSettings() {
         default: {}
     });
 
-    // Appearance submenu
-    game.settings.registerMenu(MODULE_ID, 'menuAppearance', {
-        name: 'bg3-hud-core.Settings.Appearance.MenuName',
-        label: 'bg3-hud-core.Settings.Appearance.MenuLabel',
-        hint: 'bg3-hud-core.Settings.Appearance.MenuHint',
-        icon: 'fas fa-list',
-        type: AppearanceSettingsMenu,
-        restricted: false
-    });
-
-    // Layout submenu
-    game.settings.registerMenu(MODULE_ID, 'menuLayout', {
-        name: 'bg3-hud-core.Settings.Layout.MenuName',
-        label: 'bg3-hud-core.Settings.Layout.MenuLabel',
-        hint: 'bg3-hud-core.Settings.Layout.MenuHint',
-        icon: 'fas fa-list',
-        type: LayoutSettingsMenu,
+    // Layout & Appearance combined submenu
+    game.settings.registerMenu(MODULE_ID, 'menuLayoutAppearance', {
+        name: 'bg3-hud-core.Settings.LayoutAppearance.MenuName',
+        label: 'bg3-hud-core.Settings.LayoutAppearance.MenuLabel',
+        hint: 'bg3-hud-core.Settings.LayoutAppearance.MenuHint',
+        icon: 'fas fa-sliders-h',
+        type: LayoutAppearanceSettingsMenu,
         restricted: false
     });
 
@@ -443,8 +437,8 @@ export function registerSettings() {
 
     // Passives container icons per row setting
     game.settings.register(MODULE_ID, 'passivesContainerIconsPerRow', {
-        name: 'Passives Container Icons Per Row',
-        hint: 'Number of icons per row in the passives container before wrapping to the next row',
+        name: 'bg3-hud-core.Settings.PassivesContainerIconsPerRow.Name',
+        hint: 'bg3-hud-core.Settings.PassivesContainerIconsPerRow.Hint',
         scope: 'client',
         config: false,
         type: Number,
@@ -461,8 +455,8 @@ export function registerSettings() {
 
     // Active effects container icons per row setting
     game.settings.register(MODULE_ID, 'activeEffectsContainerIconsPerRow', {
-        name: 'Active Effects Container Icons Per Row',
-        hint: 'Number of icons per row in the active effects container before wrapping to the next row',
+        name: 'bg3-hud-core.Settings.ActiveEffectsContainerIconsPerRow.Name',
+        hint: 'bg3-hud-core.Settings.ActiveEffectsContainerIconsPerRow.Hint',
         scope: 'client',
         config: false,
         type: Number,

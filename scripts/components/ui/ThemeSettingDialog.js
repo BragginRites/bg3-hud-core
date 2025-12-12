@@ -100,13 +100,13 @@ export class ThemeSettingDialog extends foundry.applications.api.ApplicationV2 {
 
     if (field.type === 'color') {
       const hoverInput = field.hasHover
-        ? `<input type="color" class="css-var" name="${field.id}-hover" value="${hoverValue}">`
+        ? `<input type="color" class="css-var color-picker" name="${field.id}-hover" value="${hoverValue}">`
         : '';
       return `
         <div class="form-group">
           <label>${label}</label>
           <div class="form-fields">
-            <input type="color" class="css-var" name="${field.id}" value="${value}">
+            <input type="color" class="css-var color-picker" name="${field.id}" value="${value}">
             ${hoverInput}
           </div>
         </div>
@@ -142,8 +142,18 @@ export class ThemeSettingDialog extends foundry.applications.api.ApplicationV2 {
   _renderSection(section, themeData) {
     const legend = game.i18n.localize(section.legend);
     const hint = section.hint ? `<p class="hint">${game.i18n.localize(section.hint)}</p>` : '';
+    
+    // Check if section has color fields with hover states to add column headers
+    const hasColorWithHover = section.fields.some(f => f.type === 'color' && f.hasHover);
+    const columnHeaders = hasColorWithHover 
+      ? `<div class="color-column-headers">
+          <span class="color-column-label">${game.i18n.localize('bg3-hud-core.Settings.Theme.Normal')}</span>
+          <span class="color-column-label">${game.i18n.localize('bg3-hud-core.Settings.Theme.Hover')}</span>
+         </div>`
+      : '';
+    
     const fields = section.fields.map(f => this._renderField(f, themeData)).join('');
-    return `<fieldset><legend>${legend}</legend>${hint}${fields}</fieldset>`;
+    return `<fieldset><legend>${legend}</legend>${hint}${columnHeaders}${fields}</fieldset>`;
   }
 
   async _renderHTML() {

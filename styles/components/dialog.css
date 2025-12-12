@@ -28,12 +28,6 @@
     max-width: 500px;
 }
 
-/* Theme dialog: allow scrolling when content overflows */
-#bg3-hud-core-theme-settings .window-content {
-    overflow-y: auto;
-    max-height: 80vh;
-}
-
 @keyframes slideIn {
     from {
         transform: translate(-50%, -50%) scale(0.9);
@@ -631,5 +625,65 @@
 
 .bg3-create-view-dialog .icon-button:active {
     transform: scale(0.95);
+}
+
+/* ==========================================================================
+   CSS Variable Color Picker (Theme Settings Dialog Only)
+   ========================================================================== */
+
+/* Only target color pickers within the theme settings dialog */
+#bg3-hud-core-theme-settings .css-var.color-picker {
+    border: 2px solid var(--bg3-border, #2f2f2f);
+}
+
+/* Remove the browser/Foundry inner border on color picker swatches within theme settings */
+#bg3-hud-core-theme-settings input[type="color"] {
+    border: none !important;
+    padding: 0 !important;
+    background: none !important;
+}
+
+/* Remove wrapper border within theme settings */
+#bg3-hud-core-theme-settings input[type="color"]::-webkit-color-swatch-wrapper {
+    padding: 0 !important;
+    border: none !important;
+}
+
+/* Remove the grey border on the actual swatch within theme settings */
+#bg3-hud-core-theme-settings input[type="color"]::-webkit-color-swatch {
+    border: none !important;
+}
+
+/* Force override for Foundry's .color-picker wrapper within theme settings */
+#bg3-hud-core-theme-settings .color-picker input[type="color"] {
+    border: none !important;
+}
+
+#bg3-hud-core-theme-settings .color-picker {
+    box-shadow: none !important;
+}
+
+/* Custom scrollbar for theme settings dialog */
+#bg3-hud-core-theme-settings .standard-form {
+    overflow-y: auto;
+    max-height: 70vh;
+}
+
+#bg3-hud-core-theme-settings .standard-form::-webkit-scrollbar {
+    width: 8px;
+}
+
+#bg3-hud-core-theme-settings .standard-form::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+}
+
+#bg3-hud-core-theme-settings .standard-form::-webkit-scrollbar-thumb {
+    background: var(--bg3-background-highlight, #5a5353);
+    border-radius: 4px;
+}
+
+#bg3-hud-core-theme-settings .standard-form::-webkit-scrollbar-thumb:hover {
+    background: #6e6e6e;
 }
 
