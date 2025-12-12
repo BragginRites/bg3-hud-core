@@ -66,9 +66,6 @@ export function createSettingsSubmenu({ moduleId, titleKey, sections }) {
         ...super.DEFAULT_OPTIONS.window,
         title: game.i18n.localize(titleKey),
         resizable: false
-      },
-      form: {
-        handler: SettingsSubmenu.onSubmitForm
       }
     };
 
@@ -95,12 +92,28 @@ export function createSettingsSubmenu({ moduleId, titleKey, sections }) {
       return target;
     }
 
-    static async onSubmitForm(event, form, formData) {
-      event?.preventDefault?.();
+    _onRender(context, options) {
+      const form = this.element?.querySelector('form');
+      if (form) {
+        form.addEventListener('submit', event => {
+          event.preventDefault();
+          void this._saveSettings();
+        });
+      }
+    }
+
+    async _saveSettings() {
+      const form = this.element?.querySelector('form');
+      if (!form) return;
+
+      const formData = new FormDataExtended(form);
       const updates = foundry.utils.expandObject(formData.object);
+
       for (const [key, value] of Object.entries(updates)) {
         await game.settings.set(moduleId, key, value);
       }
+
+      this.close();
     }
   };
 }

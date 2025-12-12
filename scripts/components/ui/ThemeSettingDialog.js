@@ -13,9 +13,6 @@ export class ThemeSettingDialog extends foundry.applications.api.ApplicationV2 {
     window: {
       resizable: true,
       title: 'bg3-hud-core.Settings.Theme.Title'
-    },
-    form: {
-      handler: ThemeSettingDialog.onSubmitForm
     }
   };
 
@@ -92,11 +89,6 @@ export class ThemeSettingDialog extends foundry.applications.api.ApplicationV2 {
         ]
       }
     ];
-  }
-
-  static async onSubmitForm(event, form, formData) {
-    event?.preventDefault?.();
-    await this.save();
   }
 
   _renderField(field, themeData) {
@@ -225,7 +217,6 @@ export class ThemeSettingDialog extends foundry.applications.api.ApplicationV2 {
     const themeData = this.generateThemeData();
     await game.settings.set(MODULE_ID, 'themeCustom', themeData);
     await applyTheme();
-    ui.notifications.info(game.i18n.localize('bg3-hud-core.Settings.Theme.SaveSuccess'));
     this.close();
   }
 
