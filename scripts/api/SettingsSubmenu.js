@@ -1,4 +1,5 @@
 const { BooleanField, NumberField, StringField } = foundry.data.fields;
+const { FormDataExtended } = foundry.applications.ux;
 
 /**
  * Factory to create a simple settings submenu application.
@@ -106,7 +107,7 @@ export function createSettingsSubmenu({ moduleId, titleKey, sections }) {
       const form = this.element?.querySelector('form');
       if (!form) return;
 
-      const formData = new FormDataExtended(form);
+      const formData = new FormDataExtended(form, {});
       const updates = foundry.utils.expandObject(formData.object);
 
       for (const [key, value] of Object.entries(updates)) {
