@@ -74,6 +74,8 @@
 /* View button icon */
 .bg3-view-button i {
     font-size: 1.1em;
+    color: #fff !important;
+    text-shadow: var(--shadow-text-stroke);
 }
 
 /* View button label text */
@@ -92,6 +94,7 @@
 .bg3-view-button-new {
     background: var(--bg3-cell-background);
     border-color: var(--bg3-cell-border-color);
+    color: var(--bg3-hotbar-text-color, #fff);
 }
 
 .bg3-view-button-new:hover {

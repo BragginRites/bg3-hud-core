@@ -35,7 +35,8 @@ export class InfoContainer extends BG3Component {
         // Mark as UI element to prevent system tooltips (dnd5e2, etc.) from showing
         button.dataset.bg3Ui = 'true';
         button.innerHTML = '<i class="fas fa-user-circle"></i>';
-        button.setAttribute('data-tooltip', 'Character Info<br><small>Right-click for Initiative</small>');
+        const infoTooltip = game.i18n.localize('bg3-hud-core.Tooltips.InfoButton');
+        button.setAttribute('data-tooltip', infoTooltip);
         button.setAttribute('data-tooltip-direction', 'UP');
         
         this.addEventListener(button, 'click', (e) => {

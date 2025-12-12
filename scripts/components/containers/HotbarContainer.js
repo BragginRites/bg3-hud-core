@@ -188,7 +188,11 @@ export class HotbarContainer extends BG3Component {
      * @private
      */
     async _onDragBarMove(bar, deltaX) {
-        const cellWidth = 54; // var(--bg3-cell-size) + gap
+        // Calculate cell width dynamically from CSS variables
+        const computedStyle = getComputedStyle(document.documentElement);
+        const cellSize = parseFloat(computedStyle.getPropertyValue('--bg3-hotbar-cell-size')) || 50;
+        const gridGap = parseFloat(computedStyle.getPropertyValue('--bg3-grid-gap')) || 2;
+        const cellWidth = cellSize + gridGap + 2; // cell + gap + border
         const deltaColsRounded = Math.round(deltaX / cellWidth);
 
         // Get the two grid containers

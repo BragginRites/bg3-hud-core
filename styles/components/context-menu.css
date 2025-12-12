@@ -76,6 +76,34 @@
     cursor: pointer;
 }
 
+/* Checkbox/checkmark styling for menu items */
+.menu-item-checkbox {
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--bg3-text);
+    border-radius: 2px;
+    opacity: 0.5;
+}
+
+.menu-item-checkbox i {
+    font-size: 10px;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+}
+
+.bg3-context-menu-item.checked .menu-item-checkbox {
+    border-color: var(--bg3-accent, #4ade80);
+    opacity: 1;
+}
+
+.bg3-context-menu-item.checked .menu-item-checkbox i {
+    opacity: 1;
+    color: var(--bg3-accent, #4ade80);
+}
+
 /* Value display */
 .bg3-context-menu-value {
     margin-left: auto;

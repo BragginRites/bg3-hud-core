@@ -1,5 +1,5 @@
 import { BG3HUD_REGISTRY } from './utils/registry.js';
-import { applyMacrobarCollapseSetting } from './utils/settings.js';
+import { applyMacrobarCollapseSetting, applyTheme, applyAppearanceSettings } from './utils/settings.js';
 import { PersistenceManager } from './managers/PersistenceManager.js';
 import { InteractionCoordinator } from './managers/InteractionCoordinator.js';
 import { UpdateCoordinator } from './managers/UpdateCoordinator.js';
@@ -7,6 +7,7 @@ import { ComponentFactory } from './managers/ComponentFactory.js';
 import { SocketManager } from './managers/SocketManager.js';
 import { ItemUpdateManager } from './managers/ItemUpdateManager.js';
 import { HotbarViewsContainer } from './components/containers/HotbarViewsContainer.js';
+import { ControlsManager } from './managers/ControlsManager.js';
 
 /**
  * BG3 Hotbar Application
@@ -176,20 +177,23 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
     async _onRender(context, options) {
         await super._onRender(context, options);
         
-        // Apply display settings
-        this.updateDisplaySettings();
-        
-        // Initialize components after DOM is ready
-        await this._initializeComponents();
-    }
-    async _onRender(context, options) {
-        await super._onRender(context, options);
+        // Apply theme CSS variables
+        await applyTheme();
         
         // Apply display settings
         this.updateDisplaySettings();
         
         // Initialize components after DOM is ready
         await this._initializeComponents();
+        
+        // Apply appearance settings (opacity, scale, position) after components are built
+        applyAppearanceSettings();
+        
+        // Initialize lock state (button UI and dataset attributes)
+        ControlsManager.initializeLockState();
+
+        // Only now, when UI is fully built and styled, show it (fade-in)
+        this._finalizeRenderVisibility();
     }
 
     /**
@@ -330,15 +334,21 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
             this.interactionCoordinator.setAdapter(BG3HUD_REGISTRY.activeAdapter);
         }
         
-        // Show the UI with a smooth fade-in now that everything is built
-        if (this.element) {
-            // Remove building/fading classes and hidden class
-            this.element.classList.remove('bg3-hud-building', 'bg3-hud-hidden', 'bg3-hud-fading-out');
-            // Use a small delay to ensure the DOM has fully rendered
-            requestAnimationFrame(() => {
+    }
+
+    /**
+     * Finalize render and trigger fade-in after UI is built
+     * Ensures the UI is fully constructed before becoming visible
+     * @private
+     */
+    _finalizeRenderVisibility() {
+        if (!this.element) return;
+        this.element.classList.remove('bg3-hud-building', 'bg3-hud-hidden', 'bg3-hud-fading-out');
+        requestAnimationFrame(() => {
+            if (this.element) {
                 this.element.classList.add('bg3-hud-visible');
-            });
-        }
+            }
+        });
     }
 
     /**

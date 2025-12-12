@@ -1,6 +1,6 @@
 import { BG3Hotbar } from './BG3Hotbar.js';
 import { BG3HUD_REGISTRY, BG3HUD_API } from './utils/registry.js';
-import { registerSettings, applyMacrobarCollapseSetting, applyContainerRowSettings } from './utils/settings.js';
+import { registerSettings, applyMacrobarCollapseSetting, applyContainerRowSettings, applyTheme } from './utils/settings.js';
 import { TooltipManager } from './managers/TooltipManager.js';
 
 /**
@@ -22,6 +22,9 @@ Hooks.once('init', () => {
 
 Hooks.once('ready', async () => {
     console.log('BG3 HUD Core | Initializing');
+
+    // Apply theme CSS variables early
+    await applyTheme();
 
     // Initialize TooltipManager
     const tooltipDelay = game.settings.get(MODULE_ID, 'tooltipDelay') || 500;
@@ -76,7 +79,8 @@ Hooks.on('createToken', async (tokenDocument, options, userId) => {
 
     // Only auto-populate for NPCs (non-character actors)
     // Player characters should use right-click to auto-populate containers manually
-    if (actor.type === 'character' || actor.hasPlayerOwner) {
+    // NOTE: NPCs may still be owned by players (e.g., observers/minions); ownership should not block auto-populate
+    if (actor.type === 'character') {
         return;
     }
 

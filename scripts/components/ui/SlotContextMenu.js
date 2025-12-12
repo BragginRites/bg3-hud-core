@@ -62,6 +62,15 @@ export class SlotContextMenu {
 
         // SECTION 1: Cell-level actions (if cell has data)
         if (cell.data) {
+            // Adapter-provided cell menu items first (so they appear at the top)
+            if (this.adapter && typeof this.adapter.getCellMenuItems === 'function') {
+                const adapterItems = await this.adapter.getCellMenuItems(cell, container);
+                if (adapterItems && adapterItems.length > 0) {
+                    menuItems.push(...adapterItems);
+                    menuItems.push({ separator: true });
+                }
+            }
+
             // Open item sheet (if cell has uuid - works for any item type)
             if (cell.data.uuid) {
                 menuItems.push({
@@ -85,12 +94,7 @@ export class SlotContextMenu {
             });
 
             // Let adapter add custom cell menu items
-            if (this.adapter && typeof this.adapter.getCellMenuItems === 'function') {
-                const adapterItems = await this.adapter.getCellMenuItems(cell);
-                if (adapterItems && adapterItems.length > 0) {
-                    menuItems.push(...adapterItems);
-                }
-            }
+            // (already handled above)
         }
 
         // SECTION 2: Container-level actions (always shown if we have a container)

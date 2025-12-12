@@ -1,4 +1,5 @@
 import { BG3Component } from '../BG3Component.js';
+import { ControlsManager } from '../../managers/ControlsManager.js';
 
 /**
  * Grid Cell Component
@@ -173,9 +174,15 @@ export class GridCell extends BG3Component {
             });
         }
 
-        // Drag handlers - always add them, but check data at drag time
+        // Drag handlers - always add them, but check data and lock state at drag time
         if (this.options.onDragStart) {
             this.addEventListener(this.element, 'dragstart', (event) => {
+                // Check if drag & drop is locked
+                if (ControlsManager.isSettingLocked('dragDrop')) {
+                    event.preventDefault();
+                    return;
+                }
+                
                 // Only allow drag if cell has data (check at drag time, not handler setup time)
                 if (!this.data) {
                     event.preventDefault();
@@ -213,12 +220,20 @@ export class GridCell extends BG3Component {
         // Drop handler (all cells can receive drops)
         if (this.options.onDrop) {
             this.addEventListener(this.element, 'dragover', (event) => {
+                // Check if drag & drop is locked
+                if (ControlsManager.isSettingLocked('dragDrop')) {
+                    return;
+                }
                 event.preventDefault();
                 event.dataTransfer.dropEffect = 'move';
                 this.element.classList.add('drag-over');
             });
 
             this.addEventListener(this.element, 'dragenter', (event) => {
+                // Check if drag & drop is locked
+                if (ControlsManager.isSettingLocked('dragDrop')) {
+                    return;
+                }
                 event.preventDefault();
                 this.element.classList.add('drag-over');
             });
@@ -228,6 +243,11 @@ export class GridCell extends BG3Component {
             });
 
             this.addEventListener(this.element, 'drop', (event) => {
+                // Check if drag & drop is locked
+                if (ControlsManager.isSettingLocked('dragDrop')) {
+                    return;
+                }
+                
                 event.preventDefault();
                 this.element.classList.remove('drag-over');
                 document.body.classList.remove('dragging-active');

@@ -28,6 +28,12 @@
     max-width: 500px;
 }
 
+/* Theme dialog: allow scrolling when content overflows */
+#bg3-hud-core-theme-settings .window-content {
+    overflow-y: auto;
+    max-height: 80vh;
+}
+
 @keyframes slideIn {
     from {
         transform: translate(-50%, -50%) scale(0.9);

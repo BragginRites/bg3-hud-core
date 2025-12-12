@@ -1,15 +1,348 @@
+import { ThemeSettingDialog } from '../components/ui/ThemeSettingDialog.js';
+import { createSettingsSubmenu } from '../api/SettingsSubmenu.js';
+
+/**
+ * Base theme CSS variables - defaults that can be overridden
+ */
+export const BASE_THEME = {
+    "--bg3-border-color": "#444444",
+    "--bg3-border-color-hover": "#666666",
+    "--bg3-background-color": "#222222",
+    "--bg3-background-color-hover": "#3a3a3a",
+    "--bg3-text-color": "#dddddd",
+    "--bg3-text-color-hover": "#dddddd",
+    "--bg3-text-secondary-color": "#ffffff",
+    "--bg3-border-size": "2px",
+    "--bg3-border-radius": "8px",
+    "--bg3-portrait-size": "175px",
+    "--bg3-hotbar-border-color": "var(--bg3-border-color)",
+    "--bg3-hotbar-border-color-hover": "var(--bg3-border-color-hover)",
+    "--bg3-hotbar-sub-background-color": "var(--bg3-background-color)",
+    "--bg3-hotbar-background-color": "var(--bg3-background-color)",
+    "--bg3-hotbar-background-color-hover": "var(--bg3-background-color-hover)",
+    "--bg3-hotbar-text-color": "var(--bg3-text-color)",
+    "--bg3-hotbar-text-color-hover": "var(--bg3-text-color-hover)",
+    "--bg3-hotbar-cell-size": "50px",
+    "--bg3-hotbar-border-size": "var(--bg3-border-size)",
+    "--bg3-hotbar-drag-color": "#cc3333",
+    "--bg3-hotbar-drag-color-hover": "#d10000",
+    "--bg3-weapon-border-color": "var(--bg3-border-color)",
+    "--bg3-weapon-border-color-hover": "var(--bg3-border-color-hover)",
+    "--bg3-weapon-background-color": "var(--bg3-background-color)",
+    "--bg3-weapon-background-color-hover": "var(--bg3-background-color-hover)",
+    "--bg3-weapon-text-color": "var(--bg3-text-color)",
+    "--bg3-weapon-text-color-hover": "var(--bg3-text-color-hover)",
+    "--bg3-weapon-cell-size": "75px",
+    "--bg3-weapon-border-size": "var(--bg3-border-size)",
+    "--bg3-filter-border-color": "var(--bg3-border-color)",
+    "--bg3-filter-border-color-hover": "var(--bg3-border-color-hover)",
+    "--bg3-filter-background-color": "var(--bg3-background-color)",
+    "--bg3-filter-background-color-hover": "var(--bg3-background-color-hover)",
+    "--bg3-filter-text-color": "var(--bg3-text-color)",
+    "--bg3-filter-text-color-hover": "var(--bg3-text-color-hover)",
+    "--bg3-filter-cell-size": "32px",
+    "--bg3-filter-border-size": "var(--bg3-border-size)",
+    "--bg3-passive-border-color": "var(--bg3-border-color)",
+    "--bg3-passive-border-color-hover": "var(--bg3-border-color-hover)",
+    "--bg3-passive-background-color": "var(--bg3-background-color)",
+    "--bg3-passive-background-color-hover": "var(--bg3-background-color-hover)",
+    "--bg3-passive-text-color": "var(--bg3-text-color)",
+    "--bg3-passive-text-color-hover": "var(--bg3-text-color-hover)",
+    "--bg3-passive-cell-size": "31px",
+    "--bg3-passive-border-size": "var(--bg3-border-size)",
+    "--bg3-active-border-color": "var(--bg3-border-color)",
+    "--bg3-active-border-color-hover": "var(--bg3-border-color-hover)",
+    "--bg3-active-background-color": "var(--bg3-background-color)",
+    "--bg3-active-background-color-hover": "var(--bg3-background-color-hover)",
+    "--bg3-active-text-color": "var(--bg3-text-color)",
+    "--bg3-active-text-color-hover": "var(--bg3-text-color-hover)",
+    "--bg3-active-cell-size": "31px",
+    "--bg3-active-border-size": "var(--bg3-border-size)",
+    "--bg3-tooltip-border-color": "var(--bg3-border-color)",
+    "--bg3-tooltip-background-color": "var(--bg3-background-color)",
+    "--bg3-tooltip-text-color": "var(--bg3-text-color)",
+    "--bg3-tooltip-text-secondary-color": "var(--bg3-text-secondary-color)",
+    "--bg3-tooltip-component-color": "#aaaaaa",
+    "--bg3-tooltip-border-size": "var(--bg3-border-size)"
+};
+
 /**
  * Register core module settings
  */
 export function registerSettings() {
     const MODULE_ID = 'bg3-hud-core';
 
+    const AppearanceSettingsMenu = createSettingsSubmenu({
+        moduleId: MODULE_ID,
+        titleKey: 'bg3-hud-core.Settings.Appearance.MenuTitle',
+        sections: [
+            { legend: 'bg3-hud-core.Settings.Appearance.Legend', keys: ['normalOpacity', 'fadedOpacity', 'fadeOutDelay'] }
+        ]
+    });
+
+    const LayoutSettingsMenu = createSettingsSubmenu({
+        moduleId: MODULE_ID,
+        titleKey: 'bg3-hud-core.Settings.Layout.MenuTitle',
+        sections: [
+            { legend: 'bg3-hud-core.Settings.Layout.Legend', keys: ['autoScale', 'uiScale', 'uiPosition', 'posPadding', 'posPaddingBottom'] }
+        ]
+    });
+
+    const FoundryUISettingsMenu = createSettingsSubmenu({
+        moduleId: MODULE_ID,
+        titleKey: 'bg3-hud-core.Settings.FoundryUI.MenuTitle',
+        sections: [
+            { legend: 'bg3-hud-core.Settings.FoundryUI.Legend', keys: ['collapseMacrobar', 'tooltipDelay'] }
+        ]
+    });
+
+    const GMHotbarSettingsMenu = createSettingsSubmenu({
+        moduleId: MODULE_ID,
+        titleKey: 'bg3-hud-core.Settings.GMHotbar.MenuTitle',
+        sections: [
+            { legend: 'bg3-hud-core.Settings.GMHotbar.Legend', keys: ['enableGMHotbar', 'passivesContainerIconsPerRow', 'activeEffectsContainerIconsPerRow'] }
+        ]
+    });
+
+    // ========================================
+    // Theme Settings
+    // ========================================
+
+    // Theme settings menu
+    game.settings.registerMenu(MODULE_ID, 'menuTheme', {
+        name: 'bg3-hud-core.Settings.Theme.Name',
+        label: 'bg3-hud-core.Settings.Theme.Label',
+        hint: 'bg3-hud-core.Settings.Theme.Hint',
+        icon: 'fas fa-paintbrush',
+        type: ThemeSettingDialog,
+        restricted: false
+    });
+
+    // Theme custom CSS variables storage
+    game.settings.register(MODULE_ID, 'themeCustom', {
+        name: 'Theme Custom',
+        hint: 'Custom theme CSS variables',
+        scope: 'client',
+        config: false,
+        type: Object,
+        default: {}
+    });
+
+    // Appearance submenu
+    game.settings.registerMenu(MODULE_ID, 'menuAppearance', {
+        name: 'bg3-hud-core.Settings.Appearance.MenuName',
+        label: 'bg3-hud-core.Settings.Appearance.MenuLabel',
+        hint: 'bg3-hud-core.Settings.Appearance.MenuHint',
+        icon: 'fas fa-list',
+        type: AppearanceSettingsMenu,
+        restricted: false
+    });
+
+    // Layout submenu
+    game.settings.registerMenu(MODULE_ID, 'menuLayout', {
+        name: 'bg3-hud-core.Settings.Layout.MenuName',
+        label: 'bg3-hud-core.Settings.Layout.MenuLabel',
+        hint: 'bg3-hud-core.Settings.Layout.MenuHint',
+        icon: 'fas fa-list',
+        type: LayoutSettingsMenu,
+        restricted: false
+    });
+
+    // Foundry UI submenu
+    game.settings.registerMenu(MODULE_ID, 'menuFoundryUI', {
+        name: 'bg3-hud-core.Settings.FoundryUI.MenuName',
+        label: 'bg3-hud-core.Settings.FoundryUI.MenuLabel',
+        hint: 'bg3-hud-core.Settings.FoundryUI.MenuHint',
+        icon: 'fas fa-list',
+        type: FoundryUISettingsMenu,
+        restricted: false
+    });
+
+    // GM hotbar submenu
+    game.settings.registerMenu(MODULE_ID, 'menuGMHotbar', {
+        name: 'bg3-hud-core.Settings.GMHotbar.MenuName',
+        label: 'bg3-hud-core.Settings.GMHotbar.MenuLabel',
+        hint: 'bg3-hud-core.Settings.GMHotbar.MenuHint',
+        icon: 'fas fa-list',
+        type: GMHotbarSettingsMenu,
+        restricted: false
+    });
+
+    // ========================================
+    // Opacity Settings (submenu-managed)
+    // ========================================
+
+    game.settings.register(MODULE_ID, 'normalOpacity', {
+        name: 'bg3-hud-core.Settings.NormalOpacity.Name',
+        hint: 'bg3-hud-core.Settings.NormalOpacity.Hint',
+        scope: 'client',
+        config: false,
+        type: Number,
+        range: {
+            min: 0.1,
+            max: 1.0,
+            step: 0.1
+        },
+        default: 1.0,
+        onChange: value => {
+            if (ui.BG3HUD_APP?.element) {
+                const container = ui.BG3HUD_APP.element.querySelector('#bg3-hotbar-container');
+                if (container) container.style.setProperty('--bg3-normal-opacity', value);
+            }
+        }
+    });
+
+    game.settings.register(MODULE_ID, 'fadedOpacity', {
+        name: 'bg3-hud-core.Settings.FadedOpacity.Name',
+        hint: 'bg3-hud-core.Settings.FadedOpacity.Hint',
+        scope: 'client',
+        config: false,
+        type: Number,
+        range: {
+            min: 0.0,
+            max: 1.0,
+            step: 0.1
+        },
+        default: 1.0,
+        onChange: value => {
+            if (ui.BG3HUD_APP?.element) {
+                const container = ui.BG3HUD_APP.element.querySelector('#bg3-hotbar-container');
+                if (container) {
+                    if (value === 1) {
+                        container.style.setProperty('--bg3-faded-delay', '0s');
+                        container.style.removeProperty('--bg3-faded-opacity');
+                    } else {
+                        const fadeDelay = game.settings.get(MODULE_ID, 'fadeOutDelay');
+                        container.style.setProperty('--bg3-faded-delay', `${fadeDelay}s`);
+                        container.style.setProperty('--bg3-faded-opacity', value);
+                    }
+                }
+            }
+        }
+    });
+
+    game.settings.register(MODULE_ID, 'fadeOutDelay', {
+        name: 'bg3-hud-core.Settings.FadeOutDelay.Name',
+        hint: 'bg3-hud-core.Settings.FadeOutDelay.Hint',
+        scope: 'client',
+        config: false,
+        type: Number,
+        range: {
+            min: 1,
+            max: 30,
+            step: 1
+        },
+        default: 5,
+        onChange: value => {
+            if (ui.BG3HUD_APP?.element) {
+                const container = ui.BG3HUD_APP.element.querySelector('#bg3-hotbar-container');
+                const fadedOpacity = game.settings.get(MODULE_ID, 'fadedOpacity');
+                if (container && fadedOpacity !== 1) {
+                    container.style.setProperty('--bg3-faded-delay', `${value}s`);
+                }
+            }
+        }
+    });
+
+    // ========================================
+    // Scale & Position Settings (submenu-managed)
+    // ========================================
+
+    game.settings.register(MODULE_ID, 'autoScale', {
+        name: 'bg3-hud-core.Settings.AutoScale.Name',
+        hint: 'bg3-hud-core.Settings.AutoScale.Hint',
+        scope: 'client',
+        config: false,
+        type: Boolean,
+        default: true,
+        onChange: () => {
+            if (ui.BG3HUD_APP?.element) {
+                const container = ui.BG3HUD_APP.element.querySelector('#bg3-hotbar-container');
+                if (container) container.style.setProperty('--bg3-scale-ui', updateUIScale());
+            }
+        }
+    });
+
+    game.settings.register(MODULE_ID, 'uiScale', {
+        name: 'bg3-hud-core.Settings.UIScale.Name',
+        hint: 'bg3-hud-core.Settings.UIScale.Hint',
+        scope: 'client',
+        config: false,
+        type: Number,
+        range: {
+            min: 50,
+            max: 300,
+            step: 5
+        },
+        default: 100,
+        onChange: () => {
+            if (ui.BG3HUD_APP?.element) {
+                const container = ui.BG3HUD_APP.element.querySelector('#bg3-hotbar-container');
+                if (container) container.style.setProperty('--bg3-scale-ui', updateUIScale());
+            }
+        }
+    });
+
+    game.settings.register(MODULE_ID, 'uiPosition', {
+        name: 'bg3-hud-core.Settings.UIPosition.Name',
+        hint: 'bg3-hud-core.Settings.UIPosition.Hint',
+        scope: 'client',
+        config: false,
+        type: String,
+        choices: {
+            'center': 'bg3-hud-core.Settings.UIPosition.Center',
+            'left': 'bg3-hud-core.Settings.UIPosition.Left',
+            'right': 'bg3-hud-core.Settings.UIPosition.Right'
+        },
+        default: 'center',
+        onChange: value => {
+            if (ui.BG3HUD_APP?.element) {
+                const container = ui.BG3HUD_APP.element.querySelector('#bg3-hotbar-container');
+                if (container) container.dataset.position = value;
+            }
+        }
+    });
+
+    game.settings.register(MODULE_ID, 'posPadding', {
+        name: 'bg3-hud-core.Settings.PosPadding.Name',
+        hint: 'bg3-hud-core.Settings.PosPadding.Hint',
+        scope: 'client',
+        config: false,
+        type: Number,
+        default: 0,
+        onChange: value => {
+            if (ui.BG3HUD_APP?.element) {
+                const container = ui.BG3HUD_APP.element.querySelector('#bg3-hotbar-container');
+                if (container) container.style.setProperty('--position-padding', `${value}px`);
+            }
+        }
+    });
+
+    game.settings.register(MODULE_ID, 'posPaddingBottom', {
+        name: 'bg3-hud-core.Settings.PosPaddingBottom.Name',
+        hint: 'bg3-hud-core.Settings.PosPaddingBottom.Hint',
+        scope: 'client',
+        config: false,
+        type: Number,
+        default: 10,
+        onChange: value => {
+            if (ui.BG3HUD_APP?.element) {
+                const container = ui.BG3HUD_APP.element.querySelector('#bg3-hotbar-container');
+                if (container) container.style.setProperty('--position-bottom', `${value}px`);
+            }
+        }
+    });
+
+    // ========================================
+    // Foundry UI Settings (submenu-managed)
+    // ========================================
+
     // Macrobar visibility setting
     game.settings.register(MODULE_ID, 'collapseMacrobar', {
         name: 'Hide Foundry Macro Bar',
         hint: 'Control when the default Foundry macro bar is hidden',
         scope: 'client',
-        config: true,
+        config: false,
         type: String,
         choices: {
             'always': 'Always Hide',
@@ -27,7 +360,7 @@ export function registerSettings() {
         name: 'Tooltip Delay (ms)',
         hint: 'Delay before tooltips appear on hover (in milliseconds)',
         scope: 'client',
-        config: true,
+        config: false,
         type: Number,
         range: {
             min: 0,
@@ -44,12 +377,12 @@ export function registerSettings() {
         }
     });
 
-    // GM Hotbar settings
+    // GM Hotbar settings (submenu-managed)
     game.settings.register(MODULE_ID, 'enableGMHotbar', {
         name: 'Enable GM Hotbar',
         hint: 'Show a special hotbar for GMs when no token or multiple tokens are selected',
         scope: 'world',
-        config: true,
+        config: false,
         type: Boolean,
         default: false,
         onChange: () => {
@@ -80,12 +413,40 @@ export function registerSettings() {
         default: false
     });
 
+    // ========================================
+    // Lock Settings
+    // ========================================
+
+    // Lock settings object (individual lock toggles)
+    game.settings.register(MODULE_ID, 'lockSettings', {
+        name: 'Lock Settings',
+        hint: 'Individual lock toggles for different features',
+        scope: 'client',
+        config: false,
+        type: Object,
+        default: {
+            deselect: false,
+            opacity: false,
+            dragDrop: false
+        }
+    });
+
+    // Master lock enabled state
+    game.settings.register(MODULE_ID, 'masterLockEnabled', {
+        name: 'Master Lock State',
+        hint: 'Whether the master lock is enabled',
+        scope: 'client',
+        config: false,
+        type: Boolean,
+        default: false
+    });
+
     // Passives container icons per row setting
     game.settings.register(MODULE_ID, 'passivesContainerIconsPerRow', {
         name: 'Passives Container Icons Per Row',
         hint: 'Number of icons per row in the passives container before wrapping to the next row',
         scope: 'client',
-        config: true,
+        config: false,
         type: Number,
         range: {
             min: 1,
@@ -103,7 +464,7 @@ export function registerSettings() {
         name: 'Active Effects Container Icons Per Row',
         hint: 'Number of icons per row in the active effects container before wrapping to the next row',
         scope: 'client',
-        config: true,
+        config: false,
         type: Number,
         range: {
             min: 1,
@@ -193,4 +554,80 @@ export function applyContainerRowSettings() {
     // Set CSS custom properties on :root
     document.documentElement.style.setProperty('--bg3-passives-container-max-width', passivesMaxWidth);
     document.documentElement.style.setProperty('--bg3-actives-container-max-width', activesMaxWidth);
+}
+
+/**
+ * Calculate UI scale based on settings
+ * @returns {number} The scale factor to apply
+ */
+export function updateUIScale() {
+    const MODULE_ID = 'bg3-hud-core';
+    let scale = 1;
+    if (game.settings.get(MODULE_ID, 'autoScale')) {
+        scale = window.innerHeight / 1500;
+    } else {
+        scale = game.settings.get(MODULE_ID, 'uiScale') / 100;
+    }
+    return scale;
+}
+
+/**
+ * Apply theme CSS variables to the document
+ * Merges base theme with custom theme settings
+ */
+export async function applyTheme() {
+    const MODULE_ID = 'bg3-hud-core';
+    const currentTheme = document.head.querySelector('[data-bg3-theme]');
+    const themeCustom = game.settings.get(MODULE_ID, 'themeCustom') || {};
+    const themeConfig = { ...BASE_THEME, ...themeCustom };
+
+    if (themeConfig) {
+        const styleContent = `:root{${Object.entries(themeConfig).map(([k, v]) => `${k}:${v};`).join('\n')}}`;
+        if (currentTheme) {
+            currentTheme.innerHTML = styleContent;
+        } else {
+            const style = document.createElement('style');
+            style.setAttribute('type', 'text/css');
+            style.setAttribute('data-bg3-theme', 'custom');
+            style.textContent = styleContent;
+            document.head.appendChild(style);
+        }
+    }
+}
+
+/**
+ * Apply all appearance settings (opacity, scale, position)
+ * Called after render to apply current settings to the UI
+ */
+export function applyAppearanceSettings() {
+    const MODULE_ID = 'bg3-hud-core';
+    
+    if (!ui.BG3HUD_APP?.element) return;
+    
+    const container = ui.BG3HUD_APP.element.querySelector('#bg3-hotbar-container');
+    if (!container) return;
+
+    // Apply opacity settings
+    const normalOpacity = game.settings.get(MODULE_ID, 'normalOpacity');
+    const fadedOpacity = game.settings.get(MODULE_ID, 'fadedOpacity');
+    const fadeOutDelay = game.settings.get(MODULE_ID, 'fadeOutDelay');
+    
+    container.style.setProperty('--bg3-normal-opacity', normalOpacity);
+    if (fadedOpacity !== 1) {
+        container.style.setProperty('--bg3-faded-opacity', fadedOpacity);
+        container.style.setProperty('--bg3-faded-delay', `${fadeOutDelay}s`);
+    }
+
+    // Apply scale
+    container.style.setProperty('--bg3-scale-ui', updateUIScale());
+
+    // Apply position
+    const position = game.settings.get(MODULE_ID, 'uiPosition');
+    container.dataset.position = position;
+
+    // Apply padding
+    const posPadding = game.settings.get(MODULE_ID, 'posPadding');
+    const posPaddingBottom = game.settings.get(MODULE_ID, 'posPaddingBottom');
+    container.style.setProperty('--position-padding', `${posPadding}px`);
+    container.style.setProperty('--position-bottom', `${posPaddingBottom}px`);
 }

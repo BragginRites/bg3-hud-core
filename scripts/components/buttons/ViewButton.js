@@ -112,7 +112,7 @@ export class NewViewButton extends BaseButton {
         super({
             key: 'new-view',
             classes: ['bg3-view-button', 'bg3-view-button-new'],
-            icon: 'fa-plus',
+            icon: 'fas fa-plus',
             tooltip: 'Create New View',
             onClick: options.onCreate
         });

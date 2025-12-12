@@ -50,11 +50,19 @@ export class BaseButton extends BG3Component {
         if (this.icon) {
             const iconElement = document.createElement('i');
             iconElement.classList.add('bg3-button-icon');
-            if (this.icon.startsWith('fa-')) {
-                iconElement.classList.add('fas', this.icon);
+
+            // Support Font Awesome class strings like "fas fa-stopwatch" or "fa-solid fa-bed"
+            if (this.icon.includes('fa-')) {
+                const classes = this.icon.split(' ').filter(Boolean);
+                iconElement.classList.add(...classes);
+                // Ensure a style prefix exists if none was supplied
+                if (!classes.some((c) => c.startsWith('fa-') && c.length > 3)) {
+                    iconElement.classList.add('fas');
+                }
             } else {
                 iconElement.style.backgroundImage = `url(${this.icon})`;
             }
+
             this.element.appendChild(iconElement);
         }
 

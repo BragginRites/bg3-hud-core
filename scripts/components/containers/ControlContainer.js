@@ -2,6 +2,7 @@ import { BG3Component } from '../BG3Component.js';
 import { BaseButton } from '../buttons/BaseButton.js';
 import { ContextMenu } from '../ui/ContextMenu.js';
 import { BG3HUD_API } from '../../utils/registry.js';
+import { ControlsManager } from '../../managers/ControlsManager.js';
 
 /**
  * Control Container
@@ -79,7 +80,7 @@ export class ControlContainer extends BG3Component {
         return {
             key: 'toggle-gm-hotbar',
             classes: ['hotbar-control-button'],
-            icon: 'fa-random',
+            icon: 'fas fa-random',
             tooltip: 'Toggle between GM Hotbar and Token Hotbar',
             onClick: async () => {
                 const token = canvas.tokens.controlled[0];
@@ -111,7 +112,7 @@ export class ControlContainer extends BG3Component {
         return {
             key: 'control-plus',
             classes: ['hotbar-control-button'],
-            icon: 'fa-plus',
+            icon: 'fas fa-plus',
             tooltip: 'Add Row',
             onClick: async () => {
                 await this._addRow();
@@ -128,7 +129,7 @@ export class ControlContainer extends BG3Component {
         return {
             key: 'control-minus',
             classes: ['hotbar-control-button'],
-            icon: 'fa-minus',
+            icon: 'fas fa-minus',
             tooltip: 'Remove Row',
             onClick: async () => {
                 await this._removeRow();
@@ -142,11 +143,12 @@ export class ControlContainer extends BG3Component {
      * @private
      */
     _getLockButton() {
+        const isLocked = ControlsManager.getMasterLock();
         return {
             key: 'control-lock',
-            classes: ['hotbar-control-button'],
-            icon: 'fa-unlock', // Will be toggled to fa-lock when locked
-            tooltip: 'Lock Settings<br>(Right-click for options)',
+            classes: ['hotbar-control-button', ...(isLocked ? ['locked'] : [])],
+            icon: isLocked ? 'fas fa-lock' : 'fas fa-unlock',
+            tooltip: game.i18n.localize('bg3-hud-core.Controls.Lock.Tooltip'),
             onClick: async (event) => {
                 await this._toggleLock(event);
             },
@@ -165,7 +167,7 @@ export class ControlContainer extends BG3Component {
         return {
             key: 'control-settings',
             classes: ['hotbar-control-button'],
-            icon: 'fa-cog',
+            icon: 'fas fa-cog',
             tooltip: 'Settings<br>(Right-click for quick actions)',
             onClick: async (event) => {
                 await this._openModuleSettings();
@@ -251,9 +253,17 @@ export class ControlContainer extends BG3Component {
      * @private
      */
     async _toggleLock(event) {
-        // TODO: Implement lock toggle logic
-        // For now, just show a message
-        ui.notifications.info('Lock toggle - to be implemented');
+        // Check if any lock settings are enabled
+        const hasLockSettings = ControlsManager.hasAnyLockEnabled();
+        
+        if (!hasLockSettings) {
+            // No lock settings selected - prompt user to right-click
+            ui.notifications.warn(game.i18n.localize('bg3-hud-core.Controls.Lock.NoSettingsWarning'));
+            return;
+        }
+        
+        // Toggle the master lock
+        await ControlsManager.updateMasterLock();
     }
 
     /**
@@ -301,7 +311,7 @@ export class ControlContainer extends BG3Component {
         if (game.user.isGM && game.settings.get('bg3-hud-core', 'enableGMHotbar')) {
             const isLocked = game.settings.get('bg3-hud-core', 'gmHotbarLock');
             menuItems.push({
-                label: 'Keep GM Hotbar',
+                label: game.i18n.localize('bg3-hud-core.Controls.Lock.KeepGMHotbar'),
                 icon: 'fas fa-shield-alt',
                 class: isLocked ? 'checked' : '',
                 custom: '<div class="menu-item-checkbox"><i class="fas fa-check"></i></div>',
@@ -314,34 +324,46 @@ export class ControlContainer extends BG3Component {
                     }
                 }
             });
+            
+            // Add separator after GM hotbar option
+            menuItems.push({ separator: true });
         }
 
-        menuItems.push(
-            {
-                label: 'Deselecting Token',
-                icon: 'fas fa-user-slash',
-                onClick: () => {
-                    // TODO: Implement lock setting toggle
-                    ui.notifications.info('Deselect lock - to be implemented');
-                }
-            },
-            {
-                label: 'Opacity',
-                icon: 'fas fa-eye',
-                onClick: () => {
-                    // TODO: Implement lock setting toggle
-                    ui.notifications.info('Opacity lock - to be implemented');
-                }
-            },
-            {
-                label: 'Drag & Drop',
-                icon: 'fas fa-arrows-alt',
-                onClick: () => {
-                    // TODO: Implement lock setting toggle
-                    ui.notifications.info('Drag & Drop lock - to be implemented');
-                }
+        // Deselect Token lock
+        const deselectLocked = ControlsManager.getLockSetting('deselect');
+        menuItems.push({
+            label: game.i18n.localize('bg3-hud-core.Controls.Lock.DeselectToken'),
+            icon: 'fas fa-user-slash',
+            class: deselectLocked ? 'checked' : '',
+            custom: '<div class="menu-item-checkbox"><i class="fas fa-check"></i></div>',
+            onClick: async () => {
+                await ControlsManager.updateLockSetting('deselect');
             }
-        );
+        });
+
+        // Opacity lock
+        const opacityLocked = ControlsManager.getLockSetting('opacity');
+        menuItems.push({
+            label: game.i18n.localize('bg3-hud-core.Controls.Lock.Opacity'),
+            icon: 'fas fa-eye',
+            class: opacityLocked ? 'checked' : '',
+            custom: '<div class="menu-item-checkbox"><i class="fas fa-check"></i></div>',
+            onClick: async () => {
+                await ControlsManager.updateLockSetting('opacity');
+            }
+        });
+
+        // Drag & Drop lock
+        const dragDropLocked = ControlsManager.getLockSetting('dragDrop');
+        menuItems.push({
+            label: game.i18n.localize('bg3-hud-core.Controls.Lock.DragDrop'),
+            icon: 'fas fa-arrows-alt',
+            class: dragDropLocked ? 'checked' : '',
+            custom: '<div class="menu-item-checkbox"><i class="fas fa-check"></i></div>',
+            onClick: async () => {
+                await ControlsManager.updateLockSetting('dragDrop');
+            }
+        });
 
         return menuItems;
     }
@@ -424,6 +446,13 @@ export class ControlContainer extends BG3Component {
                 }
             },
             {
+                label: 'Save Layout as Actor Default',
+                icon: 'fas fa-clone',
+                onClick: async () => {
+                    await this._saveLayoutAsActorDefault();
+                }
+            },
+            {
                 separator: true
             },
             {
@@ -441,6 +470,36 @@ export class ControlContainer extends BG3Component {
                 }
             }
         ];
+    }
+
+    /**
+     * Save current layout/state to the actor so future tokens start with it
+     * @private
+     */
+    async _saveLayoutAsActorDefault() {
+        if (!this.hotbarApp?.currentActor) {
+            ui.notifications?.warn('No actor available to save layout.');
+            return;
+        }
+
+        try {
+            // Get the current state (already reflects grid resize/save operations)
+            const currentState = await this.hotbarApp.persistenceManager.loadState();
+
+            // Resolve the base actor (handles unlinked tokens)
+            const baseActor = game.actors?.get(this.hotbarApp.currentActor.id) || this.hotbarApp.currentActor;
+
+            // Use a fresh persistence manager to write onto the base actor
+            const { PersistenceManager } = await import('/modules/bg3-hud-core/scripts/managers/PersistenceManager.js');
+            const pm = new PersistenceManager();
+            pm.setToken(baseActor);
+            await pm.saveState(foundry.utils.deepClone(currentState));
+
+            ui.notifications?.info('Saved layout as actor default for future tokens.');
+        } catch (error) {
+            console.error('BG3 HUD Core | Failed to save layout as actor default:', error);
+            ui.notifications?.error('Failed to save layout as actor default.');
+        }
     }
 
     /**

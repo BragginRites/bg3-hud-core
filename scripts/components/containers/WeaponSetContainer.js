@@ -92,7 +92,10 @@ export class WeaponSetContainer extends BG3Component {
                 delete container.element.dataset.tooltip;
             } else {
                 // Inactive set - show tooltip
-                container.element.dataset.tooltip = `Click: Switch to weapon set ${i + 1}`;
+                container.element.dataset.tooltip = game.i18n.format(
+                  'bg3-hud-core.Tooltips.SwitchWeaponSet',
+                  { number: i + 1 },
+                );
                 // Tooltip direction based on position relative to active set
                 const isAbove = (i === activeIndex + 1) || (activeIndex === this.gridContainers.length - 1 && i === 0);
                 container.element.dataset.tooltipDirection = isAbove ? 'UP' : 'DOWN';

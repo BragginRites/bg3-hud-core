@@ -60,6 +60,13 @@ export class TooltipManager {
         this._preventSystemTooltips = this._preventSystemTooltips.bind(this);
         document.addEventListener('mouseenter', this._preventSystemTooltips, true);
         document.addEventListener('mouseleave', this._preventSystemTooltips, true);
+        document.addEventListener('mouseover', this._preventSystemTooltips, true);
+        document.addEventListener('mouseout', this._preventSystemTooltips, true);
+        document.addEventListener('pointerenter', this._preventSystemTooltips, true);
+        document.addEventListener('pointerleave', this._preventSystemTooltips, true);
+        document.addEventListener('pointerover', this._preventSystemTooltips, true);
+        document.addEventListener('pointerout', this._preventSystemTooltips, true);
+        document.addEventListener('focusin', this._preventSystemTooltips, true);
         
         // Handle mouse events globally using event delegation
         // Use mouseover/mouseout instead of mouseenter/mouseleave because they bubble
@@ -427,6 +434,8 @@ export class TooltipManager {
      */
     _preventSystemTooltips(event) {
         if (!event.target || typeof event.target.closest !== 'function') return;
+        const isHoverMoveEvent = event.type === 'mouseover' || event.type === 'mouseout' ||
+            event.type === 'pointerover' || event.type === 'pointerout';
         
         // Only prevent system tooltips within BG3 HUD scope
         // Let system tooltips work normally everywhere else
@@ -434,6 +443,19 @@ export class TooltipManager {
         if (!isWithinBG3HUD) {
             return; // Allow system tooltips outside BG3 HUD
         }
+
+        // Allow system tooltips for real game items (must carry data-uuid)
+        const hasUuid = event.target.closest('[data-uuid]') !== null;
+        if (hasUuid) {
+            return;
+        }
+
+        // For HUD UI (no uuid), block system tooltips early but allow our own listeners on this node
+        event.stopPropagation();
+        event.preventDefault();
+        return;
+        
+        // Legacy handling below kept for safety with dnd5e class checks
         
         // Within BG3 HUD scope: check if this is a UI element (button, control, etc.)
         const target = event.target.closest('[data-bg3-ui]');
@@ -445,11 +467,11 @@ export class TooltipManager {
                 if (elementWithTooltipClass.dataset?.tooltipClass) {
                     const tooltipClass = elementWithTooltipClass.dataset.tooltipClass || '';
                     const hasDnd5eClasses = tooltipClass.includes('dnd5e2') || tooltipClass.includes('dnd5e-tooltip');
-                    const hasUuid = elementWithTooltipClass.hasAttribute('data-uuid') || 
+                    const hasUuidClass = elementWithTooltipClass.hasAttribute('data-uuid') || 
                                  elementWithTooltipClass.closest('[data-uuid]') !== null;
                     
                     // If it has dnd5e classes but no uuid, it's a UI element - prevent system tooltips
-                    if (hasDnd5eClasses && !hasUuid) {
+                    if (hasDnd5eClasses && !hasUuidClass) {
                         event.stopPropagation();
                         event.stopImmediatePropagation();
                         return;
@@ -831,6 +853,13 @@ export class TooltipManager {
         // Remove event listeners
         document.removeEventListener('mouseenter', this._preventSystemTooltips, true);
         document.removeEventListener('mouseleave', this._preventSystemTooltips, true);
+        document.removeEventListener('mouseover', this._preventSystemTooltips, true);
+        document.removeEventListener('mouseout', this._preventSystemTooltips, true);
+        document.removeEventListener('pointerenter', this._preventSystemTooltips, true);
+        document.removeEventListener('pointerleave', this._preventSystemTooltips, true);
+        document.removeEventListener('pointerover', this._preventSystemTooltips, true);
+        document.removeEventListener('pointerout', this._preventSystemTooltips, true);
+        document.removeEventListener('focusin', this._preventSystemTooltips, true);
         document.removeEventListener('mouseover', this._handleMouseEnter, true);
         document.removeEventListener('mouseout', this._handleMouseLeave, true);
         document.removeEventListener('mousemove', this._handleMouseMove);

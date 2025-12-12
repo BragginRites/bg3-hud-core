@@ -6,47 +6,52 @@
  .bg3-action-buttons-container {
     position: relative;
     display: flex;
-    width: calc(var(--bg3-hotbar-cell-size, 60px) * 1.5 + 16px);
+    width: calc(var(--bg3-hotbar-cell-size, 60px) + 6px);
+    min-width: calc(var(--bg3-hotbar-cell-size, 60px) + 6px);
     flex-direction: column;
+    gap: 6px;
     margin-left: 2px;
     padding-bottom: 3px;
     justify-content: flex-end;
+    align-items: center;
+    flex-shrink: 0;
 }
 
 /* Action button base styles */
 .bg3-action-buttons-container .bg3-button {
     display: flex;
-    padding: 0 8px;
+    padding: 0;
     position: relative;
     transition: all 0.15s ease;
     border-radius: var(--bg3-cell-border-radius, 8px);
     align-items: center;
     justify-content: center;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-    border: var(--bg3-cell-border-width, 2px) solid var(--bg3-cell-border-color, rgba(255, 255, 255, 0.2));
-    flex-direction: column-reverse;
-    justify-content: space-evenly;
-    height: 100px;
-    width: 50px;
-    background: var(--bg3-background, rgba(0, 0, 0, 0.4));
+    box-shadow: none;
+    border: var(--bg3-cell-border-width, 2px) solid var(--bg3-cell-border-color, var(--bg3-hotbar-border-color, rgba(255, 255, 255, 0.2)));
+    flex-direction: column;
+    justify-content: center;
+    height: var(--bg3-hotbar-cell-size, 60px);
+    width: var(--bg3-hotbar-cell-size, 60px);
+    background: var(--bg3-cell-filled-background, var(--bg3-cell-background, var(--bg3-hotbar-background-color, rgba(0, 0, 0, 0.4))));
     background-origin: content-box;
     background-size: contain;
-    color: var(--bg3-text, #ddd);
+    color: #fff;
     cursor: pointer;
     text-shadow: var(--shadow-text-stroke);
 }
 
 .bg3-action-buttons-container .bg3-button:hover,
 .bg3-action-buttons-container .bg3-button.hover {
-    background: var(--bg3-cell-hover-background, rgba(255, 255, 255, 0.1));
-    border-color: var(--bg3-cell-hover-border-color, rgba(255, 255, 255, 0.4));
-    color: var(--bg3-text, #ddd);
-    box-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
+    background: var(--bg3-cell-filled-hover-background, var(--bg3-cell-hover-background, var(--bg3-hotbar-background-color-hover, rgba(255, 255, 255, 0.1))));
+    border-color: var(--bg3-cell-hover-border-color, var(--bg3-hotbar-border-color-hover, rgba(255, 255, 255, 0.4)));
+    color: #fff;
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.15);
 }
 
 /* Icon sizing */
 .bg3-action-buttons-container .bg3-button-icon {
     font-size: calc(var(--bg3-hotbar-cell-size, 60px) / 2);
+    color: #fff;
 }
 
 /* Label */
@@ -64,21 +69,21 @@
 
 /* End Turn button specific styling */
 .bg3-action-buttons-container .bg3-button.end-turn-button {
-    background-color: var(--bg3-turn-background-color, #2a1a1a);
-    border-color: var(--bg3-turn-border-color, #8b0000);
-    color: var(--bg3-turn-text-color, #ff6b6b);
-    height: calc(var(--bg3-hotbar-cell-size, 60px) * 3 - 12px);
+    background-color: var(--bg3-cell-background, var(--bg3-hotbar-background-color, rgba(0, 0, 0, 0.4)));
+    border-color: var(--bg3-cell-border-color, var(--bg3-hotbar-border-color, rgba(255, 255, 255, 0.2)));
+    color: var(--bg3-hotbar-text-color, var(--bg3-text, #ddd));
+    padding: 4px;
 }
 
 .bg3-action-buttons-container .bg3-button.end-turn-button .bg3-button-icon {
-    font-size: calc(var(--bg3-hotbar-cell-size, 60px) * 2 / 3);
+    font-size: calc(var(--bg3-hotbar-cell-size, 60px) * 0.6);
 }
 
 .bg3-action-buttons-container .bg3-button.end-turn-button:hover,
 .bg3-action-buttons-container .bg3-button.end-turn-button.hover {
-    background-color: var(--bg3-turn-background-color-hover, #3a2525);
-    border-color: var(--bg3-turn-border-color-hover, #a00000);
-    color: var(--bg3-turn-text-color-hover, #ff8888);
+    background-color: var(--bg3-hotbar-background-color-hover, rgba(255, 255, 255, 0.1));
+    border-color: var(--bg3-hotbar-border-color-hover, rgba(255, 255, 255, 0.4));
+    color: var(--bg3-hotbar-text-color-hover, #ddd);
 }
 
 /* Rest button - inherits base styles from .bg3-button */

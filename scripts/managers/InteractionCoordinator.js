@@ -348,10 +348,12 @@ export class InteractionCoordinator {
         const targetData = targetCell.data;
         const sourceSlotKey = sourceCell.getSlotKey();
         const targetSlotKey = targetCell.getSlotKey();
+        const sourceIsWeaponSet = ContainerTypeDetector.isWeaponSet(sourceCell);
+        const targetIsWeaponSet = ContainerTypeDetector.isWeaponSet(targetCell);
 
         // STEP 2: Validate UUID uniqueness for swaps
         // When swapping, check if the target item's UUID would conflict at source location
-        if (targetData?.uuid) {
+        if (targetData?.uuid && !sourceIsWeaponSet && !targetIsWeaponSet) {
             const existingLocation = this.persistenceManager.findUuidInHud(targetData.uuid, {
                 excludeContainer: targetCell.containerType,
                 excludeContainerIndex: targetCell.containerIndex,
@@ -368,7 +370,7 @@ export class InteractionCoordinator {
         const sameContainer = ContainerTypeDetector.areSameContainer(sourceCell, targetCell);
 
         // STEP 3: Check for UUID conflicts in moves (not swaps)
-        if (!sameContainer && sourceData?.uuid && !targetData) {
+        if (!sameContainer && sourceData?.uuid && !targetData && !sourceIsWeaponSet && !targetIsWeaponSet) {
             // Moving item to empty slot in different container - check for duplicates
             const existingLocation = this.persistenceManager.findUuidInHud(sourceData.uuid, {
                 excludeContainer: sourceCell.containerType,
@@ -502,7 +504,7 @@ export class InteractionCoordinator {
         }
 
         // STEP 4: Check for UUID duplicates (only if UUID exists)
-        if (cellData.uuid) {
+        if (cellData.uuid && !ContainerTypeDetector.isWeaponSet(targetCell)) {
             const existingLocation = this.persistenceManager.findUuidInHud(cellData.uuid);
             if (existingLocation) {
                 ui.notifications.warn('This item is already in the HUD');

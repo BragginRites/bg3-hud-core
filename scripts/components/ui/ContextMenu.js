@@ -46,6 +46,12 @@ export class ContextMenu extends BG3Component {
 
             const menuItem = this.createElement('div', ['bg3-context-menu-item']);
             
+            // Add custom class if provided (e.g., 'checked' for checkboxes)
+            if (item.class) {
+                const classes = item.class.split(' ').filter(c => c);
+                menuItem.classList.add(...classes);
+            }
+            
             // Add tooltip if provided
             if (item.title) {
                 menuItem.title = item.title;
@@ -62,6 +68,13 @@ export class ContextMenu extends BG3Component {
             const label = this.createElement('span', ['bg3-context-menu-label']);
             label.textContent = item.label;
             menuItem.appendChild(label);
+
+            // Add custom HTML content if provided (e.g., checkbox)
+            if (item.custom) {
+                const customWrapper = this.createElement('div', ['bg3-context-menu-custom']);
+                customWrapper.innerHTML = item.custom;
+                menuItem.appendChild(customWrapper);
+            }
 
             // Add click handler
             menuItem.addEventListener('click', async (e) => {

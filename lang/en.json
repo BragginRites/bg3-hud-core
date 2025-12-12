@@ -1,1 +1,114 @@
-{"bg3-hud-core":{}}
+{
+  "bg3-hud-core": {
+    "Settings": {
+      "Theme": {
+        "Name": "Theme Settings",
+        "Label": "Configure Theme",
+        "Hint": "Customize colors, sizes, and appearance of the BG3 HUD",
+        "Title": "Theme Settings",
+        "General": "General",
+        "GeneralHint": "Parameters applied to all components below if not specified.",
+        "Normal": "Normal",
+        "Hover": "Hover",
+        "BorderColor": "Border Color",
+        "BackgroundColor": "Background Color",
+        "TextColor": "Text Color",
+        "TextSecondaryColor": "Secondary Text Color",
+        "BorderSize": "Border Size",
+        "BorderRadius": "Border Radius",
+        "Size": "Size",
+        "CellSize": "Cell Size",
+        "Portrait": "Portrait",
+        "Hotbar": "Hotbar",
+        "SubContainer": "Sub-Container",
+        "Cell": "Cell",
+        "DragbarColor": "Dragbar/Controls Color",
+        "WeaponSets": "Weapon Sets",
+        "Filters": "Filters",
+        "Passives": "Passive Effects",
+        "ActiveEffects": "Active Effects",
+        "Save": "Save",
+        "Reset": "Reset to Defaults",
+        "SaveSuccess": "Theme settings saved successfully",
+        "ResetSuccess": "Theme reset to defaults"
+      },
+      "NormalOpacity": {
+        "Name": "Normal Opacity",
+        "Hint": "The opacity of the HUD when visible (0.1 to 1.0)"
+      },
+      "FadedOpacity": {
+        "Name": "Faded Opacity",
+        "Hint": "The opacity when the HUD fades out after inactivity (set to 1.0 to disable fading)"
+      },
+      "FadeOutDelay": {
+        "Name": "Fade Out Delay (seconds)",
+        "Hint": "How long to wait before fading out the HUD (1 to 30 seconds)"
+      },
+      "AutoScale": {
+        "Name": "Auto Scale",
+        "Hint": "Automatically scale the UI based on screen height"
+      },
+      "UIScale": {
+        "Name": "UI Scale",
+        "Hint": "Manual UI scale percentage (50% to 300%). Only used when Auto Scale is disabled."
+      },
+      "UIPosition": {
+        "Name": "UI Position",
+        "Hint": "Where to position the HUD on the screen",
+        "Center": "Center",
+        "Left": "Left",
+        "Right": "Right"
+      },
+      "PosPadding": {
+        "Name": "Position Padding",
+        "Hint": "Horizontal padding from screen edge (pixels)"
+      },
+      "PosPaddingBottom": {
+        "Name": "Bottom Padding",
+        "Hint": "Padding from the bottom of the screen (pixels)"
+      },
+      "Appearance": {
+        "MenuTitle": "Appearance Settings",
+        "MenuName": "Appearance Settings",
+        "MenuLabel": "Appearance Settings",
+        "MenuHint": "Adjust opacity and fade timing for the HUD",
+        "Legend": "Appearance"
+      },
+      "Layout": {
+        "MenuTitle": "Layout & Position",
+        "MenuName": "Layout & Position",
+        "MenuLabel": "Layout & Position Settings",
+        "MenuHint": "Adjust scaling and positioning of the HUD",
+        "Legend": "Layout & Position"
+      },
+      "FoundryUI": {
+        "MenuTitle": "Foundry UI",
+        "MenuName": "Foundry UI",
+        "MenuLabel": "Foundry UI Settings",
+        "MenuHint": "Control macro bar visibility and tooltip timing",
+        "Legend": "Foundry UI"
+      },
+      "GMHotbar": {
+        "MenuTitle": "GM Hotbar",
+        "MenuName": "GM Hotbar",
+        "MenuLabel": "GM Hotbar Settings",
+        "MenuHint": "Configure GM hotbar visibility and container density",
+        "Legend": "GM Hotbar"
+      }
+    },
+    "Controls": {
+      "Lock": {
+        "Tooltip": "Lock Settings<br>(Right-click for options)",
+        "NoSettingsWarning": "Please right-click the lock button to select which settings to lock.",
+        "KeepGMHotbar": "Keep GM Hotbar",
+        "DeselectToken": "Deselecting Token",
+        "Opacity": "Opacity",
+        "DragDrop": "Drag & Drop"
+      }
+    },
+    "Tooltips": {
+      "InfoButton": "Character Info<br><small>Right-click for Initiative</small>",
+      "SwitchWeaponSet": "Click: Switch to weapon set {number}"
+    }
+  }
+}

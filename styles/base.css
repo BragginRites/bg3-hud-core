@@ -1,22 +1,109 @@
 /* BG3 HUD Core - Base Styles & Variables */
 
 :root {    
-    /* Colors */
+    /* ==========================================================================
+       Theme Variables (can be overridden by theme settings)
+       ========================================================================== */
+    
+    /* General Theme Colors */
+    --bg3-border-color: #444444;
+    --bg3-border-color-hover: #666666;
+    --bg3-background-color: #222222;
+    --bg3-background-color-hover: #3a3a3a;
+    --bg3-text-color: #dddddd;
+    --bg3-text-color-hover: #dddddd;
+    --bg3-text-secondary-color: #ffffff;
+    --bg3-border-size: 2px;
+    --bg3-border-radius: 8px;
+    
+    /* Portrait */
+    --bg3-portrait-size: 175px;
+    
+    /* Hotbar */
+    --bg3-hotbar-border-color: var(--bg3-border-color);
+    --bg3-hotbar-border-color-hover: var(--bg3-border-color-hover);
+    --bg3-hotbar-sub-background-color: var(--bg3-background-color);
+    --bg3-hotbar-background-color: var(--bg3-background-color);
+    --bg3-hotbar-background-color-hover: var(--bg3-background-color-hover);
+    --bg3-hotbar-text-color: var(--bg3-text-color);
+    --bg3-hotbar-text-color-hover: var(--bg3-text-color-hover);
+    --bg3-hotbar-cell-size: 50px;
+    --bg3-hotbar-border-size: var(--bg3-border-size);
+    --bg3-hotbar-drag-color: #cc3333;
+    --bg3-hotbar-drag-color-hover: #d10000;
+    
+    /* Weapon Sets */
+    --bg3-weapon-border-color: var(--bg3-border-color);
+    --bg3-weapon-border-color-hover: var(--bg3-border-color-hover);
+    --bg3-weapon-background-color: var(--bg3-background-color);
+    --bg3-weapon-background-color-hover: var(--bg3-background-color-hover);
+    --bg3-weapon-text-color: var(--bg3-text-color);
+    --bg3-weapon-text-color-hover: var(--bg3-text-color-hover);
+    --bg3-weapon-cell-size: 75px;
+    --bg3-weapon-border-size: var(--bg3-border-size);
+    
+    /* Filters */
+    --bg3-filter-border-color: var(--bg3-border-color);
+    --bg3-filter-border-color-hover: var(--bg3-border-color-hover);
+    --bg3-filter-background-color: var(--bg3-background-color);
+    --bg3-filter-background-color-hover: var(--bg3-background-color-hover);
+    --bg3-filter-text-color: var(--bg3-text-color);
+    --bg3-filter-text-color-hover: var(--bg3-text-color-hover);
+    --bg3-filter-cell-size: 32px;
+    --bg3-filter-border-size: var(--bg3-border-size);
+    
+    /* Passives */
+    --bg3-passive-border-color: var(--bg3-border-color);
+    --bg3-passive-border-color-hover: var(--bg3-border-color-hover);
+    --bg3-passive-background-color: var(--bg3-background-color);
+    --bg3-passive-background-color-hover: var(--bg3-background-color-hover);
+    --bg3-passive-text-color: var(--bg3-text-color);
+    --bg3-passive-text-color-hover: var(--bg3-text-color-hover);
+    --bg3-passive-cell-size: 31px;
+    --bg3-passive-border-size: var(--bg3-border-size);
+    
+    /* Active Effects */
+    --bg3-active-border-color: var(--bg3-border-color);
+    --bg3-active-border-color-hover: var(--bg3-border-color-hover);
+    --bg3-active-background-color: var(--bg3-background-color);
+    --bg3-active-background-color-hover: var(--bg3-background-color-hover);
+    --bg3-active-text-color: var(--bg3-text-color);
+    --bg3-active-text-color-hover: var(--bg3-text-color-hover);
+    --bg3-active-cell-size: 31px;
+    --bg3-active-border-size: var(--bg3-border-size);
+    
+    /* Tooltip */
+    --bg3-tooltip-border-color: var(--bg3-border-color);
+    --bg3-tooltip-background-color: var(--bg3-background-color);
+    --bg3-tooltip-text-color: var(--bg3-text-color);
+    --bg3-tooltip-text-secondary-color: var(--bg3-text-secondary-color);
+    --bg3-tooltip-component-color: #aaaaaa;
+    --bg3-tooltip-border-size: var(--bg3-border-size);
+    
+    /* ==========================================================================
+       Opacity & Scale Variables
+       ========================================================================== */
+    --bg3-normal-opacity: 1;
+    --bg3-faded-opacity: 1;
+    --bg3-faded-delay: 0s;
+    --bg3-scale-ui: 1;
+    
+    /* ==========================================================================
+       Legacy/Internal Variables (for backwards compatibility)
+       ========================================================================== */
     --bg3-background: #111111f2;
-    --bg3-background-color: rgba(20, 20, 20, 0.95);
     --bg3-border: #2f2f2f;
     --bg3-border-width: 1px;
-    --bg3-border-radius: 10px;
     --primary-border-width: 2px;
     --primary-border-color: #000000;
-    --bg3-text: #ddd;
+    --bg3-text: var(--bg3-text-color);
     --bg3-text-muted: #999;
     --bg3-background-highlight: #1a1a1a;
     --shadow-text-stroke: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
 
-    /* Cells */
+    /* Cells (internal) */
     --bg3-cell-border-width: 2px;
-    --bg3-cell-border-radius: 8px;
+    --bg3-cell-border-radius: var(--bg3-border-radius);
     --bg3-cell-background: rgba(0, 0, 0, 0.4);
     --bg3-cell-filled-background: rgba(40, 40, 40, 0.8);
     --bg3-cell-hover-background: rgba(255, 255, 255, 0.1);
@@ -28,20 +115,18 @@
     --bg3-grid-gap: 2px;
 
     /* Drag Bar */
-    --bg3-drag-bar-background: #2b2b2b;
-    --bg3-drag-bar-background-hover: #6e6e6e;
+    --bg3-drag-bar-background: var(--bg3-hotbar-drag-color, #2b2b2b);
+    --bg3-drag-bar-background-hover: var(--bg3-hotbar-drag-color-hover, #6e6e6e);
     --bg3-drag-bar-background-dragging: #5a5353;
 
-    
     /* Z-indices */
     --bg3-z-base: 70;
     --bg3-z-grid: 20;
     --bg3-z-filter-container: 100;
     
-    /* Sizing */
-    --bg3-cell-size: 50px;
-    --bg3-filter-button-size: 32px;
-    --bg3-portrait-size: 178px;
+    /* Sizing (legacy aliases) */
+    --bg3-cell-size: var(--bg3-hotbar-cell-size);
+    --bg3-filter-button-size: var(--bg3-filter-cell-size);
 }
 
 /* ==========================================================================
@@ -86,7 +171,7 @@
 
 /* Smooth fade-in when HUD is ready */
 .bg3-hud.bg3-hud-visible {
-    opacity: 1;
+    opacity: var(--bg3-normal-opacity, 1);
     transition: opacity 0.3s ease-in-out;
 }
 

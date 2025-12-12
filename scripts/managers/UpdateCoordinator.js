@@ -5,6 +5,7 @@
  * Note: HUD state updates are now handled via socketlib for real-time sync
  */
 import { BG3HUD_REGISTRY } from '../utils/registry.js';
+import { ControlsManager } from './ControlsManager.js';
 
 export class UpdateCoordinator {
     constructor(options = {}) {
@@ -77,6 +78,12 @@ export class UpdateCoordinator {
                 await this.hotbarApp.refresh();
             }
         } else {
+            // Check if deselect lock is enabled - if so, keep the current token
+            if (ControlsManager.isSettingLocked('deselect') && this.hotbarApp.currentToken) {
+                // Deselect lock active - don't change the current token
+                return;
+            }
+
             // When deselecting, check if we still have a single token selected
             if (controlledTokens.length === 1) {
                 // Another token is still selected, show it
@@ -206,9 +213,9 @@ export class UpdateCoordinator {
             }
         }
 
-        // Fallback: full refresh for unhandled changes (rare)
-        console.warn('BG3 HUD Core | UpdateCoordinator: Unhandled actor change, doing full refresh:', changes);
-        await this.hotbarApp.refresh();
+        // No full refresh fallback - only update elements that have explicit handlers
+        // Unhandled changes are logged for debugging but don't trigger expensive re-renders
+        console.debug('BG3 HUD Core | UpdateCoordinator: Unhandled actor change (no refresh):', changes);
     }
 
     /**
@@ -291,10 +298,11 @@ export class UpdateCoordinator {
         }
 
         // Portrait image preference (D&D 5e specific)
-        if (Object.prototype.hasOwnProperty.call(adapterFlags, 'useTokenImage')) {
+        if (Object.prototype.hasOwnProperty.call(adapterFlags, 'useTokenImage') || 
+            Object.prototype.hasOwnProperty.call(adapterFlags, 'scaleWithToken')) {
             const portraitContainer = this.hotbarApp.components?.portrait;
             if (portraitContainer) {
-                // Re-render the portrait to show the new image
+                // Re-render the portrait to show the new image/scale
                 await portraitContainer.render();
                 handled = true;
             }

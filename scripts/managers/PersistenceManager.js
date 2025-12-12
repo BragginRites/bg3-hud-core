@@ -38,7 +38,8 @@ export class PersistenceManager {
      */
     setToken(token) {
         this.currentToken = token;
-        this.currentActor = token?.actor || null;
+        // Accept either a Token(ish) object or an Actor directly
+        this.currentActor = token?.actor || (token instanceof Actor ? token : null);
         this.state = null; // Clear cache
     }
 
@@ -1201,18 +1202,34 @@ export class PersistenceManager {
             }
         }
 
-        // Check quick access
-        if (excludeContainer !== 'quickAccess') {
-            for (const [slotKey, item] of Object.entries(this.state.quickAccess.items || {})) {
-                if (item?.uuid === uuid) {
-                    return { container: 'quickAccess', containerIndex: 0, slotKey };
+        // Check quick access (grids array)
+        if (this.state.quickAccess?.grids) {
+            if (excludeContainer !== 'quickAccess') {
+                for (let i = 0; i < this.state.quickAccess.grids.length; i++) {
+                    const grid = this.state.quickAccess.grids[i];
+                    for (const [slotKey, item] of Object.entries(grid?.items || {})) {
+                        if (item?.uuid === uuid) {
+                            return { container: 'quickAccess', containerIndex: i, slotKey };
+                        }
+                    }
                 }
-            }
-        } else if (excludeSlotKey) {
-            // Check different slots in quick access
-            for (const [slotKey, item] of Object.entries(this.state.quickAccess.items || {})) {
-                if (slotKey !== excludeSlotKey && item?.uuid === uuid) {
-                    return { container: 'quickAccess', containerIndex: 0, slotKey };
+            } else if (excludeContainerIndex !== undefined) {
+                // Check other quick access grids
+                for (let i = 0; i < this.state.quickAccess.grids.length; i++) {
+                    if (i === excludeContainerIndex) continue;
+                    const grid = this.state.quickAccess.grids[i];
+                    for (const [slotKey, item] of Object.entries(grid?.items || {})) {
+                        if (item?.uuid === uuid) {
+                            return { container: 'quickAccess', containerIndex: i, slotKey };
+                        }
+                    }
+                }
+                // Check the same grid but different slots
+                const sameGrid = this.state.quickAccess.grids[excludeContainerIndex];
+                for (const [slotKey, item] of Object.entries(sameGrid?.items || {})) {
+                    if (slotKey !== excludeSlotKey && item?.uuid === uuid) {
+                        return { container: 'quickAccess', containerIndex: excludeContainerIndex, slotKey };
+                    }
                 }
             }
         }

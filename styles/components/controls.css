@@ -32,7 +32,7 @@
     background: var(--bg3-background);
     border: 2px solid var(--primary-border-color);
     border-radius: 50%;
-    color: var(--bg3-text);
+    color: var(--bg3-hotbar-text-color, #fff);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -48,4 +48,16 @@
 
 .hotbar-control-button i {
     pointer-events: none;
+    color: #fff !important;
+    text-shadow: var(--shadow-text-stroke);
+}
+
+/* Lock button locked state */
+.hotbar-control-button.locked {
+    background: var(--color-warm-1, #aa5555);
+    border-color: var(--color-warm-2, #cc7777);
+}
+
+.hotbar-control-button.locked:hover {
+    background: var(--color-warm-2, #cc7777);
 }
