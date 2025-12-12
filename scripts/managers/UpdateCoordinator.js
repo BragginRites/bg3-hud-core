@@ -141,17 +141,15 @@ export class UpdateCoordinator {
         const hudStateChanged = changes?.flags?.[this.moduleId]?.[this.flagName];
 
         if (hudStateChanged) {
-            // Socket-based updates: Only update if we initiated the save (for backup/validation)
-            // All other clients receive instant updates via socketlib, no hook handling needed
+            // If we just saved locally, skip reload to prevent flicker
             if (this.persistenceManager.shouldSkipReload()) {
                 return;
             }
             
-            // For observers: socketlib already handled the update instantly
-            // This hook fires after the server roundtrip, which we can ignore
-            
-            // Update our cached state to stay in sync with the server
-            this.persistenceManager.state = foundry.utils.deepClone(actor.getFlag(this.moduleId, this.flagName));
+            // Server state changed from another source (another user saved)
+            // This is our authoritative reconciliation point
+            // The server state is the source of truth - reconcile our UI to match
+            await this._reconcileWithServerState(actor);
             return;
         }
 
@@ -550,6 +548,140 @@ export class UpdateCoordinator {
             if (this.hotbarApp.components?.hotbar?.activeEffectsContainer) {
                 await this.hotbarApp.components.hotbar.activeEffectsContainer.render();
             }
+        }
+    }
+
+    /**
+     * Reconcile local UI state with authoritative server state
+     * Called when hudState flag changes from another user's save
+     * This ensures eventual consistency even if socket updates were missed or conflicted
+     * @param {Actor} actor - The actor whose state changed
+     * @private
+     */
+    async _reconcileWithServerState(actor) {
+        // Get the authoritative server state
+        const serverState = actor.getFlag(this.moduleId, this.flagName);
+        if (!serverState) return;
+
+        // Update persistence manager's cached state
+        this.persistenceManager.state = foundry.utils.deepClone(serverState);
+
+        // Compare and update UI components to match server state
+        // This is a lightweight reconciliation - only update what differs
+        await this._reconcileHotbarGrids(serverState);
+        await this._reconcileWeaponSets(serverState);
+        await this._reconcileQuickAccess(serverState);
+    }
+
+    /**
+     * Reconcile hotbar grids with server state
+     * @param {Object} serverState - Authoritative server state
+     * @private
+     */
+    async _reconcileHotbarGrids(serverState) {
+        const hotbar = this.hotbarApp.components?.hotbar;
+        if (!hotbar || !serverState.hotbar?.grids) return;
+
+        const updates = [];
+
+        for (let i = 0; i < serverState.hotbar.grids.length; i++) {
+            const serverGrid = serverState.hotbar.grids[i];
+            const gridContainer = hotbar.gridContainers[i];
+            
+            if (!gridContainer) continue;
+
+            // Check if grid config differs
+            const configChanged = gridContainer.rows !== serverGrid.rows || 
+                                  gridContainer.cols !== serverGrid.cols;
+            
+            // Check if items differ (deep comparison would be expensive, so just replace)
+            const itemsChanged = JSON.stringify(gridContainer.items) !== JSON.stringify(serverGrid.items);
+
+            if (configChanged || itemsChanged) {
+                // Update grid container
+                if (hotbar.grids[i]) {
+                    hotbar.grids[i].rows = serverGrid.rows;
+                    hotbar.grids[i].cols = serverGrid.cols;
+                    hotbar.grids[i].items = serverGrid.items;
+                }
+                
+                gridContainer.rows = serverGrid.rows;
+                gridContainer.cols = serverGrid.cols;
+                gridContainer.items = serverGrid.items || {};
+                
+                updates.push(gridContainer.render());
+            }
+        }
+
+        if (updates.length > 0) {
+            await Promise.all(updates);
+        }
+    }
+
+    /**
+     * Reconcile weapon sets with server state
+     * @param {Object} serverState - Authoritative server state
+     * @private
+     */
+    async _reconcileWeaponSets(serverState) {
+        const weaponSets = this.hotbarApp.components?.weaponSets;
+        if (!weaponSets || !serverState.weaponSets?.sets) return;
+
+        const updates = [];
+
+        for (let i = 0; i < serverState.weaponSets.sets.length; i++) {
+            const serverSet = serverState.weaponSets.sets[i];
+            const gridContainer = weaponSets.gridContainers[i];
+            
+            if (!gridContainer) continue;
+
+            // Check if items differ
+            const itemsChanged = JSON.stringify(gridContainer.items) !== JSON.stringify(serverSet.items);
+
+            if (itemsChanged) {
+                if (weaponSets.weaponSets[i]) {
+                    weaponSets.weaponSets[i].items = serverSet.items;
+                }
+                gridContainer.items = serverSet.items || {};
+                updates.push(gridContainer.render());
+            }
+        }
+
+        // Check if active set differs
+        if (serverState.weaponSets.activeSet !== undefined && 
+            weaponSets.getActiveSet && 
+            weaponSets.getActiveSet() !== serverState.weaponSets.activeSet) {
+            await weaponSets.setActiveSet(serverState.weaponSets.activeSet, true);
+        }
+
+        if (updates.length > 0) {
+            await Promise.all(updates);
+        }
+    }
+
+    /**
+     * Reconcile quick access with server state
+     * @param {Object} serverState - Authoritative server state
+     * @private
+     */
+    async _reconcileQuickAccess(serverState) {
+        const quickAccess = this.hotbarApp.components?.quickAccess;
+        if (!quickAccess || !serverState.quickAccess?.grids?.[0]) return;
+
+        const serverGrid = serverState.quickAccess.grids[0];
+        const gridContainer = quickAccess.gridContainers[0];
+        
+        if (!gridContainer) return;
+
+        // Check if items differ
+        const itemsChanged = JSON.stringify(gridContainer.items) !== JSON.stringify(serverGrid.items);
+
+        if (itemsChanged) {
+            if (quickAccess.grids?.[0]) {
+                quickAccess.grids[0].items = serverGrid.items;
+            }
+            gridContainer.items = serverGrid.items || {};
+            await gridContainer.render();
         }
     }
 

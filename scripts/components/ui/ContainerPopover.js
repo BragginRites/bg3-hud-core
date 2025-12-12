@@ -128,28 +128,39 @@ export class ContainerPopover extends BG3Component {
         }
 
         const triggerRect = this.triggerElement.getBoundingClientRect();
+        const hudContainer = ui.BG3HUD_APP?.element?.querySelector('#bg3-hotbar-container');
         
         // Calculate popover dimensions based on grid size
-        // Using CSS variables: cell size + gaps + padding
         const rootStyles = getComputedStyle(document.documentElement);
         const cellSize = parseInt(rootStyles.getPropertyValue('--bg3-cell-size').trim()) || 50;
         const gridGap = parseInt(rootStyles.getPropertyValue('--bg3-grid-gap').trim()) || 2;
         
-        // 5 columns, 3 rows (default)
         const cols = 5;
         const rows = 3;
+        const popoverWidth = (cellSize * cols) + (gridGap * (cols - 1)) + (gridGap * 2);
         
-        const popoverWidth = (cellSize * cols) + (gridGap * (cols - 1)) + (gridGap * 2); // +padding on both sides
-        const popoverHeight = (cellSize * rows) + (gridGap * (rows - 1)) + (gridGap * 2);
-        
-        // Center horizontally above the trigger
-        const left = triggerRect.left + (triggerRect.width / 2) - (popoverWidth / 2);
-        const bottom = window.innerHeight - triggerRect.top + 10; // 10px gap above trigger
-        
-        return {
-            left: `${left}px`,
-            bottom: `${bottom}px`
-        };
+        if (hudContainer) {
+            // Position relative to HUD container (absolute positioning)
+            const containerRect = hudContainer.getBoundingClientRect();
+            // Center horizontally over trigger
+            const left = triggerRect.left - containerRect.left + (triggerRect.width / 2) - (popoverWidth / 2);
+            // Position above trigger: distance from container bottom to trigger top + gap
+            const bottom = containerRect.bottom - triggerRect.top + 10;
+            
+            return {
+                left: `${left}px`,
+                bottom: `${bottom}px`
+            };
+        } else {
+            // Fallback: position relative to viewport (fixed positioning)
+            const left = triggerRect.left + (triggerRect.width / 2) - (popoverWidth / 2);
+            const bottom = window.innerHeight - triggerRect.top + 10;
+            
+            return {
+                left: `${left}px`,
+                bottom: `${bottom}px`
+            };
+        }
     }
 
     /**
@@ -159,7 +170,9 @@ export class ContainerPopover extends BG3Component {
     async render() {
         // Create popover container
         if (!this.element) {
-            this.element = this.createElement('div', ['bg3-container-popover']);
+            // Mark as BG3 HUD UI so TooltipManager picks up hover events
+            this.element = this.createElement('div', ['bg3-container-popover', 'bg3-hud']);
+            this.element.dataset.bg3Ui = 'true';
         }
 
         // Clear existing content
@@ -202,8 +215,17 @@ export class ContainerPopover extends BG3Component {
             this.element.style.transform = position.transform;
         }
 
-        // Add to document
-        document.body.appendChild(this.element);
+        // Append to HUD container so TooltipManager recognizes it
+        // Use absolute positioning relative to the container
+        const hudContainer = ui.BG3HUD_APP?.element?.querySelector('#bg3-hotbar-container');
+        if (hudContainer) {
+            hudContainer.appendChild(this.element);
+            // Change to absolute positioning when inside container
+            this.element.style.position = 'absolute';
+        } else {
+            // Fallback to body with fixed positioning
+            document.body.appendChild(this.element);
+        }
 
         // Mark as open
         this.isOpen = true;

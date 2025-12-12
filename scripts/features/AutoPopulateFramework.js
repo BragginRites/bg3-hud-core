@@ -328,11 +328,17 @@ export class AutoPopulateFramework {
                         itemIndex++;
                     }
                 }
-        }
-        }
+            }
 
-        // Save the populated state
-        await persistenceManager.saveState(state);
+            // Save state after each grid
+            await persistenceManager.saveState(state);
+            
+            // Delay before next grid (50ms between grids)
+            // Only delay if not the last grid (gridIndex 0 or 1, not 2)
+            if (gridIndex < 2) {
+                await new Promise(resolve => setTimeout(resolve, 50));
+            }
+        }
     }
 
     /**

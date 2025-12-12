@@ -202,5 +202,23 @@ export class ComponentFactory {
             token: this.hotbarApp.currentToken
         });
     }
+
+    /**
+     * Create CPR Generic Actions container
+     * Uses adapter implementation if available, otherwise returns null
+     * @returns {Promise<BG3Component|null>}
+     */
+    async createCPRGenericActionsContainer() {
+        // Check if adapter provides a CPR Generic Actions container class
+        const CPRGenericActionsClass = BG3HUD_REGISTRY.containers['cprGenericActions'];
+        
+        // Only create if adapter registered a custom class and we have an actor
+        if (!this.hotbarApp.currentActor || !CPRGenericActionsClass) return null;
+        
+        return new CPRGenericActionsClass({
+            actor: this.hotbarApp.currentActor,
+            token: this.hotbarApp.currentToken
+        });
+    }
 }
 

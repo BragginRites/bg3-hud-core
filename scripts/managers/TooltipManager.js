@@ -439,7 +439,7 @@ export class TooltipManager {
         
         // Only prevent system tooltips within BG3 HUD scope
         // Let system tooltips work normally everywhere else
-        const isWithinBG3HUD = event.target.closest('.bg3-hud, #bg3-hotbar-container') !== null;
+        const isWithinBG3HUD = event.target.closest('.bg3-hud, #bg3-hotbar-container, .bg3-container-popover') !== null;
         if (!isWithinBG3HUD) {
             return; // Allow system tooltips outside BG3 HUD
         }
@@ -509,7 +509,7 @@ export class TooltipManager {
         if (!event.target || typeof event.target.closest !== 'function') return;
         
         // Only handle tooltips within BG3 HUD scope to avoid processing every element in Foundry
-        const isWithinBG3HUD = event.target.closest('.bg3-hud, #bg3-hotbar-container') !== null;
+        const isWithinBG3HUD = event.target.closest('.bg3-hud, #bg3-hotbar-container, .bg3-container-popover') !== null;
         if (!isWithinBG3HUD) {
             return; // Let system tooltips handle everything outside BG3 HUD
         }
@@ -647,7 +647,7 @@ export class TooltipManager {
         }
         
         // Only handle tooltips within BG3 HUD scope
-        const isWithinBG3HUD = event.target.closest('.bg3-hud, #bg3-hotbar-container') !== null;
+        const isWithinBG3HUD = event.target.closest('.bg3-hud, #bg3-hotbar-container, .bg3-container-popover') !== null;
         if (!isWithinBG3HUD) {
             return; // Let system tooltips handle everything outside BG3 HUD
         }

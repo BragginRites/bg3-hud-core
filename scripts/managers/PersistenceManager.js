@@ -2,6 +2,12 @@
  * Persistence Manager
  * Single source of truth for all HUD state
  * Uses unified flag: bg3-hud-core.hudState
+ * 
+ * Multi-user sync strategy:
+ * - Each save increments a state revision number
+ * - Socket updates include the revision for ordering
+ * - Server state is authoritative; reconciliation uses revision to detect conflicts
+ * - _lastSaveTimestamp prevents self-triggered hook reloads
  */
 export class PersistenceManager {
     constructor() {
@@ -13,6 +19,7 @@ export class PersistenceManager {
         this.state = null; // Cached state
         this._saveInProgress = false; // Prevent concurrent saves
         this._lastSaveTimestamp = 0; // Track when we last saved locally
+        this._stateRevision = 0; // Incremented on each save for conflict detection
         this.socketManager = null; // Set by BG3Hotbar
         
         // Default grid configuration - can be overridden by system adapters
@@ -41,6 +48,16 @@ export class PersistenceManager {
         // Accept either a Token(ish) object or an Actor directly
         this.currentActor = token?.actor || (token instanceof Actor ? token : null);
         this.state = null; // Clear cache
+        this._stateRevision = 0; // Reset revision for new actor
+    }
+
+    /**
+     * Get current state revision number
+     * Used by socket updates for ordering and conflict detection
+     * @returns {number} Current revision
+     */
+    getStateRevision() {
+        return this._stateRevision;
     }
 
     /**
@@ -224,7 +241,7 @@ export class PersistenceManager {
 
     /**
      * Save complete state to actor flags or GM hotbar data
-     * Includes concurrency protection
+     * Includes concurrency protection and revision tracking
      * @param {Object} state - Complete HUD state
      * @returns {Promise<void>}
      */
@@ -232,6 +249,7 @@ export class PersistenceManager {
         // Check if in GM hotbar mode
         if (this.isGMHotbarMode()) {
             // Save to GM hotbar data setting
+            this._stateRevision++;
             await game.settings.set(this.MODULE_ID, 'gmHotbarData', state);
             this.state = foundry.utils.deepClone(state);
             return;
@@ -249,6 +267,9 @@ export class PersistenceManager {
 
         try {
             this._saveInProgress = true;
+
+            // Increment revision for this save
+            this._stateRevision++;
 
             // Mark that we're saving locally (to prevent reload on updateActor hook)
             this._lastSaveTimestamp = Date.now();
@@ -404,6 +425,7 @@ export class PersistenceManager {
             await this.socketManager.broadcastUpdate(this.currentActor.uuid, {
                 type: 'cellUpdate',
                 userId: game.user.id,
+                revision: this._stateRevision,
                 container,
                 containerIndex,
                 slotKey,
@@ -425,6 +447,16 @@ export class PersistenceManager {
         this._syncCurrentStateToActiveView(state);
         
         await this.saveState(state);
+        
+        // Broadcast update via socket for instant sync
+        if (this.socketManager && this.currentActor) {
+            await this.socketManager.broadcastUpdate(this.currentActor.uuid, {
+                type: 'weaponSetChange',
+                userId: game.user.id,
+                revision: this._stateRevision,
+                activeSet: index
+            });
+        }
     }
 
     /**
@@ -458,6 +490,7 @@ export class PersistenceManager {
             await this.socketManager.broadcastUpdate(this.currentActor.uuid, {
                 type: 'gridConfig',
                 userId: game.user.id,
+                revision: this._stateRevision,
                 gridIndex,
                 config
             });
@@ -521,6 +554,7 @@ export class PersistenceManager {
             await this.socketManager.broadcastUpdate(this.currentActor.uuid, {
                 type: 'containerUpdate',
                 userId: game.user.id,
+                revision: this._stateRevision,
                 containerType,
                 containerIndex,
                 items
@@ -561,7 +595,8 @@ export class PersistenceManager {
         if (this.socketManager && this.currentActor) {
             await this.socketManager.broadcastUpdate(this.currentActor.uuid, {
                 type: 'clearAll',
-                userId: game.user.id
+                userId: game.user.id,
+                revision: this._stateRevision
             });
         }
     }

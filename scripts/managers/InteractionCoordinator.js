@@ -87,7 +87,14 @@ export class InteractionCoordinator {
      * @param {MouseEvent} event - The click event
      */
     async openContainerPopover(cell, event) {
-        // Close any existing popover
+        // Toggle: if clicking the same cell that opened the current popover, close it
+        if (this.activePopover && this.activePopover.triggerCell === cell) {
+            this.activePopover.close();
+            this.activePopover = null;
+            return;
+        }
+
+        // Close any existing popover (different cell)
         if (this.activePopover) {
             this.activePopover.close();
             this.activePopover = null;
@@ -114,6 +121,7 @@ export class InteractionCoordinator {
         this.activePopover = new ContainerPopover({
             containerItem: containerItem,
             triggerElement: cell.element,
+            triggerCell: cell, // Store reference to trigger cell for toggle logic
             actor: this.hotbarApp?.currentActor,
             token: this.hotbarApp?.currentToken,
             adapter: this.adapter,
@@ -484,7 +492,16 @@ export class InteractionCoordinator {
             return;
         }
 
-        // STEP 2: Validate item ownership (must belong to current actor)
+        // STEP 2: Check if adapter wants to block this item from the hotbar
+        if (this.adapter && typeof this.adapter.shouldBlockFromHotbar === 'function') {
+            const blockResult = await this.adapter.shouldBlockFromHotbar(item);
+            if (blockResult?.blocked) {
+                ui.notifications.warn(blockResult.reason || 'This item cannot be added to the hotbar');
+                return;
+            }
+        }
+
+        // STEP 3: Validate item ownership (must belong to current actor)
         const currentActor = this.hotbarApp?.currentActor;
         if (!currentActor) {
             ui.notifications.warn('No actor selected');
@@ -496,14 +513,14 @@ export class InteractionCoordinator {
             return;
         }
 
-        // STEP 3: Transform item to cell data
+        // STEP 4: Transform item to cell data
         const cellData = await this._transformItemToCellData(item);
         if (!cellData) {
             console.warn('BG3 HUD Core | Could not transform item to cell data');
             return;
         }
 
-        // STEP 4: Check for UUID duplicates (only if UUID exists)
+        // STEP 5: Check for UUID duplicates (only if UUID exists)
         if (cellData.uuid && !ContainerTypeDetector.isWeaponSet(targetCell)) {
             const existingLocation = this.persistenceManager.findUuidInHud(cellData.uuid);
             if (existingLocation) {

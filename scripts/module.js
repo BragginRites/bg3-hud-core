@@ -77,16 +77,18 @@ Hooks.on('createToken', async (tokenDocument, options, userId) => {
     const actor = tokenDocument.actor;
     if (!actor) return;
 
-    // Only auto-populate for NPCs (non-character actors)
-    // Player characters should use right-click to auto-populate containers manually
-    // NOTE: NPCs may still be owned by players (e.g., observers/minions); ownership should not block auto-populate
-    if (actor.type === 'character') {
-        return;
-    }
-
     // Check if adapter provides auto-populate on token creation
     const adapter = BG3HUD_REGISTRY.activeAdapter;
     if (!adapter || !adapter.autoPopulate) return;
+
+    // Only auto-populate for NPCs (non-character actors) by default
+    // Player characters should use right-click to auto-populate containers manually
+    // NOTE: NPCs may still be owned by players (e.g., observers/minions); ownership should not block auto-populate
+    // However, allow override for player characters if explicitly enabled
+    const allowPlayerCharacters = game.settings.get(adapter.MODULE_ID, 'autoPopulatePlayerCharacters');
+    if (actor.type === 'character' && !allowPlayerCharacters) {
+        return;
+    }
 
     // Check if feature is enabled
     const enabled = game.settings.get(adapter.MODULE_ID, 'autoPopulateEnabled');
@@ -109,6 +111,9 @@ Hooks.on('createToken', async (tokenDocument, options, userId) => {
         
         // Pass actor directly instead of token object (which may not exist yet)
         await adapter.autoPopulate.populateOnTokenCreation(actor, configuration, tempPersistence);
+
+        // Delay before passives (50ms after grids)
+        await new Promise(resolve => setTimeout(resolve, 50));
 
         // Also auto-populate passives if adapter supports it
         if (typeof adapter.autoPopulatePassives === 'function') {

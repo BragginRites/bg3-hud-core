@@ -110,7 +110,20 @@ export function createSettingsSubmenu({ moduleId, titleKey, sections }) {
       const formData = new FormDataExtended(form, {});
       const updates = foundry.utils.expandObject(formData.object);
 
-      for (const [key, value] of Object.entries(updates)) {
+      // IMPORTANT: unchecked checkboxes do not appear in FormData, so boolean settings would
+      // otherwise never be saved as false after being enabled once.
+      const allKeys = sections.flatMap(section => section.keys);
+      for (const key of allKeys) {
+        const setting = game.settings.settings.get(`${moduleId}.${key}`);
+        if (!setting) continue;
+
+        let value = updates[key];
+
+        // For boolean settings, missing from form submission means false.
+        if (setting.type === Boolean || setting.type instanceof BooleanField) {
+          value = Boolean(value);
+        }
+
         await game.settings.set(moduleId, key, value);
       }
 

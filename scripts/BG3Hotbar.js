@@ -298,6 +298,14 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
                 container.appendChild(situationalBonusesElement);
             }
 
+            // Create CPR Generic Actions container (if adapter provides one) - positioned next to situational bonuses
+            // Always create and append (container handles its own visibility)
+            this.components.cprGenericActions = await this.componentFactory.createCPRGenericActionsContainer();
+            if (this.components.cprGenericActions) {
+                const cprGenericActionsElement = await this.components.cprGenericActions.render();
+                container.appendChild(cprGenericActionsElement);
+            }
+
             // Create hotbar container from UNIFIED state
             this.components.hotbar = await this.componentFactory.createHotbarContainer(state.hotbar.grids, handlers);
             container.appendChild(await this.components.hotbar.render());
