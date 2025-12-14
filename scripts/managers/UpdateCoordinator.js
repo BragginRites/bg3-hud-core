@@ -168,6 +168,13 @@ export class UpdateCoordinator {
             }
         }
 
+        // Check for other attribute changes (AC, Speed, etc.) that affect portrait data
+        const attributesChanged = changes?.system?.attributes;
+        if (attributesChanged && !hpChanged && !deathChanged) {
+            await this._handleAttributeChange();
+            // Don't return early - other handlers might also need to run
+        }
+
         // Check for spell slot changes (very common in D&D 5e)
         const spellsChanged = changes?.system?.spells;
         if (spellsChanged) {
@@ -191,9 +198,10 @@ export class UpdateCoordinator {
         // Check for resource changes (ki, rage, etc.)
         const resourcesChanged = changes?.system?.resources;
         if (resourcesChanged) {
-            if (await this._handleResourceChange()) {
-                return;
-            }
+            await this._handleResourceChange();
+            // Also update portrait data in case it displays resources
+            await this._handleAttributeChange();
+            return;
         }
 
         // Check for ability score changes (affects info container)
@@ -329,8 +337,14 @@ export class UpdateCoordinator {
      */
     async _handleHealthChange() {
         const portraitContainer = this.hotbarApp.components?.portrait;
-        if (portraitContainer && typeof portraitContainer.updateHealth === 'function') {
-            await portraitContainer.updateHealth();
+        if (portraitContainer) {
+            if (typeof portraitContainer.updateHealth === 'function') {
+                await portraitContainer.updateHealth();
+            }
+            // Also update portrait data badges (AC, HP, Speed, etc.)
+            if (typeof portraitContainer.updatePortraitData === 'function') {
+                await portraitContainer.updatePortraitData();
+            }
             return true;
         }
         return false;
@@ -346,6 +360,21 @@ export class UpdateCoordinator {
         const filters = this.hotbarApp.components?.filters;
         if (filters && typeof filters.update === 'function') {
             await filters.update();
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Handle attribute changes (AC, Speed, etc.)
+     * Targeted update: only update portrait data badges
+     * @returns {Promise<boolean>} True if handled
+     * @private
+     */
+    async _handleAttributeChange() {
+        const portraitContainer = this.hotbarApp.components?.portrait;
+        if (portraitContainer && typeof portraitContainer.updatePortraitData === 'function') {
+            await portraitContainer.updatePortraitData();
             return true;
         }
         return false;
