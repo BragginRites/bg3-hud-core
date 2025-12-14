@@ -22,16 +22,16 @@
     justify-content: center;
     width: 40px;
     height: 40px;
-    background: var(--bg3-background-color);
-    border: var(--primary-border-width) solid var(--primary-border-color);
+    background: var(--bg3-hotbar-background-color);
+    border: var(--bg3-hotbar-border-size) solid var(--bg3-hotbar-border-color);
     border-radius: 50%;
-    color: var(--bg3-text);
+    color: var(--bg3-hotbar-text-color);
     font-size: 1.2em;
     cursor: pointer;
     pointer-events: all;
     opacity: 0;
     transition: opacity 0.2s ease, transform 0.2s ease;
-    box-shadow: 
+    box-shadow:
         0 2px 4px rgba(0, 0, 0, 0.5),
         inset 0 1px 2px rgba(255, 255, 255, 0.1);
     z-index: 2;
@@ -43,19 +43,19 @@
 }
 
 .bg3-info-button:hover {
-    background: var(--bg3-background-highlight);
-    border-color: var(--bg3-cell-hover-border-color);
+    background: var(--bg3-hotbar-background-color-hover);
+    border-color: var(--bg3-hotbar-border-color-hover);
     transform: scale(1.05);
-    box-shadow: 
+    box-shadow:
         0 3px 6px rgba(0, 0, 0, 0.6),
         inset 0 1px 2px rgba(255, 255, 255, 0.2);
 }
 
 .bg3-info-button.active {
     opacity: 1;
-    background: var(--bg3-cell-filled-background);
-    border-color: var(--bg3-cell-hover-border-color);
-    box-shadow: 
+    background: var(--bg3-hotbar-sub-background-color);
+    border-color: var(--bg3-hotbar-border-color-hover);
+    box-shadow:
         0 0 10px rgba(255, 255, 255, 0.3),
         inset 0 1px 2px rgba(255, 255, 255, 0.2);
 }
@@ -68,14 +68,14 @@
     transform: translateX(-50%) translateY(0);
     min-width: 400px;
     max-width: 600px;
-    background: var(--bg3-background-color);
-    border: var(--primary-border-width) solid var(--primary-border-color);
-    border-radius: var(--bg3-cell-border-radius);
+    background: var(--bg3-hotbar-sub-background-color);
+    border: var(--bg3-hotbar-border-size) solid var(--bg3-hotbar-border-color);
+    border-radius: var(--bg3-border-radius);
     padding: 12px;
     pointer-events: all;
     transition: transform 0.3s ease, opacity 0.3s ease;
     opacity: 1;
-    box-shadow: 
+    box-shadow:
         0 -4px 12px rgba(0, 0, 0, 0.7),
         inset 0 1px 2px rgba(255, 255, 255, 0.05);
     margin-bottom: 8px;
@@ -91,7 +91,7 @@
 .bg3-info-content {
     display: flex;
     gap: 12px;
-    color: var(--bg3-text);
+    color: var(--bg3-hotbar-text-color);
     font-size: 0.85em;
     width: 100%;
 }
@@ -111,27 +111,27 @@
     align-items: center;
     padding: 6px 10px;
     background: var(--bg3-cell-background);
-    border: var(--bg3-border-width) solid var(--bg3-border);
-    border-radius: calc(var(--bg3-cell-border-radius) / 2);
+    border: var(--bg3-hotbar-border-size) solid var(--bg3-hotbar-border-color);
+    border-radius: calc(var(--bg3-border-radius) / 2);
     cursor: pointer;
     transition: all 0.15s ease;
 }
 
 .bg3-info-ability:hover {
     background: var(--bg3-cell-hover-background);
-    border-color: var(--bg3-cell-border-color);
+    border-color: var(--bg3-hotbar-border-color-hover);
     transform: translateX(2px);
 }
 
 .bg3-info-ability.selected {
     background: var(--bg3-cell-filled-background);
-    border-color: var(--bg3-cell-hover-border-color);
+    border-color: var(--bg3-hotbar-border-color-hover);
     box-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
 }
 
 .bg3-info-ability-name {
     font-weight: 600;
-    color: var(--bg3-text-muted);
+    color: var(--bg3-text-secondary-color);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -140,7 +140,7 @@
 
 .bg3-info-ability-modifier {
     font-weight: bold;
-    color: var(--bg3-text);
+    color: var(--bg3-hotbar-text-color);
 }
 
 .bg3-info-ability-modifier.positive::before {
@@ -153,7 +153,7 @@
     display: flex;
     flex-direction: column;
     gap: 4px;
-    border-right: var(--bg3-border-width) solid var(--bg3-border);
+    border-right: var(--bg3-hotbar-border-size) solid var(--bg3-hotbar-border-color);
     padding-right: 12px;
     min-width: 0; /* Allow flexbox to shrink below content size */
     transition: transform 0.3s ease, opacity 0.3s ease, width 0.3s ease, margin 0.3s ease;
@@ -178,7 +178,7 @@
     align-items: center;
     padding: 4px 8px;
     background: var(--bg3-cell-background);
-    border-radius: calc(var(--bg3-cell-border-radius) / 2);
+    border-radius: calc(var(--bg3-border-radius) / 2);
     cursor: pointer;
     transition: all 0.15s ease;
     font-size: 0.85em;
@@ -190,7 +190,7 @@
 }
 
 .bg3-info-skill-name {
-    color: var(--bg3-text-muted);
+    color: var(--bg3-text-secondary-color);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -199,7 +199,7 @@
 
 .bg3-info-skill-modifier {
     font-weight: bold;
-    color: var(--bg3-text);
+    color: var(--bg3-hotbar-text-color);
 }
 
 .bg3-info-skill-modifier.positive::before {
@@ -212,7 +212,7 @@
     display: flex;
     flex-direction: column;
     gap: 4px;
-    border-left: var(--bg3-border-width) solid var(--bg3-border);
+    border-left: var(--bg3-hotbar-border-size) solid var(--bg3-hotbar-border-color);
     padding-left: 12px;
     min-width: 0; /* Allow flexbox to shrink below content size */
     transition: transform 0.3s ease, opacity 0.3s ease, width 0.3s ease, margin 0.3s ease;
@@ -238,7 +238,7 @@
     align-items: center;
     padding: 4px 8px;
     background: var(--bg3-cell-background);
-    border-radius: calc(var(--bg3-cell-border-radius) / 2);
+    border-radius: calc(var(--bg3-border-radius) / 2);
     cursor: pointer;
     transition: all 0.15s ease;
     font-size: 0.85em;
@@ -250,7 +250,7 @@
 }
 
 .bg3-info-check-name {
-    color: var(--bg3-text-muted);
+    color: var(--bg3-text-secondary-color);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -259,7 +259,7 @@
 
 .bg3-info-check-modifier {
     font-weight: bold;
-    color: var(--bg3-text);
+    color: var(--bg3-hotbar-text-color);
 }
 
 .bg3-info-check-modifier.positive::before {
@@ -273,7 +273,7 @@
     align-items: center;
     padding: 4px 8px;
     background: var(--bg3-cell-background);
-    border-radius: calc(var(--bg3-cell-border-radius) / 2);
+    border-radius: calc(var(--bg3-border-radius) / 2);
     cursor: pointer;
     transition: all 0.15s ease;
     font-size: 0.85em;
@@ -285,7 +285,7 @@
 }
 
 .bg3-info-save-name {
-    color: var(--bg3-text-muted);
+    color: var(--bg3-text-secondary-color);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -294,7 +294,7 @@
 
 .bg3-info-save-modifier {
     font-weight: bold;
-    color: var(--bg3-text);
+    color: var(--bg3-hotbar-text-color);
 }
 
 .bg3-info-save-modifier.positive::before {
@@ -306,10 +306,10 @@
     font-size: 0.75em;
     font-weight: bold;
     text-transform: uppercase;
-    color: var(--bg3-text-muted);
+    color: var(--bg3-text-secondary-color);
     margin-bottom: 4px;
     padding-bottom: 2px;
-    border-bottom: var(--bg3-border-width) solid var(--bg3-border);
+    border-bottom: var(--bg3-hotbar-border-size) solid var(--bg3-hotbar-border-color);
     letter-spacing: 0.5px;
 }
 

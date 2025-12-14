@@ -4,7 +4,7 @@
    Control Container
    ========================================================================== */
 
-   .bg3-control-container {
+.bg3-control-container {
     position: absolute;
     right: 0;
     bottom: -30px;
@@ -13,12 +13,13 @@
     gap: 4px;
     z-index: 100;
     opacity: 0;
-    transition: opacity 0.2s ease; /* smooth fade-in */
+    transition: opacity 0.2s ease;
+    /* smooth fade-in */
 }
 
 /* Show control container when hovering over grid cells, drag bar, or itself */
-.bg3-hotbar-container .bg3-grid-container:hover ~ .bg3-control-container,
-.bg3-hotbar-container .bg3-drag-bar:hover ~ .bg3-control-container,
+.bg3-hotbar-container .bg3-grid-container:hover~.bg3-control-container,
+.bg3-hotbar-container .bg3-drag-bar:hover~.bg3-control-container,
 .bg3-hotbar-container .bg3-control-container:hover {
     opacity: 1;
     pointer-events: auto;
@@ -29,10 +30,10 @@
 .hotbar-control-button {
     width: 25px;
     height: 25px;
-    background: var(--bg3-background);
-    border: 2px solid var(--primary-border-color);
+    background: var(--bg3-tertiary-color);
+    border: var(--bg3-border-size) solid var(--bg3-border-color);
     border-radius: 50%;
-    color: var(--bg3-hotbar-text-color, #fff);
+    color: var(--bg3-text-color);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -42,7 +43,8 @@
 }
 
 .hotbar-control-button:hover {
-    background: var(--bg3-background-highlight);
+    background: var(--bg3-tertiary-color-hover);
+    border-color: var(--bg3-border-color-hover);
     transform: scale(1.05);
 }
 

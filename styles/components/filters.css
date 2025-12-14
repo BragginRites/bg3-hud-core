@@ -3,176 +3,180 @@
  * System-agnostic styling for action/resource filters
  */
 
- :root {
-    --filter-scale: 0.85; /* change this value to scale everything */
-  }
-  
-  /* Filter Container */
-  .bg3-filter-container {
-      position: absolute;
-      top: -20px;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      display: flex;
-      gap: 2px;
-      align-items: center;
-      padding: 8px;
-      background: rgb(0 0 0 / 0%);
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 120ms ease;
-      white-space: nowrap; /* Prevent wrapping */
-      z-index: 100; /* Above passives and active effects containers */
-      border-radius: 6px;
-  }
-  
-  
+:root {
+    --filter-scale: 0.85;
+    /* change this value to scale everything */
+}
+
+/* Filter Container */
+.bg3-filter-container {
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    gap: 2px;
+    align-items: center;
+    padding: 8px;
+    background: rgb(0 0 0 / 0%);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 120ms ease;
+    white-space: nowrap;
+    /* Prevent wrapping */
+    z-index: 100;
+    /* Above passives and active effects containers */
+    border-radius: 6px;
+}
+
+
 /* Show control container when hovering over grid cells, drag bar, or itself */
-.bg3-hotbar-container .bg3-grid-container:hover ~ .bg3-filter-container,
-.bg3-hotbar-container .bg3-drag-bar:hover ~ .bg3-filter-container,
+.bg3-hotbar-container .bg3-grid-container:hover~.bg3-filter-container,
+.bg3-hotbar-container .bg3-drag-bar:hover~.bg3-filter-container,
 .bg3-hotbar-container .bg3-filter-container:hover {
     opacity: 1;
     pointer-events: auto;
 }
-  
-  /* Filter Button Base */
-  .bg3-filter-button {
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      flex: 0 0 auto; /* prevent flex stretching */
-  
-      /* square size scales globally */
-      width: calc(40px * var(--filter-scale));
-      height: calc(40px * var(--filter-scale));
-  
-      padding: calc(4px * var(--filter-scale));
-      font-size: calc(1.2em * var(--filter-scale));
-  
-      background: var(--bg3-background, #1a1a1a);
-      border: 2px solid transparent;
-      border-radius: 4px;
-      color: var(--filter-color, #ddd);
-      cursor: pointer;
-      transition: all 0.2s ease;
-  }
-  
-  .bg3-filter-button:hover {
-      background: var(--bg3-background-hover, #2a2a2a);
-      border-color: var(--filter-color, #ddd);
-  }
-  
-  .bg3-filter-button:active {
-      transform: scale(0.95);
-  }
-  
-  .bg3-filter-button.used {
-      opacity: 0.4;
-      filter: grayscale(100%);
-  }
-  
-  .bg3-filter-button.used:hover {
-      opacity: 0.6;
-  }
-  
-  /* Filter label (for spell levels, etc.) */
-  .bg3-filter-button .filter-label {
-      position: absolute;
-      top: -15px;
-      font-size: 14pt;
-      font-weight: bold;
-      z-index: 20;
-      pointer-events: none;
-  }
-  
-  /* Spell slot track */
-  .bg3-filter-button .slot-track {
-      display: grid;
-      gap: 3px;
-      justify-content: center;
-      align-content: center;
-  }
-  
-  /* 1 slot – centered */
-  .bg3-filter-button .slot-track:has(.slot-box:only-child) {
-      grid-template-columns: 1fr;
-  }
-  
-  /* 2 slots – horizontal */
-  .bg3-filter-button .slot-track:has(.slot-box:nth-child(2):last-child) {
-      grid-template-columns: repeat(2, auto);
-  }
-  
-  /* 3 slots – 2 top + 1 bottom centered */
-  .bg3-filter-button .slot-track:has(.slot-box:nth-child(3):last-child) {
-      grid-template-columns: repeat(2, auto);
-  }
-  .bg3-filter-button .slot-track:has(.slot-box:nth-child(3):last-child) .slot-box:nth-child(3) {
-      grid-column: 1 / -1;
-      justify-self: center;
-  }
-  
-  /* 4 slots – 2×2 block */
-  .bg3-filter-button .slot-track:has(.slot-box:nth-child(4):last-child) {
-      grid-template-columns: repeat(2, auto);
-  }
-  
-  /* Slot dots */
-  .bg3-filter-button .slot-box {
-      width: calc(0.6em * var(--filter-scale));
-      height: calc(0.6em * var(--filter-scale));
-      border: 1px solid var(--filter-color, #bbb);
-      border-radius: 50%;
-      background: rgba(255,255,255,0.05);
-  }
-  
-  .bg3-filter-button .slot-box.filled {
-      background: var(--filter-color, #ddd);
-  }
-  
-  /* Custom Resource Buttons */
-  .bg3-filter-button.filter-custom {
-      background-size: cover;
-      background-position: center;
-      position: relative;
-  }
-  
-  .bg3-filter-button.filter-custom::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.5);
-      border-radius: 2px;
-  }
-  
-  .bg3-filter-button.filter-custom .filter-value {
-      position: relative;
-      z-index: 1;
-      color: white;
-      text-shadow: 0 0 4px black;
-      font-weight: bold;
-  }
-  
-   /* Grid cell highlight states */
-   .bg3-grid-cell[data-highlight="highlight"] {
-       border-color: var(--active-filter-color, #ffcc00) !important;
-       border-width: 2px !important;
-       opacity: 1 !important;
-   }
-  
-  .bg3-grid-cell[data-highlight="excluded"] {
-      opacity: 0.3;
-  }
-  
-  .bg3-grid-cell.used {
-      opacity: 0.4;
-      filter: grayscale(100%);
-  }
-  
-  .bg3-grid-cell.used[data-highlight="highlight"] {
-      opacity: 1;
-      filter: none;
-  }
-  
+
+/* Filter Button Base */
+.bg3-filter-button {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    /* prevent flex stretching */
+
+    /* square size scales globally */
+    width: calc(40px * var(--filter-scale));
+    height: calc(40px * var(--filter-scale));
+
+    padding: calc(4px * var(--filter-scale));
+    font-size: calc(1.2em * var(--filter-scale));
+
+    background: var(--bg3-tertiary-color);
+    border: 2px solid transparent;
+    border-radius: 4px;
+    color: var(--filter-color, #ddd);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.bg3-filter-button:hover {
+    background: var(--bg3-tertiary-color-hover);
+    border-color: var(--filter-color, #ddd);
+}
+
+.bg3-filter-button:active {
+    transform: scale(0.95);
+}
+
+.bg3-filter-button.used {
+    opacity: 0.4;
+    filter: grayscale(100%);
+}
+
+.bg3-filter-button.used:hover {
+    opacity: 0.6;
+}
+
+/* Filter label (for spell levels, etc.) */
+.bg3-filter-button .filter-label {
+    position: absolute;
+    top: -15px;
+    font-size: 14pt;
+    font-weight: bold;
+    z-index: 20;
+    pointer-events: none;
+}
+
+/* Spell slot track */
+.bg3-filter-button .slot-track {
+    display: grid;
+    gap: 3px;
+    justify-content: center;
+    align-content: center;
+}
+
+/* 1 slot – centered */
+.bg3-filter-button .slot-track:has(.slot-box:only-child) {
+    grid-template-columns: 1fr;
+}
+
+/* 2 slots – horizontal */
+.bg3-filter-button .slot-track:has(.slot-box:nth-child(2):last-child) {
+    grid-template-columns: repeat(2, auto);
+}
+
+/* 3 slots – 2 top + 1 bottom centered */
+.bg3-filter-button .slot-track:has(.slot-box:nth-child(3):last-child) {
+    grid-template-columns: repeat(2, auto);
+}
+
+.bg3-filter-button .slot-track:has(.slot-box:nth-child(3):last-child) .slot-box:nth-child(3) {
+    grid-column: 1 / -1;
+    justify-self: center;
+}
+
+/* 4 slots – 2×2 block */
+.bg3-filter-button .slot-track:has(.slot-box:nth-child(4):last-child) {
+    grid-template-columns: repeat(2, auto);
+}
+
+/* Slot dots */
+.bg3-filter-button .slot-box {
+    width: calc(0.6em * var(--filter-scale));
+    height: calc(0.6em * var(--filter-scale));
+    border: 1px solid var(--filter-color, #bbb);
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.bg3-filter-button .slot-box.filled {
+    background: var(--filter-color, #ddd);
+}
+
+/* Custom Resource Buttons */
+.bg3-filter-button.filter-custom {
+    background-size: cover;
+    background-position: center;
+    position: relative;
+}
+
+.bg3-filter-button.filter-custom::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 2px;
+}
+
+.bg3-filter-button.filter-custom .filter-value {
+    position: relative;
+    z-index: 1;
+    color: white;
+    text-shadow: 0 0 4px black;
+    font-weight: bold;
+}
+
+/* Grid cell highlight states */
+.bg3-grid-cell[data-highlight="highlight"] {
+    border-color: var(--active-filter-color, #ffcc00) !important;
+    border-width: 2px !important;
+    opacity: 1 !important;
+}
+
+.bg3-grid-cell[data-highlight="excluded"] {
+    opacity: 0.3;
+}
+
+.bg3-grid-cell.used {
+    opacity: 0.4;
+    filter: grayscale(100%);
+}
+
+.bg3-grid-cell.used[data-highlight="highlight"] {
+    opacity: 1;
+    filter: none;
+}

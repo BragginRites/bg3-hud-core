@@ -2,7 +2,7 @@
    Active Effects Container
    ========================================================================== */
 
-   #bg3-hotbar-container .bg3-actives-container {
+#bg3-hotbar-container .bg3-actives-container {
     position: absolute;
     bottom: calc(100% + var(--bg3-hotbar-border-size, 2px));
     right: 0;
@@ -39,14 +39,15 @@
     display: block;
     cursor: pointer;
     transition: all 0.2s ease-in-out;
-    border: var(--primary-border-width) solid var(--bg3-border);
-    background-color: var(--bg3-background);
+    border: var(--bg3-border-size) solid var(--bg3-border-color);
+    background-color: var(--bg3-tertiary-color);
     border-radius: 4px;
 }
 
 /* Hover state */
 #bg3-hotbar-container .active-effect-icon:hover img {
-    border-color: var(--bg3-background-highlight);
+    border-color: var(--bg3-border-color-hover);
+    background-color: var(--bg3-tertiary-color-hover);
     transform: scale(1.05);
 }
 

@@ -4,7 +4,7 @@ const MODULE_ID = 'bg3-hud-core';
 
 /**
  * Theme Setting Dialog
- * Uses dynamic HTML generation like other settings submenus
+ * Simplified - only General section with Container/Tertiary backgrounds
  */
 export class ThemeSettingDialog extends foundry.applications.api.ApplicationV2 {
   static DEFAULT_OPTIONS = {
@@ -19,79 +19,30 @@ export class ThemeSettingDialog extends foundry.applications.api.ApplicationV2 {
   get sections() {
     return [
       {
+        key: 'general',
         legend: 'bg3-hud-core.Settings.Theme.General',
         hint: 'bg3-hud-core.Settings.Theme.GeneralHint',
         fields: [
           { id: 'bg3-border-color', label: 'bg3-hud-core.Settings.Theme.BorderColor', type: 'color', hasHover: true },
-          { id: 'bg3-background-color', label: 'bg3-hud-core.Settings.Theme.BackgroundColor', type: 'color', hasHover: true },
+          { id: 'bg3-background-color', label: 'bg3-hud-core.Settings.Theme.ContainerBackgroundColor', type: 'color', hasHover: true },
+          { id: 'bg3-tertiary-color', label: 'bg3-hud-core.Settings.Theme.TertiaryBackgroundColor', type: 'color', hasHover: true },
           { id: 'bg3-text-color', label: 'bg3-hud-core.Settings.Theme.TextColor', type: 'color', hasHover: true },
           { id: 'bg3-text-secondary-color', label: 'bg3-hud-core.Settings.Theme.TextSecondaryColor', type: 'color', hasHover: false },
-          { id: 'bg3-border-size', label: 'bg3-hud-core.Settings.Theme.BorderSize', type: 'number', min: 0, max: 10, unit: 'px' },
-          { id: 'bg3-border-radius', label: 'bg3-hud-core.Settings.Theme.BorderRadius', type: 'number', min: 0, max: 20, unit: 'px' }
-        ]
-      },
-      {
-        legend: 'bg3-hud-core.Settings.Theme.Portrait',
-        fields: [
-          { id: 'bg3-portrait-size', label: 'bg3-hud-core.Settings.Theme.Size', type: 'number', min: 100, max: 300, unit: 'px' }
-        ]
-      },
-      {
-        legend: 'bg3-hud-core.Settings.Theme.Hotbar',
-        fields: [
-          { id: 'bg3-hotbar-drag-color', label: 'bg3-hud-core.Settings.Theme.DragbarColor', type: 'color', hasHover: true },
-          { id: 'bg3-hotbar-border-color', label: 'bg3-hud-core.Settings.Theme.BorderColor', type: 'color', hasHover: true },
-          { id: 'bg3-hotbar-background-color', label: 'bg3-hud-core.Settings.Theme.BackgroundColor', type: 'color', hasHover: true },
-          { id: 'bg3-hotbar-text-color', label: 'bg3-hud-core.Settings.Theme.TextColor', type: 'color', hasHover: true },
-          { id: 'bg3-hotbar-sub-background-color', label: 'bg3-hud-core.Settings.Theme.SubBackgroundColor', type: 'color', hasHover: false },
-          { id: 'bg3-hotbar-cell-size', label: 'bg3-hud-core.Settings.Theme.CellSize', type: 'number', min: 30, max: 100, unit: 'px' },
-          { id: 'bg3-hotbar-border-size', label: 'bg3-hud-core.Settings.Theme.BorderSize', type: 'number', min: 0, max: 10, unit: 'px' }
-        ]
-      },
-      {
-        legend: 'bg3-hud-core.Settings.Theme.WeaponSets',
-        fields: [
-          { id: 'bg3-weapon-border-color', label: 'bg3-hud-core.Settings.Theme.BorderColor', type: 'color', hasHover: true },
-          { id: 'bg3-weapon-background-color', label: 'bg3-hud-core.Settings.Theme.BackgroundColor', type: 'color', hasHover: true },
-          { id: 'bg3-weapon-text-color', label: 'bg3-hud-core.Settings.Theme.TextColor', type: 'color', hasHover: true },
-          { id: 'bg3-weapon-cell-size', label: 'bg3-hud-core.Settings.Theme.CellSize', type: 'number', min: 30, max: 150, unit: 'px' },
-          { id: 'bg3-weapon-border-size', label: 'bg3-hud-core.Settings.Theme.BorderSize', type: 'number', min: 0, max: 10, unit: 'px' }
-        ]
-      },
-      {
-        legend: 'bg3-hud-core.Settings.Theme.Filters',
-        fields: [
-          { id: 'bg3-filter-border-color', label: 'bg3-hud-core.Settings.Theme.BorderColor', type: 'color', hasHover: true },
-          { id: 'bg3-filter-background-color', label: 'bg3-hud-core.Settings.Theme.BackgroundColor', type: 'color', hasHover: true },
-          { id: 'bg3-filter-text-color', label: 'bg3-hud-core.Settings.Theme.TextColor', type: 'color', hasHover: true },
-          { id: 'bg3-filter-cell-size', label: 'bg3-hud-core.Settings.Theme.CellSize', type: 'number', min: 20, max: 60, unit: 'px' },
-          { id: 'bg3-filter-border-size', label: 'bg3-hud-core.Settings.Theme.BorderSize', type: 'number', min: 0, max: 10, unit: 'px' }
-        ]
-      },
-      {
-        legend: 'bg3-hud-core.Settings.Theme.Passives',
-        fields: [
-          { id: 'bg3-passive-border-color', label: 'bg3-hud-core.Settings.Theme.BorderColor', type: 'color', hasHover: true },
-          { id: 'bg3-passive-background-color', label: 'bg3-hud-core.Settings.Theme.BackgroundColor', type: 'color', hasHover: true },
-          { id: 'bg3-passive-text-color', label: 'bg3-hud-core.Settings.Theme.TextColor', type: 'color', hasHover: true },
-          { id: 'bg3-passive-cell-size', label: 'bg3-hud-core.Settings.Theme.CellSize', type: 'number', min: 20, max: 60, unit: 'px' },
-          { id: 'bg3-passive-border-size', label: 'bg3-hud-core.Settings.Theme.BorderSize', type: 'number', min: 0, max: 10, unit: 'px' }
-        ]
-      },
-      {
-        legend: 'bg3-hud-core.Settings.Theme.ActiveEffects',
-        fields: [
-          { id: 'bg3-active-border-color', label: 'bg3-hud-core.Settings.Theme.BorderColor', type: 'color', hasHover: true },
-          { id: 'bg3-active-background-color', label: 'bg3-hud-core.Settings.Theme.BackgroundColor', type: 'color', hasHover: true },
-          { id: 'bg3-active-text-color', label: 'bg3-hud-core.Settings.Theme.TextColor', type: 'color', hasHover: true },
-          { id: 'bg3-active-cell-size', label: 'bg3-hud-core.Settings.Theme.CellSize', type: 'number', min: 20, max: 60, unit: 'px' },
-          { id: 'bg3-active-border-size', label: 'bg3-hud-core.Settings.Theme.BorderSize', type: 'number', min: 0, max: 10, unit: 'px' }
+          { id: 'bg3-tooltip-component-color', label: 'bg3-hud-core.Settings.Theme.ComponentColor', type: 'color', hasHover: false },
+          { id: 'bg3-container-border-size', label: 'bg3-hud-core.Settings.Theme.ContainerBorderSize', type: 'number', min: 0, max: 10, unit: 'px' },
+          { id: 'bg3-container-border-radius', label: 'bg3-hud-core.Settings.Theme.ContainerBorderRadius', type: 'number', min: 0, max: 20, unit: 'px' },
+          { id: 'bg3-border-size', label: 'bg3-hud-core.Settings.Theme.TertiaryBorderSize', type: 'number', min: 0, max: 10, unit: 'px' },
+          { id: 'bg3-border-radius', label: 'bg3-hud-core.Settings.Theme.TertiaryBorderRadius', type: 'number', min: 0, max: 20, unit: 'px' },
+          { id: 'bg3-portrait-size', label: 'bg3-hud-core.Settings.Theme.PortraitSize', type: 'number', min: 100, max: 300, unit: 'px' },
+          { id: 'bg3-cell-border-width', label: 'bg3-hud-core.Settings.Theme.CellBorderWidth', type: 'number', min: 0, max: 10, unit: 'px' },
+          { id: 'bg3-cell-border-radius', label: 'bg3-hud-core.Settings.Theme.CellBorderRadius', type: 'number', min: 0, max: 30, unit: 'px' },
+          { id: 'bg3-grid-gap', label: 'bg3-hud-core.Settings.Theme.GridGap', type: 'number', min: 0, max: 20, unit: 'px' }
         ]
       }
     ];
   }
 
-  _renderField(field, themeData) {
+  _renderField(sectionKey, field, themeData) {
     const label = game.i18n.localize(field.label);
     const cssVar = `--${field.id}`;
     const value = this._getFieldValue(cssVar, themeData, field.unit);
@@ -100,13 +51,13 @@ export class ThemeSettingDialog extends foundry.applications.api.ApplicationV2 {
 
     if (field.type === 'color') {
       const hoverInput = field.hasHover
-        ? `<input type="color" class="css-var color-picker" name="${field.id}-hover" value="${hoverValue}">`
+        ? `<input type="color" class="css-var color-picker" name="${field.id}-hover" data-section="${sectionKey}" value="${hoverValue}">`
         : '';
       return `
         <div class="form-group">
           <label>${label}</label>
           <div class="form-fields">
-            <input type="color" class="css-var color-picker" name="${field.id}" value="${value}">
+            <input type="color" class="css-var color-picker" name="${field.id}" data-section="${sectionKey}" value="${value}">
             ${hoverInput}
           </div>
         </div>
@@ -119,7 +70,7 @@ export class ThemeSettingDialog extends foundry.applications.api.ApplicationV2 {
         <div class="form-group">
           <label>${label}</label>
           <div class="form-fields">
-            <input type="number" class="css-var" name="${field.id}" value="${value}" ${min} ${max} data-unit="${unit}">
+            <input type="number" class="css-var" name="${field.id}" data-section="${sectionKey}" value="${value}" ${min} ${max} data-unit="${unit}">
             ${unit ? `<span class="units">${unit}</span>` : ''}
           </div>
         </div>
@@ -142,24 +93,26 @@ export class ThemeSettingDialog extends foundry.applications.api.ApplicationV2 {
   _renderSection(section, themeData) {
     const legend = game.i18n.localize(section.legend);
     const hint = section.hint ? `<p class="hint">${game.i18n.localize(section.hint)}</p>` : '';
-    
+
     // Check if section has color fields with hover states to add column headers
     const hasColorWithHover = section.fields.some(f => f.type === 'color' && f.hasHover);
-    const columnHeaders = hasColorWithHover 
+    const columnHeaders = hasColorWithHover
       ? `<div class="color-column-headers">
           <span class="color-column-label">${game.i18n.localize('bg3-hud-core.Settings.Theme.Normal')}</span>
           <span class="color-column-label">${game.i18n.localize('bg3-hud-core.Settings.Theme.Hover')}</span>
          </div>`
       : '';
-    
-    const fields = section.fields.map(f => this._renderField(f, themeData)).join('');
-    return `<fieldset><legend>${legend}</legend>${hint}${columnHeaders}${fields}</fieldset>`;
+    const fields = section.fields.map(f => this._renderField(section.key, f, themeData)).join('');
+    return `<fieldset data-section="${section.key}"><legend>${legend}</legend>${hint}${columnHeaders}${fields}</fieldset>`;
   }
 
   async _renderHTML() {
-    const themeCustom = game.settings.get(MODULE_ID, 'themeCustom') || {};
-    const themeData = { ...BASE_THEME, ...themeCustom };
-    const sections = this.sections.map(s => this._renderSection(s, themeData)).join('');
+    const themeGeneral = game.settings.get(MODULE_ID, 'themeGeneral') || {};
+    const baseTheme = { ...BASE_THEME, ...themeGeneral };
+
+    const sections = this.sections.map(section => {
+      return this._renderSection(section, baseTheme);
+    }).join('');
 
     const template = document.createElement('template');
     template.innerHTML = `
@@ -190,20 +143,23 @@ export class ThemeSettingDialog extends foundry.applications.api.ApplicationV2 {
   }
 
   generateThemeData() {
-    const form = this.element?.querySelectorAll('.css-var') ?? [];
-    const cssVars = {};
-    for (const field of form) {
-      let value = field.type === 'checkbox' ? field.checked : field.value;
-      if (value && value !== '') {
-        const unit = field.dataset.unit || '';
-        cssVars[`--${field.name}`] = value + unit;
-      }
+    const inputs = this.element?.querySelectorAll('.css-var') ?? [];
+    const general = {};
+
+    for (const field of inputs) {
+      const unit = field.dataset.unit || '';
+      const value = field.value;
+      if (!value) continue;
+      const cssVar = `--${field.name}`;
+      general[cssVar] = value + unit;
     }
-    return cssVars;
+
+    return { general };
   }
 
   _applyLivePreview() {
-    const themeData = { ...BASE_THEME, ...this.generateThemeData() };
+    const { general } = this.generateThemeData();
+    const themeData = this._buildThemeConfig(general);
     const styleContent = `:root{${Object.entries(themeData).map(([k, v]) => `${k}:${v};`).join('\n')}}`;
     let previewStyle = document.head.querySelector('[data-bg3-theme-preview]');
     if (!previewStyle) {
@@ -224,14 +180,14 @@ export class ThemeSettingDialog extends foundry.applications.api.ApplicationV2 {
   async _onSave() {
     const previewStyle = document.head.querySelector('[data-bg3-theme-preview]');
     if (previewStyle) previewStyle.remove();
-    const themeData = this.generateThemeData();
-    await game.settings.set(MODULE_ID, 'themeCustom', themeData);
+    const { general } = this.generateThemeData();
+    await game.settings.set(MODULE_ID, 'themeGeneral', general);
     await applyTheme();
     this.close();
   }
 
   async _onReset() {
-    await game.settings.set(MODULE_ID, 'themeCustom', {});
+    await game.settings.set(MODULE_ID, 'themeGeneral', {});
     await applyTheme();
     this.render(true);
     ui.notifications.info(game.i18n.localize('bg3-hud-core.Settings.Theme.ResetSuccess'));
@@ -257,5 +213,19 @@ export class ThemeSettingDialog extends foundry.applications.api.ApplicationV2 {
         void this._onReset();
       });
     }
+  }
+
+  _buildThemeConfig(general) {
+    const theme = { ...BASE_THEME, ...(general || {}) };
+
+    // Keep aliases aligned with general
+    theme['--bg3-background'] = theme['--bg3-background-color'];
+    theme['--bg3-border'] = theme['--bg3-border-color'];
+    theme['--bg3-border-width'] = theme['--bg3-border-size'];
+    theme['--bg3-text'] = theme['--bg3-text-color'];
+    theme['--bg3-text-muted'] = theme['--bg3-text-secondary-color'];
+    theme['--bg3-background-highlight'] = theme['--bg3-background-color-hover'];
+
+    return theme;
   }
 }

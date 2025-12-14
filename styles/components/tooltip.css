@@ -4,24 +4,21 @@
  */
 
 :root {
-    /* Tooltip Colors */
-    --bg3-tooltip-background: var(--bg3-background-color, rgba(20, 20, 20, 0.95));
-    --bg3-tooltip-border-color: var(--bg3-border, #2f2f2f);
-    --bg3-tooltip-border-width: var(--bg3-border-width, 1px);
-    --bg3-tooltip-border-radius: var(--bg3-border-radius, 10px);
-    --bg3-tooltip-text-color: var(--bg3-text, #ddd);
-    --bg3-tooltip-text-secondary: var(--bg3-text-muted, #999);
-    --bg3-tooltip-text-component: #aaaaaa;
-    
+    /* Legacy aliases (kept for compatibility) */
+    --bg3-tooltip-background: var(--bg3-tooltip-background-color);
+    --bg3-tooltip-border-width: var(--bg3-tooltip-border-size);
+    --bg3-tooltip-text-secondary: var(--bg3-tooltip-text-secondary-color);
+    --bg3-tooltip-text-component: var(--bg3-tooltip-component-color);
+
     /* Tooltip Sizing */
     --bg3-tooltip-max-width: 400px;
     --bg3-tooltip-min-width: 200px;
     --bg3-tooltip-padding: 12px;
     --bg3-tooltip-spacing: 8px;
-    
+
     /* Tooltip Z-index */
     --bg3-tooltip-z-index: 10000;
-    
+
     /* Tooltip Animation */
     --bg3-tooltip-transition: opacity 0.2s ease, transform 0.2s ease;
 }
@@ -43,8 +40,8 @@
     box-sizing: border-box;
     
     /* Styling */
-    background: var(--bg3-tooltip-background);
-    border: var(--bg3-tooltip-border-width) solid var(--bg3-tooltip-border-color);
+    background: var(--bg3-tooltip-background-color, var(--bg3-tooltip-background));
+    border: var(--bg3-tooltip-border-size) solid var(--bg3-tooltip-border-color);
     border-radius: var(--bg3-tooltip-border-radius);
     color: var(--bg3-tooltip-text-color);
     
@@ -125,7 +122,7 @@
 
 .bg3-tooltip .tooltip-subtitle {
     font-size: 11px;
-    color: var(--bg3-tooltip-text-secondary);
+    color: var(--bg3-tooltip-text-secondary-color);
     margin: 0;
 }
 
@@ -151,7 +148,7 @@
     background: rgba(255, 255, 255, 0.1);
     border-radius: 4px;
     font-size: 11px;
-    color: var(--bg3-tooltip-text-secondary);
+    color: var(--bg3-tooltip-text-secondary-color);
 }
 
 /* Locked/Pinned Tooltip */
@@ -175,7 +172,7 @@
     display: block;
     text-align: center;
     font-size: 10px;
-    color: var(--bg3-tooltip-text-secondary);
+    color: var(--bg3-tooltip-text-secondary-color);
     margin-top: var(--bg3-tooltip-spacing);
     padding-top: var(--bg3-tooltip-spacing);
     border-top: 1px solid var(--bg3-tooltip-border-color);
@@ -189,7 +186,7 @@
     justify-content: center;
     padding: 20px;
     gap: 8px;
-    color: var(--bg3-tooltip-text-secondary);
+    color: var(--bg3-tooltip-text-secondary-color);
 }
 
 .bg3-tooltip .loading i {
@@ -243,4 +240,3 @@
         font-size: 12px;
     }
 }
-

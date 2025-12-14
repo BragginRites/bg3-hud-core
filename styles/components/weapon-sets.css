@@ -3,10 +3,7 @@
    ========================================================================== */
 
    :root {
-    --bg3-weapon-cell-size: 75px;
-    --bg3-weapon-border-size: 2px;
-    --bg3-weapon-border-color: #2f2f2f;
-    --bg3-weapon-background-color: rgba(0, 0, 0, 0.5);
+    /* Internal weapon set animation/layout variables */
     --weapon-opacity: 0.6;
     --weapon-scale: 0.6;
     --weapon-translate-up: -50%;

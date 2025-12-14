@@ -2,7 +2,7 @@
    Quick Access Container (Small grid for quick actions/macros/etc)
    ========================================================================== */
 
-   #bg3-hotbar-container .bg3-quick-access-container {
+#bg3-hotbar-container .bg3-quick-access-container {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -11,19 +11,19 @@
 #bg3-hotbar-container .bg3-quick-access-grid {
     gap: 2px;
     padding: 4px;
-    background: var(--bg3-background);
-    border: var(--bg3-border);
-    border-radius: 10px;
+    background: var(--bg3-background-color);
+    border: var(--bg3-container-border-size) solid var(--bg3-border-color);
+    border-radius: var(--bg3-container-border-radius);
     width: fit-content;
     height: fit-content;
-    grid-template-columns: repeat(var(--grid-cols, 3), var(--bg3-cell-size));
-    grid-template-rows: repeat(var(--grid-rows, 2), calc(var(--bg3-cell-size) * 0.6));
+    grid-template-columns: repeat(var(--grid-cols, 3), var(--bg3-hotbar-cell-size));
+    grid-template-rows: repeat(var(--grid-rows, 2), calc(var(--bg3-hotbar-cell-size) * 0.6));
 }
 
 #bg3-hotbar-container .bg3-quick-access-grid .bg3-grid-cell {
-    width: var(--bg3-cell-size);
-    height: calc(var(--bg3-cell-size) * 0.6);
-    border: var(--bg3-cell-border-width) solid var(--bg3-cell-border-color);
+    width: var(--bg3-hotbar-cell-size);
+    height: calc(var(--bg3-hotbar-cell-size) * 0.6);
+    border: var(--bg3-cell-border-width) solid var(--bg3-border-color);
 }
 
 /* Hidden state */

@@ -11,7 +11,7 @@
     transform: translateY(10px);
     transition: opacity 0.15s ease, transform 0.15s ease;
     pointer-events: all;
-    background: var(--bg3-background-color);
+    background: var(--bg3-hotbar-sub-background-color, var(--bg3-background-color));
     border: var(--bg3-border-width, 1px) solid var(--bg3-border);
     border-radius: var(--bg3-border-radius);
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);

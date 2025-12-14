@@ -12,9 +12,22 @@ export const BASE_THEME = {
     "--bg3-text-color": "#dddddd",
     "--bg3-text-color-hover": "#dddddd",
     "--bg3-text-secondary-color": "#ffffff",
+    "--bg3-tertiary-color": "#222222",
+    "--bg3-tertiary-color-hover": "#3a3a3a",
+    // Container borders (hotbar, grid, tooltip, action buttons)
+    "--bg3-container-border-size": "2px",
+    "--bg3-container-border-radius": "10px",
+    // Tertiary borders (controls, views, filters, passives, actives)
     "--bg3-border-size": "2px",
     "--bg3-border-radius": "8px",
     "--bg3-portrait-size": "175px",
+
+    // Grid Cell Settings
+    "--bg3-cell-border-width": "2px",
+    "--bg3-cell-border-radius": "var(--bg3-border-radius)",
+    "--bg3-grid-gap": "2px",
+
+    // Hotbar - Container Background
     "--bg3-hotbar-border-color": "var(--bg3-border-color)",
     "--bg3-hotbar-border-color-hover": "var(--bg3-border-color-hover)",
     "--bg3-hotbar-sub-background-color": "var(--bg3-background-color)",
@@ -26,44 +39,73 @@ export const BASE_THEME = {
     "--bg3-hotbar-border-size": "var(--bg3-border-size)",
     "--bg3-hotbar-drag-color": "var(--bg3-border-color)",
     "--bg3-hotbar-drag-color-hover": "var(--bg3-border-color-hover)",
+
+    // Weapon Sets - unique, does not share variables
     "--bg3-weapon-border-color": "var(--bg3-border-color)",
     "--bg3-weapon-border-color-hover": "var(--bg3-border-color-hover)",
-    "--bg3-weapon-background-color": "var(--bg3-background-color)",
-    "--bg3-weapon-background-color-hover": "var(--bg3-background-color-hover)",
+    "--bg3-weapon-background-color": "var(--bg3-tertiary-color)",
+    "--bg3-weapon-background-color-hover": "var(--bg3-tertiary-color-hover)",
     "--bg3-weapon-text-color": "var(--bg3-text-color)",
     "--bg3-weapon-text-color-hover": "var(--bg3-text-color-hover)",
     "--bg3-weapon-cell-size": "75px",
     "--bg3-weapon-border-size": "var(--bg3-border-size)",
-    "--bg3-filter-border-color": "var(--bg3-border-color)",
-    "--bg3-filter-border-color-hover": "var(--bg3-border-color-hover)",
-    "--bg3-filter-background-color": "var(--bg3-background-color)",
-    "--bg3-filter-background-color-hover": "var(--bg3-background-color-hover)",
-    "--bg3-filter-text-color": "var(--bg3-text-color)",
-    "--bg3-filter-text-color-hover": "var(--bg3-text-color-hover)",
-    "--bg3-filter-cell-size": "32px",
-    "--bg3-filter-border-size": "var(--bg3-border-size)",
-    "--bg3-passive-border-color": "var(--bg3-border-color)",
-    "--bg3-passive-border-color-hover": "var(--bg3-border-color-hover)",
-    "--bg3-passive-background-color": "var(--bg3-background-color)",
-    "--bg3-passive-background-color-hover": "var(--bg3-background-color-hover)",
-    "--bg3-passive-text-color": "var(--bg3-text-color)",
-    "--bg3-passive-text-color-hover": "var(--bg3-text-color-hover)",
-    "--bg3-passive-cell-size": "31px",
-    "--bg3-passive-border-size": "var(--bg3-border-size)",
-    "--bg3-active-border-color": "var(--bg3-border-color)",
-    "--bg3-active-border-color-hover": "var(--bg3-border-color-hover)",
-    "--bg3-active-background-color": "var(--bg3-background-color)",
-    "--bg3-active-background-color-hover": "var(--bg3-background-color-hover)",
-    "--bg3-active-text-color": "var(--bg3-text-color)",
-    "--bg3-active-text-color-hover": "var(--bg3-text-color-hover)",
-    "--bg3-active-cell-size": "31px",
-    "--bg3-active-border-size": "var(--bg3-border-size)",
+
+    // Small Containers - Tertiary Background (controls, views, filters, passives, actives)
+    "--bg3-small-container-border-color": "var(--bg3-border-color)",
+    "--bg3-small-container-border-color-hover": "var(--bg3-border-color-hover)",
+    "--bg3-small-container-background-color": "var(--bg3-tertiary-color)",
+    "--bg3-small-container-background-color-hover": "var(--bg3-tertiary-color-hover)",
+    "--bg3-small-container-text-color": "var(--bg3-text-color)",
+    "--bg3-small-container-text-color-hover": "var(--bg3-text-color-hover)",
+    "--bg3-small-container-cell-size": "31px",
+    "--bg3-small-container-border-size": "var(--bg3-border-size)",
+
+    // Filter - references small container
+    "--bg3-filter-border-color": "var(--bg3-small-container-border-color)",
+    "--bg3-filter-border-color-hover": "var(--bg3-small-container-border-color-hover)",
+    "--bg3-filter-background-color": "var(--bg3-small-container-background-color)",
+    "--bg3-filter-background-color-hover": "var(--bg3-small-container-background-color-hover)",
+    "--bg3-filter-text-color": "var(--bg3-small-container-text-color)",
+    "--bg3-filter-text-color-hover": "var(--bg3-small-container-text-color-hover)",
+    "--bg3-filter-cell-size": "var(--bg3-small-container-cell-size)",
+    "--bg3-filter-border-size": "var(--bg3-small-container-border-size)",
+
+    // Passive - references small container
+    "--bg3-passive-border-color": "var(--bg3-small-container-border-color)",
+    "--bg3-passive-border-color-hover": "var(--bg3-small-container-border-color-hover)",
+    "--bg3-passive-background-color": "var(--bg3-small-container-background-color)",
+    "--bg3-passive-background-color-hover": "var(--bg3-small-container-background-color-hover)",
+    "--bg3-passive-text-color": "var(--bg3-small-container-text-color)",
+    "--bg3-passive-text-color-hover": "var(--bg3-small-container-text-color-hover)",
+    "--bg3-passive-cell-size": "var(--bg3-small-container-cell-size)",
+    "--bg3-passive-border-size": "var(--bg3-small-container-border-size)",
+
+    // Active Effects - references small container
+    "--bg3-active-border-color": "var(--bg3-small-container-border-color)",
+    "--bg3-active-border-color-hover": "var(--bg3-small-container-border-color-hover)",
+    "--bg3-active-background-color": "var(--bg3-small-container-background-color)",
+    "--bg3-active-background-color-hover": "var(--bg3-small-container-background-color-hover)",
+    "--bg3-active-text-color": "var(--bg3-small-container-text-color)",
+    "--bg3-active-text-color-hover": "var(--bg3-small-container-text-color-hover)",
+    "--bg3-active-cell-size": "var(--bg3-small-container-cell-size)",
+    "--bg3-active-border-size": "var(--bg3-small-container-border-size)",
+
+    // Tooltip - Container Background
     "--bg3-tooltip-border-color": "var(--bg3-border-color)",
     "--bg3-tooltip-background-color": "var(--bg3-background-color)",
     "--bg3-tooltip-text-color": "var(--bg3-text-color)",
     "--bg3-tooltip-text-secondary-color": "var(--bg3-text-secondary-color)",
     "--bg3-tooltip-component-color": "#aaaaaa",
-    "--bg3-tooltip-border-size": "var(--bg3-border-size)"
+    "--bg3-tooltip-border-size": "var(--bg3-border-size)",
+    "--bg3-tooltip-border-radius": "var(--bg3-border-radius)",
+
+    // Legacy/internal aliases that many components still consume
+    "--bg3-background": "var(--bg3-background-color)",
+    "--bg3-border": "var(--bg3-border-color)",
+    "--bg3-border-width": "var(--bg3-border-size)",
+    "--bg3-text": "var(--bg3-text-color)",
+    "--bg3-text-muted": "var(--bg3-text-secondary-color)",
+    "--bg3-background-highlight": "var(--bg3-background-color-hover)"
 };
 
 /**
@@ -77,17 +119,17 @@ export function registerSettings() {
         moduleId: MODULE_ID,
         titleKey: 'bg3-hud-core.Settings.LayoutAppearance.MenuTitle',
         sections: [
-            { 
-                legend: 'bg3-hud-core.Settings.LayoutAppearance.OpacityLegend', 
-                keys: ['normalOpacity', 'fadedOpacity', 'fadeOutDelay'] 
+            {
+                legend: 'bg3-hud-core.Settings.LayoutAppearance.OpacityLegend',
+                keys: ['normalOpacity', 'fadedOpacity', 'fadeOutDelay']
             },
-            { 
-                legend: 'bg3-hud-core.Settings.LayoutAppearance.ScalePositionLegend', 
-                keys: ['autoScale', 'uiScale', 'uiPosition', 'posPadding', 'posPaddingBottom'] 
+            {
+                legend: 'bg3-hud-core.Settings.LayoutAppearance.ScalePositionLegend',
+                keys: ['autoScale', 'uiScale', 'uiPosition', 'posPadding', 'posPaddingBottom']
             },
-            { 
-                legend: 'bg3-hud-core.Settings.LayoutAppearance.ContainerDensityLegend', 
-                keys: ['passivesContainerIconsPerRow', 'activeEffectsContainerIconsPerRow'] 
+            {
+                legend: 'bg3-hud-core.Settings.LayoutAppearance.ContainerDensityLegend',
+                keys: ['passivesContainerIconsPerRow', 'activeEffectsContainerIconsPerRow']
             }
         ]
     });
@@ -126,6 +168,34 @@ export function registerSettings() {
     game.settings.register(MODULE_ID, 'themeCustom', {
         name: 'Theme Custom',
         hint: 'Custom theme CSS variables',
+        scope: 'client',
+        config: false,
+        type: Object,
+        default: {}
+    });
+
+    // Theme settings refactor: general overrides and per-section overrides
+    game.settings.register(MODULE_ID, 'useGeneralEverywhere', {
+        name: 'Use General Theme Everywhere',
+        hint: 'When enabled, only the General section is used for all components.',
+        scope: 'client',
+        config: false,
+        type: Boolean,
+        default: true
+    });
+
+    game.settings.register(MODULE_ID, 'themeGeneral', {
+        name: 'Theme General',
+        hint: 'General theme CSS variables',
+        scope: 'client',
+        config: false,
+        type: Object,
+        default: {}
+    });
+
+    game.settings.register(MODULE_ID, 'themeSections', {
+        name: 'Theme Sections',
+        hint: 'Section-specific theme CSS variables',
         scope: 'client',
         config: false,
         type: Object,
@@ -523,11 +593,11 @@ export function applyMacrobarCollapseSetting() {
  */
 export function applyContainerRowSettings() {
     const MODULE_ID = 'bg3-hud-core';
-    
+
     // Get settings values (default to 8 if not set)
     const passivesIconsPerRow = game.settings.get(MODULE_ID, 'passivesContainerIconsPerRow') ?? 8;
     const activesIconsPerRow = game.settings.get(MODULE_ID, 'activeEffectsContainerIconsPerRow') ?? 8;
-    
+
     // Get cell sizes from CSS variables (with fallbacks)
     const passivesCellSize = getComputedStyle(document.documentElement)
         .getPropertyValue('--bg3-passive-cell-size')
@@ -535,16 +605,16 @@ export function applyContainerRowSettings() {
     const activesCellSize = getComputedStyle(document.documentElement)
         .getPropertyValue('--bg3-active-cell-size')
         .trim() || '40px';
-    
+
     // Extract numeric value from cell size (e.g., "40px" -> 40)
     const passivesCellSizeNum = parseFloat(passivesCellSize) || 40;
     const activesCellSizeNum = parseFloat(activesCellSize) || 40;
-    
+
     // Calculate max-width: cell-size * icons-per-row
     // Gap is handled by flexbox gap property, so we don't need to add it here
     const passivesMaxWidth = `${passivesCellSizeNum * passivesIconsPerRow}px`;
     const activesMaxWidth = `${activesCellSizeNum * activesIconsPerRow}px`;
-    
+
     // Set CSS custom properties on :root
     document.documentElement.style.setProperty('--bg3-passives-container-max-width', passivesMaxWidth);
     document.documentElement.style.setProperty('--bg3-actives-container-max-width', activesMaxWidth);
@@ -572,20 +642,45 @@ export function updateUIScale() {
 export async function applyTheme() {
     const MODULE_ID = 'bg3-hud-core';
     const currentTheme = document.head.querySelector('[data-bg3-theme]');
-    const themeCustom = game.settings.get(MODULE_ID, 'themeCustom') || {};
-    const themeConfig = { ...BASE_THEME, ...themeCustom };
+    const useGeneralEverywhere = game.settings.get(MODULE_ID, 'useGeneralEverywhere') ?? true;
 
-    if (themeConfig) {
-        const styleContent = `:root{${Object.entries(themeConfig).map(([k, v]) => `${k}:${v};`).join('\n')}}`;
-        if (currentTheme) {
-            currentTheme.innerHTML = styleContent;
-        } else {
-            const style = document.createElement('style');
-            style.setAttribute('type', 'text/css');
-            style.setAttribute('data-bg3-theme', 'custom');
-            style.textContent = styleContent;
-            document.head.appendChild(style);
+    // Pull new structured settings
+    let themeGeneral = game.settings.get(MODULE_ID, 'themeGeneral') || {};
+    const themeSections = game.settings.get(MODULE_ID, 'themeSections') || {};
+
+    // Migration: if legacy themeCustom exists and new general is empty, migrate it
+    const legacyTheme = game.settings.get(MODULE_ID, 'themeCustom') || {};
+    if (!Object.keys(themeGeneral).length && Object.keys(legacyTheme).length) {
+        themeGeneral = { ...legacyTheme };
+        await game.settings.set(MODULE_ID, 'themeGeneral', themeGeneral);
+        await game.settings.set(MODULE_ID, 'themeCustom', {});
+    }
+
+    const themeConfig = { ...BASE_THEME, ...themeGeneral };
+
+    if (!useGeneralEverywhere && themeSections && typeof themeSections === 'object') {
+        for (const sectionVars of Object.values(themeSections)) {
+            Object.assign(themeConfig, sectionVars || {});
         }
+    }
+
+    // Keep legacy aliases in sync with the general values
+    themeConfig['--bg3-background'] = themeConfig['--bg3-background-color'];
+    themeConfig['--bg3-border'] = themeConfig['--bg3-border-color'];
+    themeConfig['--bg3-border-width'] = themeConfig['--bg3-border-size'];
+    themeConfig['--bg3-text'] = themeConfig['--bg3-text-color'];
+    themeConfig['--bg3-text-muted'] = themeConfig['--bg3-text-secondary-color'];
+    themeConfig['--bg3-background-highlight'] = themeConfig['--bg3-background-color-hover'];
+
+    const styleContent = `:root{${Object.entries(themeConfig).map(([k, v]) => `${k}:${v};`).join('\n')}}`;
+    if (currentTheme) {
+        currentTheme.innerHTML = styleContent;
+    } else {
+        const style = document.createElement('style');
+        style.setAttribute('type', 'text/css');
+        style.setAttribute('data-bg3-theme', 'custom');
+        style.textContent = styleContent;
+        document.head.appendChild(style);
     }
 }
 
@@ -595,9 +690,9 @@ export async function applyTheme() {
  */
 export function applyAppearanceSettings() {
     const MODULE_ID = 'bg3-hud-core';
-    
+
     if (!ui.BG3HUD_APP?.element) return;
-    
+
     const container = ui.BG3HUD_APP.element.querySelector('#bg3-hotbar-container');
     if (!container) return;
 
@@ -605,7 +700,7 @@ export function applyAppearanceSettings() {
     const normalOpacity = game.settings.get(MODULE_ID, 'normalOpacity');
     const fadedOpacity = game.settings.get(MODULE_ID, 'fadedOpacity');
     const fadeOutDelay = game.settings.get(MODULE_ID, 'fadeOutDelay');
-    
+
     container.style.setProperty('--bg3-normal-opacity', normalOpacity);
     if (fadedOpacity !== 1) {
         container.style.setProperty('--bg3-faded-opacity', fadedOpacity);

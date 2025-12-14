@@ -5,7 +5,7 @@
    Positioned at bottom-center of hotbar, hover-activated
    ========================================================================== */
 
-   .bg3-views-container {
+.bg3-views-container {
     position: absolute;
     bottom: -20px;
     left: 50%;
@@ -23,8 +23,8 @@
 }
 
 /* Show control container when hovering over grid cells, drag bar, or itself */
-.bg3-hotbar-container .bg3-grid-container:hover ~ .bg3-views-container,
-.bg3-hotbar-container .bg3-drag-bar:hover ~ .bg3-views-container,
+.bg3-hotbar-container .bg3-grid-container:hover~.bg3-views-container,
+.bg3-hotbar-container .bg3-drag-bar:hover~.bg3-views-container,
 .bg3-hotbar-container .bg3-views-container:hover {
     opacity: 1;
     pointer-events: auto;
@@ -40,10 +40,10 @@
     align-items: center;
     gap: 6px;
     padding: 6px 12px;
-    background: var(--bg3-cell-background);
-    border-color: var(--bg3-cell-border-color);
+    background: var(--bg3-tertiary-color);
+    border: var(--bg3-border-size) solid var(--bg3-border-color);
     border-radius: 4px;
-    color: var(--bg3-text);
+    color: var(--bg3-text-color);
     cursor: pointer;
     transition: all 150ms ease;
     font-size: 0.9em;
@@ -53,7 +53,9 @@
 }
 
 .bg3-view-button:hover {
-    border-color: var(--bg3-cell-hover-border-color);
+    background: var(--bg3-tertiary-color-hover);
+    border-color: var(--bg3-border-color-hover);
+    color: var(--bg3-text-color-hover);
 }
 
 .bg3-view-button:active {
@@ -62,13 +64,13 @@
 
 /* Active view */
 .bg3-view-button.active {
-    background: var(--bg3-background);
-    color: var(--bg3-text);
+    background: var(--bg3-tertiary-color-hover);
+    color: var(--bg3-text-color);
 }
 
 .bg3-view-button.active:hover {
-    background: var(--bg3-background-highlight);
-    border-color: rgba(255, 255, 255, 0.85);
+    background: var(--bg3-tertiary-color-hover);
+    border-color: var(--bg3-border-color-hover);
 }
 
 /* View button icon */
@@ -92,14 +94,14 @@
    ========================================================================== */
 
 .bg3-view-button-new {
-    background: var(--bg3-cell-background);
-    border-color: var(--bg3-cell-border-color);
-    color: var(--bg3-hotbar-text-color, #fff);
+    background: var(--bg3-tertiary-color);
+    border-color: var(--bg3-border-color);
+    color: var(--bg3-text-color);
 }
 
 .bg3-view-button-new:hover {
-    background: var(--bg3-cell-hover-background);
-    border-color: var(--bg3-cell-hover-border-color);
+    background: var(--bg3-tertiary-color-hover);
+    border-color: var(--bg3-border-color-hover);
 }
 
 /* Hide label on new view button (icon only) */
@@ -114,6 +116,6 @@
 .bg3-views-separator {
     width: 1px;
     height: 20px;
-    background: var(--bg3-border);
+    background: var(--bg3-border-color);
     margin: 0 4px;
 }

@@ -2,7 +2,7 @@
    Passives Container
    ========================================================================== */
 
-   #bg3-hotbar-container .bg3-passives-container {
+#bg3-hotbar-container .bg3-passives-container {
     position: absolute;
     bottom: calc(100% + var(--bg3-hotbar-border-size, 2px));
     left: 0;
@@ -15,7 +15,8 @@
     z-index: var(--bg3-z-base, 100);
     flex-wrap: wrap-reverse;
     gap: 2px;
-    flex-direction: row; /* Left to right, opposite of active effects */
+    flex-direction: row;
+    /* Left to right, opposite of active effects */
     margin-bottom: 0;
 }
 
@@ -40,17 +41,17 @@
 
 /* Show gear icon on hotbar hover (only when visible) */
 #bg3-hotbar-container:hover .bg3-passives-container::before {
-    background-color: var(--bg3-background);
-    border-color: var(--bg3-border);
-    color: var(--bg3-text);
+    background-color: var(--bg3-tertiary-color);
+    border-color: var(--bg3-border-color);
+    color: var(--bg3-text-color);
     opacity: 0.6;
 }
 
 /* Gear icon hover state */
 #bg3-hotbar-container .bg3-passives-container::before:hover {
-    background-color: var(--bg3-background);
-    border-color: var(--bg3-background-highlight);
-    color: var(--bg3-text);
+    background-color: var(--bg3-tertiary-color-hover);
+    border-color: var(--bg3-border-color-hover);
+    color: var(--bg3-text-color);
     opacity: 1;
     transform: scale(1.05);
 }
@@ -79,13 +80,14 @@
     display: block;
     cursor: pointer;
     transition: all 0.2s ease-in-out;
-    border: var(--primary-border-width) solid var(--bg3-border);
-    background-color: var(--bg3-background);
+    border: var(--bg3-border-size) solid var(--bg3-border-color);
+    background-color: var(--bg3-tertiary-color);
     border-radius: 4px;
 }
 
 /* Hover state */
 #bg3-hotbar-container .passive-feature-icon:hover img {
-    border-color: var(--bg3-background-highlight);
+    border-color: var(--bg3-border-color-hover);
+    background-color: var(--bg3-tertiary-color-hover);
     transform: scale(1.05);
 }

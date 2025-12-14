@@ -20,15 +20,16 @@
     position: relative;
     width: var(--bg3-cell-size, 50px);
     height: var(--bg3-cell-size, 50px);
-    background: var(--bg3-cell-background, var(--bg3-background));
-    border: var(--bg3-cell-border-width, 2px) solid var(--bg3-cell-border-color, var(--bg3-border));
+    background: var(--bg3-cell-background, var(--bg3-background-color));
+    border: var(--bg3-cell-border-width, 2px) solid var(--bg3-cell-border-color, var(--bg3-border-color));
     border-radius: var(--bg3-cell-border-radius, 8px);
     cursor: pointer;
     transition: all 0.15s ease;
     display: flex;
     align-items: center;
     justify-content: center;
-    overflow: hidden; /* Mask content to cell bounds */
+    overflow: hidden;
+    /* Mask content to cell bounds */
 }
 
 .bg3-grid-cell.empty {
@@ -41,8 +42,8 @@
 
 .bg3-grid-cell.hover,
 .bg3-grid-cell:hover {
-    background: var(--bg3-cell-hover-background, rgba(255, 255, 255, 0.1));
-    border-color: var(--bg3-cell-hover-border-color, var(--primary-border-color));
+    background: var(--bg3-cell-hover-background, var(--bg3-background-color-hover));
+    border-color: var(--bg3-cell-hover-border-color, var(--bg3-border-color-hover));
     box-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
 }
 
@@ -98,7 +99,8 @@
     border-radius: 2px;
     pointer-events: none;
     position: relative;
-    z-index: 1; /* Behind borders and overlays */
+    z-index: 1;
+    /* Behind borders and overlays */
 }
 
 .hotbar-item.depleted {
@@ -121,8 +123,9 @@
     text-overflow: ellipsis;
     display: none;
     pointer-events: none;
-    z-index: 10; /* Above image */
-    text-shadow: 
+    z-index: 10;
+    /* Above image */
+    text-shadow:
         -1px -1px 2px rgba(0, 0, 0, 0.8),
         1px -1px 2px rgba(0, 0, 0, 0.8),
         -1px 1px 2px rgba(0, 0, 0, 0.8),
@@ -135,7 +138,7 @@
 }
 
 /* Item uses (top-right) and quantity (top-left) */
-.hotbar-item-uses, 
+.hotbar-item-uses,
 .hotbar-item-quantity {
     position: absolute;
     top: 0;
@@ -145,9 +148,10 @@
     padding: 1px 4px;
     font-size: 0.8em;
     font-weight: bold;
-    z-index: 10; /* Above image but below drag overlay */
+    z-index: 10;
+    /* Above image but below drag overlay */
     pointer-events: none;
-    text-shadow: 
+    text-shadow:
         -1px -1px 2px rgba(0, 0, 0, 0.8),
         1px -1px 2px rgba(0, 0, 0, 0.8),
         -1px 1px 2px rgba(0, 0, 0, 0.8),
@@ -168,13 +172,13 @@
 }
 
 /* Show uses/quantity when enabled */
-#bg3-hotbar-container[data-item-use="true"] .hotbar-item-uses, 
+#bg3-hotbar-container[data-item-use="true"] .hotbar-item-uses,
 #bg3-hotbar-container[data-item-use="true"] .hotbar-item-quantity {
     display: block !important;
 }
 
 /* Triangle background for uses/quantity */
-#bg3-hotbar-container[data-item-use="true"] .hotbar-item-uses::before, 
+#bg3-hotbar-container[data-item-use="true"] .hotbar-item-uses::before,
 #bg3-hotbar-container[data-item-use="true"] .hotbar-item-quantity::before {
     border-top: 1.5rem solid rgba(0, 0, 0, 0);
     content: "";
@@ -195,4 +199,3 @@
     border-right: 1.5rem solid rgba(0, 0, 0, 0);
     left: 0;
 }
-

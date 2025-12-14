@@ -4,10 +4,10 @@
    Drag Bar
    ========================================================================== */
 
-   .bg3-drag-bar {
+.bg3-drag-bar {
     position: relative;
     width: 4px;
-    background: var(--bg3-drag-bar-background);
+    background: var(--bg3-tertiary-color);
     cursor: ew-resize;
     align-self: stretch;
     border-radius: 2px;
@@ -20,11 +20,11 @@
 }
 
 .bg3-drag-bar:hover {
-    background: var(--bg3-drag-bar-background-hover);
+    background: var(--bg3-tertiary-color-hover);
 }
 
 .bg3-drag-bar.dragging {
-    background: var(--bg3-drag-bar-background-dragging);
+    background: var(--bg3-tertiary-color-hover);
 }
 
 .bg3-drag-bar i {
@@ -32,7 +32,7 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    color: var(--bg3-text);
+    color: var(--bg3-text-color);
     font-size: 10px;
     opacity: 0.5;
     transition: opacity 0.2s ease;
@@ -61,4 +61,3 @@
 .bg3-drag-bar .drag-indicator.visible {
     opacity: 1;
 }
-
