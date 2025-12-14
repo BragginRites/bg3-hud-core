@@ -37,18 +37,23 @@ Hooks.once('ready', async () => {
     ui.BG3HOTBAR.api = BG3HUD_API;
     ui.BG3HOTBAR.tooltipManager = tooltipManager;
 
-    // Call hook to allow system adapters to register
+    // Check if a compatible adapter module is active
+    const hasCompatibleAdapter = [...game.modules.values()].some(m =>
+        m.active && m.id.startsWith('bg3-hud-') && m.id !== 'bg3-hud-core'
+    );
+
+    // Trigger hook for adapters to register
     console.log('BG3 HUD Core | Calling bg3HudReady hook for system adapters');
-    await new Promise(resolve => {
-        // Listen for adapter completion signal
-        Hooks.once('bg3HudRegistrationComplete', resolve);
-        
-        // Trigger the hook for adapters
-        Hooks.callAll('bg3HudReady', BG3HUD_API);
-        
-        // Timeout fallback if no adapter responds
-        setTimeout(resolve, 100);
-    });
+    Hooks.callAll('bg3HudReady', BG3HUD_API);
+
+    // Only wait for adapter registration if a compatible adapter module is active
+    if (hasCompatibleAdapter) {
+        await new Promise(resolve => {
+            Hooks.once('bg3HudRegistrationComplete', resolve);
+            // Longer timeout in case adapter has async initialization
+            setTimeout(resolve, 2000);
+        });
+    }
 
     // Create and render the HUD
     console.log('BG3 HUD Core | Creating HUD application');
@@ -99,16 +104,16 @@ Hooks.on('createToken', async (tokenDocument, options, userId) => {
 
     // Check if any grid has types configured
     const hasTypes = configuration.grid0?.length > 0 ||
-                     configuration.grid1?.length > 0 ||
-                     configuration.grid2?.length > 0;
-    
+        configuration.grid1?.length > 0 ||
+        configuration.grid2?.length > 0;
+
     if (!hasTypes) return;
 
     try {
         // Use a temporary persistence manager for the token
         const { PersistenceManager } = await import('./managers/PersistenceManager.js');
         const tempPersistence = new PersistenceManager();
-        
+
         // Pass actor directly instead of token object (which may not exist yet)
         await adapter.autoPopulate.populateOnTokenCreation(actor, configuration, tempPersistence);
 

@@ -121,13 +121,27 @@
         "MenuLabel": "GM Hotbar Settings",
         "MenuHint": "Configure GM hotbar visibility",
         "Legend": "GM Hotbar"
+      },
+      "PortraitData": {
+        "Title": "Portrait Data Configuration",
+        "MenuName": "Portrait Data",
+        "MenuLabel": "Configure Portrait Data",
+        "MenuHint": "Display data badges around the portrait (AC, Speed, Hero Points, etc.)",
+        "ShowName": "Show Portrait Data",
+        "ShowHint": "Display data badges around the character portrait",
+        "TopLeft": "Top Left",
+        "TopRight": "Top Right",
+        "MiddleLeft": "Middle Left",
+        "MiddleRight": "Middle Right",
+        "BottomLeft": "Bottom Left",
+        "BottomRight": "Bottom Right",
+        "Saved": "Portrait data configuration saved"
       }
     },
     "Controls": {
       "Lock": {
         "Tooltip": "Lock Settings<br>(Right-click for options)",
         "NoSettingsWarning": "Please right-click the lock button to select which settings to lock.",
-        "KeepGMHotbar": "Keep GM Hotbar",
         "DeselectToken": "Deselecting Token",
         "Opacity": "Opacity",
         "DragDrop": "Drag & Drop"

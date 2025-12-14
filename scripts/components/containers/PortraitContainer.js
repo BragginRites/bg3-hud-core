@@ -1,6 +1,7 @@
 import { BG3Component } from '../BG3Component.js';
 import { ContextMenu } from '../ui/ContextMenu.js';
 import { BG3HUD_API } from '../../utils/registry.js';
+import { PortraitDataResolver } from '../../utils/PortraitDataResolver.js';
 
 /**
  * Portrait Container - Abstract Base Class
@@ -53,21 +54,83 @@ export class PortraitContainer extends BG3Component {
         // Create portrait image container
         const imageContainer = this.createElement('div', ['portrait-image-container']);
         const imageSubContainer = this.createElement('div', ['portrait-image-subcontainer']);
-        
+
         // Get token image
         const imageSrc = this.token.document.texture.src;
         const img = this.createElement('img', ['portrait-image']);
         img.src = imageSrc;
         img.alt = this.actor?.name || 'Portrait';
-        
+
         imageSubContainer.appendChild(img);
         imageContainer.appendChild(imageSubContainer);
+
+        // Add portrait data badges if enabled
+        await this._renderPortraitData(imageContainer);
+
         this.element.appendChild(imageContainer);
 
         // Register context menu for portrait image
         this._registerPortraitMenu(imageContainer);
 
         return this.element;
+    }
+
+    /**
+     * Render portrait data badges
+     * @param {HTMLElement} container - The portrait image container
+     * @private
+     */
+    async _renderPortraitData(container) {
+        const MODULE_ID = 'bg3-hud-core';
+
+        // Check if feature is enabled
+        if (!game.settings.get(MODULE_ID, 'showPortraitData')) {
+            return;
+        }
+
+        // Get config, fall back to adapter defaults if empty
+        let config = game.settings.get(MODULE_ID, 'portraitDataConfig') || [];
+
+        // If user hasn't configured anything, try to get adapter defaults
+        if (!config.length || !config.some(c => c?.path)) {
+            const adapter = BG3HUD_API.getActiveAdapter?.();
+            if (adapter?.getPortraitDataDefaults) {
+                config = adapter.getPortraitDataDefaults();
+            }
+        }
+
+        if (!config.length || !this.actor) {
+            return;
+        }
+
+        const badgesContainer = this.createElement('div', ['portrait-data-badges']);
+
+        // Support 6 slots like bg3-inspired-hotbar
+        for (let i = 0; i < config.length && i < 6; i++) {
+            const slotConfig = config[i];
+            if (!slotConfig?.path) continue;
+
+            const result = await PortraitDataResolver.resolve(this.actor, slotConfig);
+            if (!result.value) continue;
+
+            const badge = this.createElement('div', ['portrait-data-badge', `position-${i}`]);
+            badge.style.color = result.color || '#ffffff';
+
+            if (result.icon) {
+                const icon = this.createElement('i', result.icon.split(' '));
+                badge.appendChild(icon);
+            }
+
+            const valueSpan = this.createElement('span', ['badge-value']);
+            valueSpan.textContent = result.value;
+            badge.appendChild(valueSpan);
+
+            badgesContainer.appendChild(badge);
+        }
+
+        if (badgesContainer.children.length > 0) {
+            container.appendChild(badgesContainer);
+        }
     }
 
     /**
@@ -180,3 +243,4 @@ export class PortraitContainer extends BG3Component {
         };
     }
 }
+

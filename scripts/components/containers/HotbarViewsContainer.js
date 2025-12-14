@@ -10,6 +10,11 @@ import { CreateViewDialog } from '../ui/CreateViewDialog.js';
  */
 export class HotbarViewsContainer extends BG3Component {
     /**
+     * Maximum number of views allowed
+     */
+    static MAX_VIEWS = 5;
+
+    /**
      * Create hotbar views container
      * @param {Object} options - Container options
      * @param {BG3Hotbar} options.hotbarApp - Reference to main hotbar app
@@ -144,10 +149,10 @@ export class HotbarViewsContainer extends BG3Component {
         // Update hotbar grids only (views don't affect weapon sets or quick access)
         if (this.hotbarApp.components.hotbar) {
             const hotbarContainer = this.hotbarApp.components.hotbar;
-            
+
             // Also update the parent container's grids array
             hotbarContainer.grids = state.hotbar.grids;
-            
+
             for (let i = 0; i < state.hotbar.grids.length; i++) {
                 const gridData = state.hotbar.grids[i];
                 const gridContainer = hotbarContainer.gridContainers[i];
@@ -156,14 +161,14 @@ export class HotbarViewsContainer extends BG3Component {
                     gridContainer.rows = gridData.rows;
                     gridContainer.cols = gridData.cols;
                     gridContainer.items = gridData.items || {};
-                    
+
                     // Show/hide grid based on cols
                     if (gridData.cols === 0) {
                         gridContainer.element.style.display = 'none';
                     } else {
                         gridContainer.element.style.display = '';
                     }
-                    
+
                     updates.push(gridContainer.render());
                 }
             }
@@ -178,6 +183,13 @@ export class HotbarViewsContainer extends BG3Component {
      * @private
      */
     async _showCreateViewDialog() {
+        // Check if already at max views
+        const views = this.persistenceManager?.getViews() || [];
+        if (views.length >= HotbarViewsContainer.MAX_VIEWS) {
+            ui.notifications.warn(`Maximum of ${HotbarViewsContainer.MAX_VIEWS} views allowed`);
+            return;
+        }
+
         const result = await CreateViewDialog.show({
             onCreate: async (name, icon) => {
                 await this._createView(name, icon);
@@ -196,13 +208,13 @@ export class HotbarViewsContainer extends BG3Component {
 
         try {
             await this.persistenceManager.createView(name, icon);
-            
+
             // Update hotbar containers to show empty state
             await this._updateHotbarContainers();
-            
+
             // Refresh the views container to show the new view
             await this.render();
-            
+
             ui.notifications.info(`Created view: ${name}`);
         } catch (error) {
             console.error('BG3 HUD Core | Failed to create view:', error);
@@ -259,24 +271,7 @@ export class HotbarViewsContainer extends BG3Component {
         await menu.render();
     }
 
-    /**
-     * Update a view with current hotbar state
-     * @param {string} viewId - View ID to update
-     * @private
-     */
-    async _updateView(viewId) {
-        if (!this.persistenceManager) return;
 
-        try {
-            await this.persistenceManager.updateView(viewId);
-            
-            const view = this.persistenceManager.getView(viewId);
-            ui.notifications.info(`Updated view: ${view?.name}`);
-        } catch (error) {
-            console.error('BG3 HUD Core | Failed to update view:', error);
-            ui.notifications.error('Failed to update view');
-        }
-    }
 
     /**
      * Show rename view dialog
@@ -305,7 +300,7 @@ export class HotbarViewsContainer extends BG3Component {
                     callback: async (html) => {
                         const name = html.find('#view-name-input').val()?.trim();
                         const icon = html.find('#view-icon-input').val()?.trim() || null;
-                        
+
                         if (!name) {
                             ui.notifications.warn('View name cannot be empty');
                             return;
@@ -325,7 +320,7 @@ export class HotbarViewsContainer extends BG3Component {
                 const input = html.find('#view-name-input');
                 input.focus();
                 input[0].select();
-                
+
                 // Submit on Enter key
                 input.on('keydown', (e) => {
                     if (e.key === 'Enter') {
@@ -348,7 +343,7 @@ export class HotbarViewsContainer extends BG3Component {
 
         try {
             await this.persistenceManager.renameView(viewId, newName, newIcon);
-            
+
             // Refresh the views container
             await this.render();
         } catch (error) {
@@ -368,9 +363,9 @@ export class HotbarViewsContainer extends BG3Component {
         try {
             const originalView = this.persistenceManager.getView(viewId);
             const newName = `${originalView?.name} (Copy)`;
-            
+
             await this.persistenceManager.duplicateView(viewId, newName);
-            
+
             // Refresh the views container
             await this.render();
         } catch (error) {
@@ -388,7 +383,7 @@ export class HotbarViewsContainer extends BG3Component {
         if (!this.persistenceManager) return;
 
         const view = this.persistenceManager.getView(viewId);
-        
+
         // Confirm deletion using custom dialog
         const confirmed = await ConfirmDialog.confirm({
             title: 'Delete View',
@@ -403,14 +398,14 @@ export class HotbarViewsContainer extends BG3Component {
 
         try {
             const wasActive = this.persistenceManager.getActiveViewId() === viewId;
-            
+
             await this.persistenceManager.deleteView(viewId);
-            
+
             // If we deleted the active view, update the hotbar containers
             if (wasActive) {
                 await this._updateHotbarContainers();
             }
-            
+
             // Refresh the views container
             await this.render();
         } catch (error) {

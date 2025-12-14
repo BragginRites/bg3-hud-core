@@ -45,18 +45,18 @@ export class ContextMenu extends BG3Component {
             }
 
             const menuItem = this.createElement('div', ['bg3-context-menu-item']);
-            
+
             // Add custom class if provided (e.g., 'checked' for checkboxes)
             if (item.class) {
                 const classes = item.class.split(' ').filter(c => c);
                 menuItem.classList.add(...classes);
             }
-            
+
             // Add tooltip if provided
             if (item.title) {
                 menuItem.title = item.title;
             }
-            
+
             if (item.icon) {
                 const icon = document.createElement('i');
                 // Split icon classes (e.g., "fas fa-trash" -> ["fas", "fa-trash"])
@@ -80,12 +80,17 @@ export class ContextMenu extends BG3Component {
             menuItem.addEventListener('click', async (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                
+
                 if (item.onClick) {
                     await item.onClick(e);
                 }
-                
-                this.destroy();
+
+                // If keepOpen is true, toggle the checked state visually instead of closing
+                if (item.keepOpen) {
+                    menuItem.classList.toggle('checked');
+                } else {
+                    this.destroy();
+                }
             });
 
             this.element.appendChild(menuItem);
@@ -112,31 +117,31 @@ export class ContextMenu extends BG3Component {
      */
     _positionMenu() {
         if (!this.event) return;
-    
+
         // Easy-to-tweak offsets
         const offsetX = 10; // distance to the right of the cursor
         const offsetY = -10; // distance below the cursor (to place the bottom edge)
-    
+
         // Get actual menu size
         const menuRect = this.element.getBoundingClientRect();
         const menuWidth = menuRect.width || 200;
         const menuHeight = menuRect.height || (this.items.length * 40);
-    
+
         // Position: bottom-left corner at (mouseX + offsetX, mouseY + offsetY)
         let x = this.event.clientX + offsetX;
         let y = this.event.clientY + offsetY - menuHeight;
-    
+
         // Clamp horizontally
         if (x + menuWidth > window.innerWidth - offsetX) {
             x = window.innerWidth - menuWidth - offsetX;
         }
-    
+
         // Clamp vertically
         if (y < offsetY) y = offsetY;
         if (y + menuHeight > window.innerHeight - offsetY) {
             y = window.innerHeight - menuHeight - offsetY;
         }
-    
+
         this.element.style.left = `${x}px`;
         this.element.style.top = `${y}px`;
     }

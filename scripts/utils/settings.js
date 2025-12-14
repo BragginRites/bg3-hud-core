@@ -1,4 +1,5 @@
 import { ThemeSettingDialog } from '../components/ui/ThemeSettingDialog.js';
+import { PortraitDataConfigDialog } from '../components/ui/PortraitDataConfigDialog.js';
 import { createSettingsSubmenu } from '../api/SettingsSubmenu.js';
 
 /**
@@ -467,14 +468,43 @@ export function registerSettings() {
         default: null
     });
 
-    // GM Hotbar lock setting (keep GM hotbar visible when token selected)
-    game.settings.register(MODULE_ID, 'gmHotbarLock', {
-        name: 'Keep GM Hotbar',
-        hint: 'Keep GM hotbar visible even when a token is selected',
-        scope: 'world',
+    // ========================================
+    // Portrait Data Settings
+    // ========================================
+
+    game.settings.registerMenu(MODULE_ID, 'menuPortraitData', {
+        name: 'bg3-hud-core.Settings.PortraitData.MenuName',
+        label: 'bg3-hud-core.Settings.PortraitData.MenuLabel',
+        hint: 'bg3-hud-core.Settings.PortraitData.MenuHint',
+        icon: 'fas fa-id-card',
+        type: PortraitDataConfigDialog,
+        restricted: false
+    });
+
+    game.settings.register(MODULE_ID, 'showPortraitData', {
+        name: 'bg3-hud-core.Settings.PortraitData.ShowName',
+        hint: 'bg3-hud-core.Settings.PortraitData.ShowHint',
+        scope: 'client',
         config: false,
         type: Boolean,
-        default: false
+        default: false,
+        onChange: () => {
+            // Refresh portrait if it exists
+            ui.BG3HOTBAR?.components?.portrait?.render?.();
+        }
+    });
+
+    game.settings.register(MODULE_ID, 'portraitDataConfig', {
+        name: 'Portrait Data Configuration',
+        hint: 'Configuration for portrait data badges',
+        scope: 'client',
+        config: false,
+        type: Array,
+        default: [],
+        onChange: () => {
+            // Refresh portrait if it exists
+            ui.BG3HOTBAR?.components?.portrait?.render?.();
+        }
     });
 
     // ========================================

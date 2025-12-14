@@ -1,0 +1,64 @@
+<form class="portrait-data-config-form">
+    <div class="form-group">
+        <label for="showPortraitData">Enable Portrait Data</label>
+        <input type="checkbox" name="showPortraitData" id="showPortraitData" {{#if showPortraitData}}checked{{/if}}>
+        <p class="hint">Display data badges around the character portrait</p>
+    </div>
+
+    <hr>
+
+    <p class="notes">
+        Configure data badges to display around the portrait. Leave paths blank to hide a slot.
+    </p>
+    <p class="notes hint">
+        <strong>Examples:</strong>
+        <code>system.attributes.ac.value</code>,
+        <code>\{{system.resources.heroPoints.value}}/\{{system.resources.heroPoints.max}}</code>,
+        <code>itemName:Focus Points:system.uses.value</code>
+    </p>
+
+    {{#each slots}}
+    <div class="slot-config" data-slot="{{key}}">
+        <h4>{{label}}</h4>
+
+        <div class="form-group">
+            <label>Attribute Path</label>
+            <div class="form-fields">
+                <input type="text" name="path-{{key}}" class="path-input" value="{{path}}"
+                    placeholder="e.g., system.attributes.ac.value">
+                <select class="attr-select">
+                    <option value="">— Select —</option>
+                    {{#each ../attrChoices}}
+                    <option value="{{value}}" {{#if (eq value ../path)}}selected{{/if}}>{{value}}</option>
+                    {{/each}}
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Icon</label>
+            <div class="form-fields">
+                <input type="text" name="icon-{{key}}" class="icon-input" value="{{icon}}"
+                    placeholder="e.g., fas fa-shield-alt">
+                <button type="button" class="icon-picker-btn" title="Pick an icon">
+                    <i class="fas fa-icons"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Color</label>
+            <div class="form-fields">
+                <input type="text" name="color-{{key}}" class="color-input" value="{{color}}">
+                <input type="color" value="{{color}}">
+            </div>
+        </div>
+    </div>
+    {{/each}}
+
+    <footer class="form-footer">
+        <button type="submit">
+            <i class="fas fa-save"></i> Save
+        </button>
+    </footer>
+</form>

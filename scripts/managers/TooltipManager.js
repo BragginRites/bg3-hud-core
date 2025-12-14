@@ -27,7 +27,7 @@ export class TooltipManager {
         this.currentUuid = null;
         this.renderers = new Map(); // systemId -> renderer function
         this._zCounter = 10000; // base z-index for tooltips
-        
+
         // Bind methods
         this._handleMouseEnter = this._handleMouseEnter.bind(this);
         this._handleMouseLeave = this._handleMouseLeave.bind(this);
@@ -35,7 +35,7 @@ export class TooltipManager {
         this._handleContextMenu = this._handleContextMenu.bind(this);
         this._handleMouseDown = this._handleMouseDown.bind(this);
         this._handleMiddleClick = this._handleMiddleClick.bind(this);
-        
+
         this._init();
     }
 
@@ -54,7 +54,7 @@ export class TooltipManager {
 
         // Listen for data-tooltip attributes
         this._observeTooltipAttributes();
-        
+
         // Prevent system tooltips (dnd5e2, etc.) from showing on UI elements
         // This must run BEFORE system tooltip handlers, so use capture phase with high priority
         this._preventSystemTooltips = this._preventSystemTooltips.bind(this);
@@ -67,7 +67,7 @@ export class TooltipManager {
         document.addEventListener('pointerover', this._preventSystemTooltips, true);
         document.addEventListener('pointerout', this._preventSystemTooltips, true);
         document.addEventListener('focusin', this._preventSystemTooltips, true);
-        
+
         // Handle mouse events globally using event delegation
         // Use mouseover/mouseout instead of mouseenter/mouseleave because they bubble
         // This allows us to detect movement between cells within the same container
@@ -77,7 +77,14 @@ export class TooltipManager {
         document.addEventListener('contextmenu', this._handleContextMenu);
         document.addEventListener('mousedown', this._handleMouseDown);
         document.addEventListener('auxclick', this._handleMiddleClick, true); // Middle click - use capture phase
-        
+
+        // Hide unpinned tooltips when drag starts
+        document.addEventListener('dragstart', () => {
+            if (!this.lockedTooltips.has(this.tooltipElement)) {
+                this.hideTooltip();
+            }
+        }, true);
+
         // Bring-to-front on click for pinned tooltips
         document.addEventListener('click', (e) => {
             const tt = e.target?.closest?.('.locked-tooltip.bg3-tooltip');
@@ -85,14 +92,14 @@ export class TooltipManager {
                 this._bringToFront(tt);
             }
         }, true);
-        
+
         // Also listen for mouseleave on window to catch when mouse leaves window entirely
         window.addEventListener('mouseleave', (event) => {
             if (!this.lockedTooltips.has(this.tooltipElement)) {
                 this.hideTooltip();
             }
         });
-        
+
         // Listen for blur events (e.g., when window loses focus) to hide tooltips
         this._handleBlur = () => {
             if (!this.lockedTooltips.has(this.tooltipElement)) {
@@ -140,12 +147,12 @@ export class TooltipManager {
         this.tooltipElement.innerHTML = content;
         this.tooltipElement.className = 'bg3-tooltip simple-tooltip';
         classes.forEach(cls => this.tooltipElement.classList.add(cls));
-        
+
         // Store UUID on tooltip element for tracking
         if (uuid) {
             this.tooltipElement.dataset.uuid = uuid;
         }
-        
+
         // Position tooltip relative to target element (not mouse)
         // Setup for accurate measurement: remove any offsets that could skew measurement
         this.tooltipElement.style.display = 'block';
@@ -153,10 +160,10 @@ export class TooltipManager {
         this.tooltipElement.style.position = 'fixed';
         this.tooltipElement.style.transform = 'none';
         this.tooltipElement.style.margin = '0';
-        
+
         // Force layout/reflow to ensure tooltip dimensions are available
         this.tooltipElement.getBoundingClientRect();
-        
+
         // Position and show tooltip
         this._positionTooltip(target, direction);
         this.tooltipElement.style.visibility = 'visible';
@@ -195,7 +202,7 @@ export class TooltipManager {
             this.currentTarget = target;
             this.currentUuid = uuid;
             this.tooltipElement.innerHTML = '';
-            
+
             // Handle content (string or HTMLElement)
             if (typeof result.content === 'string') {
                 this.tooltipElement.innerHTML = result.content;
@@ -211,7 +218,7 @@ export class TooltipManager {
             if (result.classes && Array.isArray(result.classes)) {
                 result.classes.forEach(cls => this.tooltipElement.classList.add(cls));
             }
-            
+
             // Ensure tooltip has proper display (but keep hidden until positioned)
             // Setup for accurate measurement: remove any offsets that could skew measurement
             this.tooltipElement.style.display = 'block';
@@ -228,11 +235,11 @@ export class TooltipManager {
             }
 
             const direction = result.direction || 'UP';
-            
+
             // Position tooltip relative to target element (not mouse)
             // Force layout/reflow to ensure tooltip dimensions are available
             this.tooltipElement.getBoundingClientRect();
-            
+
             // Position and show tooltip
             this._positionTooltip(target, direction);
             this.tooltipElement.style.visibility = 'visible';
@@ -266,11 +273,11 @@ export class TooltipManager {
         this.tooltipElement.style.display = 'none';
         this.tooltipElement.style.visibility = 'hidden';
         this.tooltipElement.style.opacity = '0';
-        
+
         // Clear current target and UUID
         this.currentTarget = null;
         this.currentUuid = null;
-        
+
         // Clear tooltip content to ensure no stale content remains
         // Only clear if not locked (locked tooltips keep their content)
         if (!this.lockedTooltips.has(this.tooltipElement)) {
@@ -285,7 +292,7 @@ export class TooltipManager {
     pinTooltip(tooltip = null) {
         const tooltipToPin = tooltip || this.tooltipElement;
         if (!tooltipToPin || !tooltipToPin.classList.contains('visible')) return;
-        
+
         // If pinning the main tooltipElement, clone it so the main one can be reused
         // This allows showing tooltips for different items even when one is locked
         let pinnedTooltip = tooltipToPin;
@@ -294,7 +301,7 @@ export class TooltipManager {
             pinnedTooltip = tooltipToPin.cloneNode(true);
             pinnedTooltip.id = `bg3-tooltip-pinned-${Date.now()}`;
             document.body.appendChild(pinnedTooltip);
-            
+
             // Copy all computed styles to ensure visual consistency
             const computedStyle = window.getComputedStyle(tooltipToPin);
             const styleProps = ['position', 'left', 'top', 'width', 'height', 'zIndex', 'opacity', 'transform'];
@@ -304,23 +311,23 @@ export class TooltipManager {
                     pinnedTooltip.style[prop] = value;
                 }
             });
-            
+
             // Hide the main tooltipElement so it can be reused
             this.hideTooltip(true);
         }
-        
+
         pinnedTooltip.classList.add('locked-tooltip');
         this.lockedTooltips.add(pinnedTooltip);
-        
+
         // Track by UUID if available
         const uuid = pinnedTooltip.dataset.uuid;
         if (uuid) {
             this.pinnedTooltipsByUuid.set(uuid, pinnedTooltip);
         }
-        
+
         // Raise z-index when pinning
         this._bringToFront(pinnedTooltip);
-        
+
         this._makeTooltipDraggable(pinnedTooltip);
     }
 
@@ -330,28 +337,28 @@ export class TooltipManager {
      */
     dismissLockedTooltip(tooltip) {
         if (!this.lockedTooltips.has(tooltip)) return;
-        
+
         // Remove draggable handlers first to prevent any drag operations
         if (tooltip._bg3DragHandlers) {
             tooltip.removeEventListener('mousedown', tooltip._bg3DragHandlers.mouseDown, true);
             tooltip._bg3DragHandlers = null;
         }
-        
+
         // Remove from locked set before clearing styles
         this.lockedTooltips.delete(tooltip);
-        
+
         // Remove from UUID tracking
         const uuid = tooltip.dataset.uuid;
         if (uuid) {
             this.pinnedTooltipsByUuid.delete(uuid);
         }
-        
+
         // Hide the tooltip completely
         tooltip.classList.remove('locked-tooltip', 'visible');
         tooltip.style.display = 'none';
         tooltip.style.visibility = 'hidden';
         tooltip.style.opacity = '0';
-        
+
         // Clear position and interaction styles
         tooltip.style.cursor = '';
         tooltip.style.pointerEvents = '';
@@ -359,7 +366,7 @@ export class TooltipManager {
         tooltip.style.left = '';
         tooltip.style.top = '';
         tooltip.style.bottom = '';
-        
+
         // Clear content if this is the main tooltip element
         if (tooltip === this.tooltipElement) {
             tooltip.innerHTML = '';
@@ -436,7 +443,7 @@ export class TooltipManager {
         if (!event.target || typeof event.target.closest !== 'function') return;
         const isHoverMoveEvent = event.type === 'mouseover' || event.type === 'mouseout' ||
             event.type === 'pointerover' || event.type === 'pointerout';
-        
+
         // Only prevent system tooltips within BG3 HUD scope
         // Let system tooltips work normally everywhere else
         const isWithinBG3HUD = event.target.closest('.bg3-hud, #bg3-hotbar-container, .bg3-container-popover') !== null;
@@ -454,9 +461,9 @@ export class TooltipManager {
         event.stopPropagation();
         event.preventDefault();
         return;
-        
+
         // Legacy handling below kept for safety with dnd5e class checks
-        
+
         // Within BG3 HUD scope: check if this is a UI element (button, control, etc.)
         const target = event.target.closest('[data-bg3-ui]');
         if (!target) {
@@ -467,9 +474,9 @@ export class TooltipManager {
                 if (elementWithTooltipClass.dataset?.tooltipClass) {
                     const tooltipClass = elementWithTooltipClass.dataset.tooltipClass || '';
                     const hasDnd5eClasses = tooltipClass.includes('dnd5e2') || tooltipClass.includes('dnd5e-tooltip');
-                    const hasUuidClass = elementWithTooltipClass.hasAttribute('data-uuid') || 
-                                 elementWithTooltipClass.closest('[data-uuid]') !== null;
-                    
+                    const hasUuidClass = elementWithTooltipClass.hasAttribute('data-uuid') ||
+                        elementWithTooltipClass.closest('[data-uuid]') !== null;
+
                     // If it has dnd5e classes but no uuid, it's a UI element - prevent system tooltips
                     if (hasDnd5eClasses && !hasUuidClass) {
                         event.stopPropagation();
@@ -481,17 +488,17 @@ export class TooltipManager {
             }
             return;
         }
-        
+
         // Check if this UI element is part of a game item (has data-uuid)
         // Game items should still show tooltips (custom BG3 HUD ones)
-        const isGameItem = target.hasAttribute('data-uuid') || 
-                          target.closest('[data-uuid]') !== null;
-        
+        const isGameItem = target.hasAttribute('data-uuid') ||
+            target.closest('[data-uuid]') !== null;
+
         // Also check if element has data-tooltipClass with dnd5e classes but no data-uuid
         const tooltipClass = target.dataset.tooltipClass || '';
         const hasDnd5eClasses = tooltipClass.includes('dnd5e2') || tooltipClass.includes('dnd5e-tooltip');
         const hasIncorrectDnd5eTooltip = hasDnd5eClasses && !isGameItem;
-        
+
         // Only prevent system tooltips on pure UI elements within BG3 HUD scope
         if (!isGameItem || hasIncorrectDnd5eTooltip) {
             event.stopPropagation();
@@ -507,25 +514,30 @@ export class TooltipManager {
     _handleMouseEnter(event) {
         // Check if event.target is an Element (not Text, Document, Window, etc.)
         if (!event.target || typeof event.target.closest !== 'function') return;
-        
+
+        // Don't show tooltips during drag operations
+        if (document.body.classList.contains('dragging-active')) {
+            return;
+        }
+
         // Only handle tooltips within BG3 HUD scope to avoid processing every element in Foundry
         const isWithinBG3HUD = event.target.closest('.bg3-hud, #bg3-hotbar-container, .bg3-container-popover') !== null;
         if (!isWithinBG3HUD) {
             return; // Let system tooltips handle everything outside BG3 HUD
         }
-        
+
         // Check for elements with data-tooltip attribute
         let target = event.target.closest('[data-tooltip]');
-        
+
         // Also check for elements with data-uuid (for rich tooltips)
         if (!target) {
             target = event.target.closest('[data-uuid]');
         }
-        
+
         if (!target) {
             return;
         }
-        
+
         // Check if we're already showing/pending a tooltip for this exact target
         // If so, don't restart the process
         if (this.currentTarget === target || this.pendingTarget === target) {
@@ -534,7 +546,7 @@ export class TooltipManager {
 
         // Get UUID if available
         const uuid = target.dataset.uuid;
-        
+
         // Check if this UUID already has a pinned tooltip - don't show another
         // This ensures only 1 instance per item (UUID)
         if (uuid && this.pinnedTooltipsByUuid.has(uuid)) {
@@ -559,17 +571,17 @@ export class TooltipManager {
         if (uuid && game.system?.id) {
             const systemId = game.system.id;
             const renderer = this.renderers.get(systemId);
-            
+
             if (renderer) {
                 // Clear any existing pending timeout
                 if (this.hoverTimeout) {
                     clearTimeout(this.hoverTimeout);
                     this.hoverTimeout = null;
                 }
-                
+
                 // Set pending target
                 this.pendingTarget = target;
-                
+
                 // Rich tooltip - load item and render
                 this.hoverTimeout = setTimeout(async () => {
                     // Only show if we're still on the same target
@@ -600,24 +612,24 @@ export class TooltipManager {
                 clearTimeout(this.hoverTimeout);
                 this.hoverTimeout = null;
             }
-            
+
             // Set pending target
             this.pendingTarget = target;
-            
+
             const direction = target.dataset.tooltipDirection || 'UP';
             let tooltipClass = target.dataset.tooltipClass || '';
-            
+
             // Only allow dnd5e classes (dnd5e2, dnd5e-tooltip) if element has data-uuid
             // UI elements (filters, buttons, controls) should not use dnd5e tooltip classes
             if (tooltipClass && !uuid) {
                 const classes = tooltipClass.split(' ').filter(Boolean);
                 // Filter out dnd5e classes for non-game items
-                const filteredClasses = classes.filter(cls => 
+                const filteredClasses = classes.filter(cls =>
                     cls !== 'dnd5e2' && cls !== 'dnd5e-tooltip' && cls !== 'item-tooltip'
                 );
                 tooltipClass = filteredClasses.join(' ');
             }
-            
+
             this.hoverTimeout = setTimeout(() => {
                 // Only show if we're still on the same target
                 if (this.pendingTarget === target) {
@@ -645,33 +657,55 @@ export class TooltipManager {
             }
             return;
         }
-        
+
         // Only handle tooltips within BG3 HUD scope
         const isWithinBG3HUD = event.target.closest('.bg3-hud, #bg3-hotbar-container, .bg3-container-popover') !== null;
         if (!isWithinBG3HUD) {
             return; // Let system tooltips handle everything outside BG3 HUD
         }
-        
+
         // Check if mouse is entering the tooltip itself - don't hide
         if (this.tooltipElement.contains(event.target)) {
             return;
         }
-        
+
+        // Check if mouse is entering a pinned tooltip - don't hide the main tooltip
+        // BUT we should still process the rest (hide unpinned tooltips, clear timeouts)
+        const enteringPinnedTooltip = event.relatedTarget &&
+            typeof event.relatedTarget.closest === 'function' &&
+            event.relatedTarget.closest('.locked-tooltip.bg3-tooltip');
+
+        // Check for elements with data-tooltip or data-uuid
+        const target = event.target.closest('[data-tooltip], [data-uuid]');
+
+        // If we're leaving the pending target, cancel the pending timeout
+        // This fixes the race condition where:
+        // 1. User hovers Item A (starts timer, pendingTarget = A)
+        // 2. User hovers Item B (clears A timer, starts B timer, pendingTarget = B)
+        // 3. User moves away from B within delay window
+        // Previously, since pendingTarget was B and we're leaving B, this check would work
+        // BUT if we moved off B to nothing, the relatedTarget check below would skip this
+        if (this.hoverTimeout && this.pendingTarget === target) {
+            clearTimeout(this.hoverTimeout);
+            this.hoverTimeout = null;
+            this.pendingTarget = null;
+        }
+
         // Check if we're moving to another tooltip target (relatedTarget)
-        // If so, let the mouseover handler deal with it
+        // If so, let the mouseover handler deal with it (it will clear our timer anyway)
+        // IMPORTANT: Exclude pinned tooltips - they have data-uuid but are already shown
+        // Moving to a pinned tooltip should still hide the current unpinned tooltip
         if (event.relatedTarget && typeof event.relatedTarget.closest === 'function') {
             const nextTarget = event.relatedTarget.closest('[data-tooltip], [data-uuid]');
-            if (nextTarget) {
+            // Only skip if it's a real tooltip target, not a pinned tooltip
+            if (nextTarget && !enteringPinnedTooltip) {
                 return; // Moving to another tooltip target, let mouseover handle it
             }
         }
-        
-        // Check for elements with data-tooltip or data-uuid
-        const target = event.target.closest('[data-tooltip], [data-uuid]');
-        
+
         if (!target) {
             // Mouse left BG3 HUD element but we're not over another tooltip target
-            // Cancel any pending timeout
+            // Cancel any pending timeout (may have already been cleared above)
             if (this.hoverTimeout) {
                 clearTimeout(this.hoverTimeout);
                 this.hoverTimeout = null;
@@ -687,13 +721,6 @@ export class TooltipManager {
         // Don't hide if tooltip is locked
         if (this.lockedTooltips.has(this.tooltipElement)) return;
 
-        // Clear any pending hover timeout if we're leaving the pending target
-        if (this.hoverTimeout && this.pendingTarget === target) {
-            clearTimeout(this.hoverTimeout);
-            this.hoverTimeout = null;
-            this.pendingTarget = null;
-        }
-
         // Hide if we're leaving the current target element
         if (this.currentTarget === target) {
             this.hideTooltip();
@@ -708,7 +735,7 @@ export class TooltipManager {
     _handleMouseMove(event) {
         if (!this.tooltipElement.classList.contains('visible')) return;
         if (this.lockedTooltips.has(this.tooltipElement)) return;
-        
+
         // Don't reposition on mouse move - tooltip is anchored to source element
         // Only reposition if the target element itself moves (e.g., during animations)
         // This prevents jitter and ensures tooltip stays anchored to the source element
@@ -733,7 +760,7 @@ export class TooltipManager {
      */
     _handleMiddleClick(event) {
         if (event.button !== 1) return; // Only middle mouse button
-        
+
         // Check if clicking on a pinned tooltip - dismiss it
         // Use capture phase check to catch it before drag handler
         const pinnedTooltip = event.target.closest('.locked-tooltip.bg3-tooltip');
@@ -747,12 +774,12 @@ export class TooltipManager {
 
         // Check if clicking on an element that should show a tooltip
         if (!event.target || typeof event.target.closest !== 'function') return;
-        
+
         const target = event.target.closest('[data-tooltip], [data-uuid]');
         if (!target) return;
 
         // If tooltip is visible, pin it
-        if (this.tooltipElement.classList.contains('visible') && 
+        if (this.tooltipElement.classList.contains('visible') &&
             !this.lockedTooltips.has(this.tooltipElement)) {
             event.preventDefault();
             event.stopPropagation();
@@ -768,7 +795,7 @@ export class TooltipManager {
         // Only handle dragging for pinned tooltips
         const pinnedTooltip = event.target.closest('.locked-tooltip.bg3-tooltip');
         if (!pinnedTooltip || !this.lockedTooltips.has(pinnedTooltip)) return;
-        
+
         // Don't interfere with the draggable handler - let it handle the drag
         // This handler is mainly here to prevent other handlers from interfering
         // The actual dragging is handled by _makeTooltipDraggable's event listener
@@ -792,12 +819,12 @@ export class TooltipManager {
         const handleMouseDown = (e) => {
             // Don't start drag on middle-click (that's for dismissing)
             if (e.button === 1) return;
-            
+
             if (!this.lockedTooltips.has(tooltip)) return;
-            
+
             // Focus / raise before drag
             this._bringToFront(tooltip);
-            
+
             isDragging = true;
             startX = e.clientX;
             startY = e.clientY;
@@ -807,10 +834,10 @@ export class TooltipManager {
 
             const handleMouseMove = (e) => {
                 if (!isDragging) return;
-                
+
                 const deltaX = e.clientX - startX;
                 const deltaY = e.clientY - startY;
-                
+
                 tooltip.style.left = `${startLeft + deltaX}px`;
                 tooltip.style.top = `${startTop + deltaY}px`;
                 tooltip.style.bottom = 'auto';

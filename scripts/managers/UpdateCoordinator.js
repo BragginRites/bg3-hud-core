@@ -27,7 +27,7 @@ export class UpdateCoordinator {
         Hooks.on('combatRound', this._onCombatStateChange.bind(this));
         Hooks.on('combatTurn', this._onCombatStateChange.bind(this));
         Hooks.on('deleteCombat', this._onCombatStateChange.bind(this));
-        
+
         // Active effects hooks
         Hooks.on('createActiveEffect', this._onActiveEffectChange.bind(this));
         Hooks.on('updateActiveEffect', this._onActiveEffectChange.bind(this));
@@ -46,13 +46,6 @@ export class UpdateCoordinator {
      * @private
      */
     async _onControlToken(token, controlled) {
-        // Check if GM hotbar lock is enabled
-        const gmHotbarLock = game.settings.get('bg3-hud-core', 'gmHotbarLock');
-        if (gmHotbarLock && this.hotbarApp.canGMHotbar()) {
-            // Keep GM hotbar visible even when token is selected
-            this.hotbarApp.overrideGMHotbar = true;
-            return;
-        }
 
         // Check if GM hotbar override is active
         if (this.hotbarApp.overrideGMHotbar && game.settings.get('bg3-hud-core', 'enableGMHotbar')) {
@@ -62,7 +55,7 @@ export class UpdateCoordinator {
         // Check how many tokens are currently controlled
         const controlledTokens = canvas.tokens.controlled;
         const multipleTokensControlled = controlledTokens.length > 1;
-        
+
         if (controlled) {
             if (multipleTokensControlled) {
                 // Multiple tokens selected - show GM hotbar if enabled, otherwise hide
@@ -99,7 +92,7 @@ export class UpdateCoordinator {
                 this.hotbarApp.currentActor = null;
                 await this.hotbarApp.refresh();
             }
-            
+
             // DON'T clear _lastSaveWasLocal here - let the updateActor hook handle it
             // This ensures that if an actor update is pending, it will be properly skipped
         }
@@ -118,7 +111,7 @@ export class UpdateCoordinator {
         const ignoredProperties = ['x', 'y', 'rotation', 'hidden', 'elevation'];
         const changedKeys = Object.keys(changes);
         const shouldIgnore = changedKeys.every(key => ignoredProperties.includes(key));
-        
+
         if (shouldIgnore) {
             return;
         }
@@ -145,7 +138,7 @@ export class UpdateCoordinator {
             if (this.persistenceManager.shouldSkipReload()) {
                 return;
             }
-            
+
             // Server state changed from another source (another user saved)
             // This is our authoritative reconciliation point
             // The server state is the source of truth - reconcile our UI to match
@@ -168,7 +161,7 @@ export class UpdateCoordinator {
         // Check for HP or death save changes (common case)
         const hpChanged = changes?.system?.attributes?.hp;
         const deathChanged = changes?.system?.attributes?.death;
-        
+
         if (hpChanged || deathChanged) {
             if (await this._handleHealthChange()) {
                 return;
@@ -224,12 +217,12 @@ export class UpdateCoordinator {
      */
     async _handleStateUpdate() {
         const state = await this.persistenceManager.loadState();
-        
+
         // Update hotbar grids (multiple grids)
         if (this.hotbarApp.components?.hotbar) {
             const hotbar = this.hotbarApp.components.hotbar;
             hotbar.grids = state.hotbar.grids;
-            
+
             for (let i = 0; i < hotbar.grids.length; i++) {
                 const gridData = hotbar.grids[i];
                 const gridContainer = hotbar.gridContainers[i];
@@ -241,12 +234,12 @@ export class UpdateCoordinator {
                 }
             }
         }
-        
+
         // Update weapon sets (multiple grids)
         if (this.hotbarApp.components?.weaponSets) {
             const weaponSets = this.hotbarApp.components.weaponSets;
             weaponSets.weaponSets = state.weaponSets.sets;
-            
+
             for (let i = 0; i < weaponSets.weaponSets.length; i++) {
                 const setData = weaponSets.weaponSets[i];
                 const gridContainer = weaponSets.gridContainers[i];
@@ -255,16 +248,16 @@ export class UpdateCoordinator {
                     await gridContainer.render();
                 }
             }
-            
+
             // Update active set
             await weaponSets.setActiveSet(state.weaponSets.activeSet, true);
         }
-        
+
         // Update quick access (now normalized as array of grids)
         if (this.hotbarApp.components?.quickAccess) {
             const quickAccess = this.hotbarApp.components.quickAccess;
             quickAccess.grids = state.quickAccess.grids;
-            
+
             // Use same pattern as hotbar/weaponSets for consistency
             const gridData = quickAccess.grids[0];
             const gridContainer = quickAccess.gridContainers[0];
@@ -296,7 +289,7 @@ export class UpdateCoordinator {
         }
 
         // Portrait image preference (D&D 5e specific)
-        if (Object.prototype.hasOwnProperty.call(adapterFlags, 'useTokenImage') || 
+        if (Object.prototype.hasOwnProperty.call(adapterFlags, 'useTokenImage') ||
             Object.prototype.hasOwnProperty.call(adapterFlags, 'scaleWithToken')) {
             const portraitContainer = this.hotbarApp.components?.portrait;
             if (portraitContainer) {
@@ -420,7 +413,7 @@ export class UpdateCoordinator {
     async _onUpdateCombat(combat, changes) {
         // Update action button visibility (no need for full refresh)
         this._updateActionButtonsVisibility();
-        
+
         // Reset filters when turn changes
         if (changes.turn !== undefined || changes.round !== undefined) {
             this._resetFilters();
@@ -491,7 +484,7 @@ export class UpdateCoordinator {
         try {
             let state = await this.persistenceManager.loadState();
             state = await this.persistenceManager.hydrateState(state);
-            
+
             // Update hotbar grids with hydrated data
             if (this.hotbarApp.components?.hotbar) {
                 const hotbar = this.hotbarApp.components.hotbar;
@@ -504,7 +497,7 @@ export class UpdateCoordinator {
                     }
                 }
             }
-            
+
             // Update weapon sets with hydrated data
             if (this.hotbarApp.components?.weaponSets) {
                 const weaponSets = this.hotbarApp.components.weaponSets;
@@ -517,7 +510,7 @@ export class UpdateCoordinator {
                     }
                 }
             }
-            
+
             // Update quick access with hydrated data
             if (this.hotbarApp.components?.quickAccess && state.quickAccess?.grids?.[0]) {
                 const quickAccess = this.hotbarApp.components.quickAccess;
@@ -587,13 +580,13 @@ export class UpdateCoordinator {
         for (let i = 0; i < serverState.hotbar.grids.length; i++) {
             const serverGrid = serverState.hotbar.grids[i];
             const gridContainer = hotbar.gridContainers[i];
-            
+
             if (!gridContainer) continue;
 
             // Check if grid config differs
-            const configChanged = gridContainer.rows !== serverGrid.rows || 
-                                  gridContainer.cols !== serverGrid.cols;
-            
+            const configChanged = gridContainer.rows !== serverGrid.rows ||
+                gridContainer.cols !== serverGrid.cols;
+
             // Check if items differ (deep comparison would be expensive, so just replace)
             const itemsChanged = JSON.stringify(gridContainer.items) !== JSON.stringify(serverGrid.items);
 
@@ -604,11 +597,11 @@ export class UpdateCoordinator {
                     hotbar.grids[i].cols = serverGrid.cols;
                     hotbar.grids[i].items = serverGrid.items;
                 }
-                
+
                 gridContainer.rows = serverGrid.rows;
                 gridContainer.cols = serverGrid.cols;
                 gridContainer.items = serverGrid.items || {};
-                
+
                 updates.push(gridContainer.render());
             }
         }
@@ -632,7 +625,7 @@ export class UpdateCoordinator {
         for (let i = 0; i < serverState.weaponSets.sets.length; i++) {
             const serverSet = serverState.weaponSets.sets[i];
             const gridContainer = weaponSets.gridContainers[i];
-            
+
             if (!gridContainer) continue;
 
             // Check if items differ
@@ -648,8 +641,8 @@ export class UpdateCoordinator {
         }
 
         // Check if active set differs
-        if (serverState.weaponSets.activeSet !== undefined && 
-            weaponSets.getActiveSet && 
+        if (serverState.weaponSets.activeSet !== undefined &&
+            weaponSets.getActiveSet &&
             weaponSets.getActiveSet() !== serverState.weaponSets.activeSet) {
             await weaponSets.setActiveSet(serverState.weaponSets.activeSet, true);
         }
@@ -670,7 +663,7 @@ export class UpdateCoordinator {
 
         const serverGrid = serverState.quickAccess.grids[0];
         const gridContainer = quickAccess.gridContainers[0];
-        
+
         if (!gridContainer) return;
 
         // Check if items differ

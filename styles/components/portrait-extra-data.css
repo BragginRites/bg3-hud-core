@@ -1,0 +1,181 @@
+/**
+ * Portrait Extra Data Styles
+ * Styling for data badges displayed around the portrait
+ * Based on bg3-inspired-hotbar extra-info styling
+ */
+
+/* Container for all data badges */
+#bg3-hotbar-container .portrait-data-badges {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+/* Individual data badge */
+#bg3-hotbar-container .portrait-data-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: inherit;
+    position: absolute;
+    z-index: 20;
+    text-shadow: var(--shadow-text-stroke, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000);
+    color: #fff;
+    font-size: 1.5em;
+    font-weight: bold;
+    transform: unset;
+    pointer-events: auto;
+}
+
+#bg3-hotbar-container .portrait-data-badge .badge-value {
+    z-index: 1;
+    line-height: 1.5em;
+}
+
+#bg3-hotbar-container .portrait-data-badge i {
+    font-size: xx-large;
+    position: absolute;
+    z-index: 0;
+    opacity: 0.7;
+}
+
+/* Position classes - Top Left (0) */
+#bg3-hotbar-container .portrait-data-badge.position-0 {
+    top: 5px;
+    left: 25px;
+}
+
+/* Position classes - Top Right (1) */
+#bg3-hotbar-container .portrait-data-badge.position-1 {
+    top: 5px;
+    right: 25px;
+}
+
+/* Position classes - Middle Left (2) */
+#bg3-hotbar-container .portrait-data-badge.position-2 {
+    top: 50%;
+    transform: translateY(-50%);
+    left: 5px;
+}
+
+/* Position classes - Middle Right (3) */
+#bg3-hotbar-container .portrait-data-badge.position-3 {
+    top: 50%;
+    transform: translateY(-50%);
+    right: 5px;
+}
+
+/* Position classes - Bottom Left (4) */
+#bg3-hotbar-container .portrait-data-badge.position-4 {
+    bottom: 5px;
+    left: 25px;
+}
+
+/* Position classes - Bottom Right (5) */
+#bg3-hotbar-container .portrait-data-badge.position-5 {
+    bottom: 5px;
+    right: 25px;
+}
+
+/* Config dialog styles */
+.portrait-data-config-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 8px;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.portrait-data-config-form .notes {
+    margin: 0;
+    font-size: 12px;
+    color: var(--color-text-light-6, #888);
+}
+
+.portrait-data-config-form .notes.hint {
+    background: rgba(0, 0, 0, 0.1);
+    padding: 8px;
+    border-radius: 4px;
+}
+
+.portrait-data-config-form .notes code {
+    background: rgba(0, 0, 0, 0.2);
+    padding: 1px 4px;
+    border-radius: 2px;
+    font-size: 11px;
+}
+
+.portrait-data-config-form .slot-config {
+    background: rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--color-border-light-primary, #555);
+    border-radius: 6px;
+    padding: 12px;
+}
+
+.portrait-data-config-form .slot-config h4 {
+    margin: 0 0 12px 0;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--color-border-light-tertiary, #333);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.portrait-data-config-form .form-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.portrait-data-config-form .form-group:last-child {
+    margin-bottom: 0;
+}
+
+.portrait-data-config-form .form-group label {
+    flex: 0 0 100px;
+    font-weight: 500;
+    font-size: 12px;
+}
+
+.portrait-data-config-form .form-fields {
+    flex: 1;
+    display: flex;
+    gap: 4px;
+}
+
+.portrait-data-config-form .form-fields input[type="text"] {
+    flex: 1;
+}
+
+.portrait-data-config-form .form-fields select {
+    flex: 0 0 180px;
+}
+
+.portrait-data-config-form .form-fields input[type="color"] {
+    flex: 0 0 32px;
+    height: 28px;
+    padding: 2px;
+    border: 1px solid var(--color-border-light-primary, #555);
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.portrait-data-config-form .icon-picker-btn {
+    flex: 0 0 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--color-border-light-primary, #555);
+    border-radius: 4px;
+    background: var(--color-bg-option, #333);
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.portrait-data-config-form .icon-picker-btn:hover {
+    background: var(--color-bg-option-hover, #444);
+}

@@ -218,7 +218,7 @@
    ========================================================================== */
 
 #bg3-hotbar-container:hover,
-#bg3-hotbar-container:has(div.locked[data-key="controlLock"])[data-lock-settings*="opacity"] {
+#bg3-hotbar-container[data-master-lock="true"][data-lock-settings*="opacity"] {
     transition-delay: 0s;
     opacity: var(--bg3-normal-opacity);
 }

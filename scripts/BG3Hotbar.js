@@ -48,12 +48,12 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
      */
     constructor(options = {}) {
         super(options);
-        
+
         this.components = {};
         this.currentToken = null;
         this.currentActor = null;
         this.overrideGMHotbar = false; // Flag to manually override GM hotbar
-        
+
         // Initialize managers
         this.persistenceManager = new PersistenceManager();
         this.componentFactory = new ComponentFactory(this);
@@ -74,12 +74,20 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
 
         // Register Foundry hooks via coordinator
         this.updateCoordinator.registerHooks();
-        
+
         // Initialize socket connection (if socketlib available)
         this.socketManager.initialize();
-        
+
         // Link socket manager to persistence manager
         this.persistenceManager.setSocketManager(this.socketManager);
+
+        // Re-apply display settings when adapter registration completes
+        // This handles the case where HUD renders before adapter is fully ready
+        Hooks.on('bg3HudRegistrationComplete', () => {
+            if (this.rendered) {
+                this.updateDisplaySettings();
+            }
+        });
     }
 
     /**
@@ -87,9 +95,9 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
      * @returns {boolean} True if GM hotbar should be shown
      */
     canGMHotbar() {
-        return !this.currentActor && 
-               game.user.isGM && 
-               game.settings.get('bg3-hud-core', 'enableGMHotbar');
+        return !this.currentActor &&
+            game.user.isGM &&
+            game.settings.get('bg3-hud-core', 'enableGMHotbar');
     }
 
     /**
@@ -143,16 +151,16 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
      */
     async refresh() {
         if (!this.rendered) return;
-        
+
         // Add fade-out transition before re-rendering
         if (this.element && !this.element.classList.contains('bg3-hud-building')) {
             this.element.classList.remove('bg3-hud-visible');
             this.element.classList.add('bg3-hud-fading-out');
-            
+
             // Wait for fade-out transition to complete
             await new Promise(resolve => setTimeout(resolve, 300));
         }
-        
+
         await this.render(false);
     }
 
@@ -176,19 +184,19 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
      */
     async _onRender(context, options) {
         await super._onRender(context, options);
-        
+
         // Apply theme CSS variables
         await applyTheme();
-        
+
         // Apply display settings
         this.updateDisplaySettings();
-        
+
         // Initialize components after DOM is ready
         await this._initializeComponents();
-        
+
         // Apply appearance settings (opacity, scale, position) after components are built
         applyAppearanceSettings();
-        
+
         // Initialize lock state (button UI and dataset attributes)
         ControlsManager.initializeLockState();
 
@@ -207,7 +215,7 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
 
         // Check if in GM hotbar mode
         const isGMHotbarMode = this.canGMHotbar() || this.overrideGMHotbar;
-        
+
         // Only initialize if we have a token OR we're in GM hotbar mode
         if (!this.currentToken && !isGMHotbarMode) {
             // Hide the UI when no token is selected and not in GM mode
@@ -236,9 +244,9 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
         } else {
             this.persistenceManager.setToken(this.currentToken);
         }
-        
+
         let state = await this.persistenceManager.loadState();
-        
+
         // Hydrate state to ensure fresh item data (quantity, uses, etc.)
         // Only hydrate if we have an actor (not in GM mode)
         if (!isGMHotbarMode) {
@@ -267,7 +275,7 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
             // Normal token mode: create all components
             // Create info container (if adapter provides one)
             this.components.info = await this.componentFactory.createInfoContainer();
-            
+
             // Create portrait container (uses adapter if available)
             // Pass info container to portrait so it can be positioned above it
             this.components.portrait = await this.componentFactory.createPortraitContainer();
@@ -336,12 +344,12 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
             this.components.controls = await this.componentFactory.createControlContainer();
             this.components.hotbar.element.appendChild(await this.components.controls.render());
         }
-        
+
         // Ensure interaction coordinator has the active adapter
         if (BG3HUD_REGISTRY?.activeAdapter && this.interactionCoordinator?.setAdapter) {
             this.interactionCoordinator.setAdapter(BG3HUD_REGISTRY.activeAdapter);
         }
-        
+
     }
 
     /**

@@ -65,8 +65,8 @@ export class ControlContainer extends BG3Component {
      * @private
      */
     _shouldShowGMHotbarToggle() {
-        return game.user.isGM && 
-               game.settings.get('bg3-hud-core', 'enableGMHotbar');
+        return game.user.isGM &&
+            game.settings.get('bg3-hud-core', 'enableGMHotbar');
     }
 
     /**
@@ -76,7 +76,7 @@ export class ControlContainer extends BG3Component {
      */
     _getGMHotbarToggleButton() {
         const isUsingGM = !this.hotbarApp.currentToken;
-        
+
         return {
             key: 'toggle-gm-hotbar',
             classes: ['hotbar-control-button'],
@@ -189,7 +189,7 @@ export class ControlContainer extends BG3Component {
         }
 
         const hotbarContainer = this.hotbarApp.components.hotbar;
-        
+
         // Add row to each grid data
         for (let i = 0; i < hotbarContainer.grids.length; i++) {
             hotbarContainer.grids[i].rows++;
@@ -221,7 +221,7 @@ export class ControlContainer extends BG3Component {
         }
 
         const hotbarContainer = this.hotbarApp.components.hotbar;
-        
+
         // Check if we can remove a row (minimum 1 row)
         if (hotbarContainer.grids[0].rows <= 1) {
             return;
@@ -255,13 +255,13 @@ export class ControlContainer extends BG3Component {
     async _toggleLock(event) {
         // Check if any lock settings are enabled
         const hasLockSettings = ControlsManager.hasAnyLockEnabled();
-        
+
         if (!hasLockSettings) {
             // No lock settings selected - prompt user to right-click
             ui.notifications.warn(game.i18n.localize('bg3-hud-core.Controls.Lock.NoSettingsWarning'));
             return;
         }
-        
+
         // Toggle the master lock
         await ControlsManager.updateMasterLock();
     }
@@ -274,7 +274,7 @@ export class ControlContainer extends BG3Component {
      */
     async _showLockMenu(event) {
         event.preventDefault();
-        
+
         const menuBuilder = BG3HUD_API.getMenuBuilder();
         let menuItems = [];
 
@@ -307,28 +307,6 @@ export class ControlContainer extends BG3Component {
     _getCoreLockMenuItems() {
         const menuItems = [];
 
-        // Add GM hotbar lock option if GM hotbar is enabled
-        if (game.user.isGM && game.settings.get('bg3-hud-core', 'enableGMHotbar')) {
-            const isLocked = game.settings.get('bg3-hud-core', 'gmHotbarLock');
-            menuItems.push({
-                label: game.i18n.localize('bg3-hud-core.Controls.Lock.KeepGMHotbar'),
-                icon: 'fas fa-shield-alt',
-                class: isLocked ? 'checked' : '',
-                custom: '<div class="menu-item-checkbox"><i class="fas fa-check"></i></div>',
-                onClick: async () => {
-                    const newValue = !isLocked;
-                    await game.settings.set('bg3-hud-core', 'gmHotbarLock', newValue);
-                    // Update override flag if locking
-                    if (newValue && this.hotbarApp.canGMHotbar()) {
-                        this.hotbarApp.overrideGMHotbar = true;
-                    }
-                }
-            });
-            
-            // Add separator after GM hotbar option
-            menuItems.push({ separator: true });
-        }
-
         // Deselect Token lock
         const deselectLocked = ControlsManager.getLockSetting('deselect');
         menuItems.push({
@@ -336,6 +314,7 @@ export class ControlContainer extends BG3Component {
             icon: 'fas fa-user-slash',
             class: deselectLocked ? 'checked' : '',
             custom: '<div class="menu-item-checkbox"><i class="fas fa-check"></i></div>',
+            keepOpen: true,
             onClick: async () => {
                 await ControlsManager.updateLockSetting('deselect');
             }
@@ -348,6 +327,7 @@ export class ControlContainer extends BG3Component {
             icon: 'fas fa-eye',
             class: opacityLocked ? 'checked' : '',
             custom: '<div class="menu-item-checkbox"><i class="fas fa-check"></i></div>',
+            keepOpen: true,
             onClick: async () => {
                 await ControlsManager.updateLockSetting('opacity');
             }
@@ -360,6 +340,7 @@ export class ControlContainer extends BG3Component {
             icon: 'fas fa-arrows-alt',
             class: dragDropLocked ? 'checked' : '',
             custom: '<div class="menu-item-checkbox"><i class="fas fa-check"></i></div>',
+            keepOpen: true,
             onClick: async () => {
                 await ControlsManager.updateLockSetting('dragDrop');
             }
@@ -510,10 +491,10 @@ export class ControlContainer extends BG3Component {
         if (!this.hotbarApp) return;
 
         const hotbarContainer = this.hotbarApp.components.hotbar;
-        
+
         // Get default configuration from persistence manager
         const defaultConfig = this.hotbarApp.persistenceManager.DEFAULT_GRID_CONFIG;
-        
+
         // Reset all grids to default size
         for (let i = 0; i < hotbarContainer.grids.length; i++) {
             hotbarContainer.grids[i].rows = defaultConfig.rows;
@@ -627,12 +608,12 @@ export class ControlContainer extends BG3Component {
         const dataStr = JSON.stringify(exportPayload, null, 2);
         const blob = new Blob([dataStr], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
-        
+
         const link = document.createElement('a');
         link.href = url;
         link.download = `bg3-hud-layout-${Date.now()}.json`;
         link.click();
-        
+
         URL.revokeObjectURL(url);
     }
 
@@ -645,19 +626,19 @@ export class ControlContainer extends BG3Component {
         const input = document.createElement('input');
         input.type = 'file';
         input.accept = '.json';
-        
+
         input.onchange = async (e) => {
             const file = e.target.files[0];
             if (!file) return;
-            
+
             const reader = new FileReader();
             reader.onload = async (e) => {
                 try {
                     const importData = JSON.parse(e.target.result);
-                    
+
                     // Check format version
                     const version = importData.meta?.version || 1;
-                    
+
                     if (version === 2) {
                         // New format with views
                         await this._importLayoutV2(importData);
@@ -672,7 +653,7 @@ export class ControlContainer extends BG3Component {
             };
             reader.readAsText(file);
         };
-        
+
         input.click();
     }
 
@@ -683,11 +664,11 @@ export class ControlContainer extends BG3Component {
      */
     async _importLayoutV2(importData) {
         const state = await this.hotbarApp.persistenceManager.loadState();
-        
+
         // Import views if present
         if (importData.views && Array.isArray(importData.views.list)) {
             state.views = foundry.utils.deepClone(importData.views);
-            
+
             // If there's an active view, load its hotbar state (views only affect hotbar)
             if (state.views.activeViewId) {
                 const activeView = state.views.list.find(v => v.id === state.views.activeViewId);
@@ -695,7 +676,7 @@ export class ControlContainer extends BG3Component {
                     state.hotbar = foundry.utils.deepClone(activeView.hotbarState.hotbar);
                 }
             }
-            
+
             // Import weapon sets and quick access separately (not part of views)
             if (importData.weaponSets) {
                 state.weaponSets = {
@@ -720,14 +701,14 @@ export class ControlContainer extends BG3Component {
             if (importData.quickAccess) {
                 state.quickAccess = foundry.utils.deepClone(importData.quickAccess);
             }
-            
+
             // Sync to active view
             this.hotbarApp.persistenceManager._syncCurrentStateToActiveView(state);
         }
-        
+
         // Save the imported state
         await this.hotbarApp.persistenceManager.saveState(state);
-        
+
         // Refresh the hotbar to show imported data
         await this.hotbarApp.refresh();
     }
