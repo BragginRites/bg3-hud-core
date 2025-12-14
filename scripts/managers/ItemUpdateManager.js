@@ -69,7 +69,7 @@ export class ItemUpdateManager {
         // Load the actor's current hotbar data
         const state = await tempPersistence.loadState();
 
-        if (action === 'create' && this._shouldAddItemToHotbar(item)) {
+        if (action === 'create' && await this._shouldAddItemToHotbar(item)) {
             await this._addItemToActorHotbar(tempPersistence, state, item, actor);
         } else if (action === 'delete') {
             await this._removeItemFromActorHotbar(tempPersistence, state, item, actor);
@@ -121,7 +121,7 @@ export class ItemUpdateManager {
             // Get adapter to transform item to cell data
             const adapter = this._getAdapter();
             let cellData;
-            
+
             if (adapter && typeof adapter.transformItemToCellData === 'function') {
                 cellData = await adapter.transformItemToCellData(item);
             } else {
@@ -200,27 +200,27 @@ export class ItemUpdateManager {
      */
     async _updateItemInActorHotbar(persistenceManager, state, item, actor) {
         const adapter = this._getAdapter();
-        
+
         // Handle spell preparation state changes (D&D 5e specific, but adapter-agnostic)
         if (item.type === 'spell') {
             // Check if adapter has spell preparation enforcement logic
             // If adapter provides it, use it; otherwise default to checking preparation state
             let shouldEnforcePreparation = true; // Default to checking preparation
-            
+
             if (adapter && typeof adapter.shouldEnforceSpellPreparation === 'function') {
                 shouldEnforcePreparation = adapter.shouldEnforceSpellPreparation(actor);
             }
-            
+
             if (shouldEnforcePreparation) {
                 const method = item.system?.method ?? item.system?.preparation?.mode;
                 const prepared = item.system?.prepared ?? item.system?.preparation?.prepared;
-                
+
                 // Remove if unprepared prepared-spell
                 if (!prepared && method === 'prepared') {
                     await this._removeItemFromActorHotbar(persistenceManager, state, item, actor);
                     return;
                 }
-                
+
                 // Add if newly prepared or has valid casting mode
                 if (prepared || ['pact', 'apothecary', 'atwill', 'innate', 'ritual', 'always'].includes(method)) {
                     const existingLocation = persistenceManager.findUuidInHud(item.uuid);
@@ -251,7 +251,7 @@ export class ItemUpdateManager {
                         type: item.type
                     };
                 }
-                
+
                 if (cellData) {
                     grid.items[existingLocation.slotKey] = cellData;
                 }
@@ -284,7 +284,7 @@ export class ItemUpdateManager {
             if (!selectedTypes || !Array.isArray(selectedTypes) || selectedTypes.length === 0) {
                 return false;
             }
-            
+
             for (const selectedType of selectedTypes) {
                 if (selectedType.includes(':')) {
                     // Handle subtype (e.g., "consumable:potion")
@@ -334,12 +334,22 @@ export class ItemUpdateManager {
 
     /**
      * Determine if an item should be added to the hotbar
+     * Checks adapter's shouldAutoAddItem and shouldBlockFromHotbar
      * @param {Item} item - The item to check
      * @returns {boolean} - Whether the item should be added
      */
-    _shouldAddItemToHotbar(item) {
+    async _shouldAddItemToHotbar(item) {
         const adapter = this._getAdapter();
-        
+
+        // Check if adapter explicitly blocks this item (e.g., CPR items)
+        if (adapter && typeof adapter.shouldBlockFromHotbar === 'function') {
+            const blockResult = await adapter.shouldBlockFromHotbar(item);
+            if (blockResult?.blocked) {
+                console.log(`BG3 HUD Core | Blocking item "${item.name}" from auto-add: ${blockResult.reason || 'adapter blocked'}`);
+                return false;
+            }
+        }
+
         // Check if adapter has custom logic
         if (adapter && typeof adapter.shouldAutoAddItem === 'function') {
             return adapter.shouldAutoAddItem(item);
@@ -361,7 +371,7 @@ export class ItemUpdateManager {
                 noActivityAutoPopulate = false;
             }
         }
-        
+
         if (hasActivities || noActivityAutoPopulate) {
             return true;
         }
@@ -381,12 +391,12 @@ export class ItemUpdateManager {
             // Load current state
             const state = await this.persistenceManager.loadState();
             const gridData = state.hotbar.grids[gridIndex];
-            
+
             if (!gridData) return;
 
             const hotbar = this.hotbarApp.components.hotbar;
             const gridContainer = hotbar.gridContainers[gridIndex];
-            
+
             if (gridContainer) {
                 // Update the grid container's items and re-render
                 gridContainer.items = gridData.items;
@@ -424,7 +434,7 @@ export class ItemUpdateManager {
 
         // If this is the currently selected token, also update the UI
         const currentActor = this.hotbarApp?.currentActor;
-        
+
         if (currentActor && currentActor.id === itemActor.id && this.hotbarApp?.rendered) {
             try {
                 // Find which grid the item was added to
@@ -485,7 +495,7 @@ export class ItemUpdateManager {
             try {
                 // Check new location after update
                 const newLocation = this.persistenceManager.findUuidInHud(item.uuid);
-                
+
                 if (newLocation && newLocation.container === 'hotbar') {
                     // Item is in hotbar - update that grid
                     await this._updateGridContainer(newLocation.containerIndex);
