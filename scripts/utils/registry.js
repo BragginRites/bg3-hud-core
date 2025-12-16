@@ -12,19 +12,22 @@ export const BG3HUD_REGISTRY = {
     filterContainer: null,
     weaponSetContainer: null,
     infoContainer: null,
-    
+
     // Additional containers registered by adapters (e.g., rest/turn, weapon)
     containers: {},
-    
+
     // System adapters
     adapters: [],
-    
+
     // Active adapter (based on current game system)
     activeAdapter: null,
-    
+
     // Tooltip manager instance
     tooltipManager: null,
-    
+
+    // Target selector manager instance
+    targetSelectorManager: null,
+
     // Menu builders registered by adapters
     menuBuilders: {}
 };
@@ -133,14 +136,20 @@ export const BG3HUD_API = {
             console.error('BG3 HUD Core | Adapter missing required systemId property:', adapter);
             return;
         }
-        
+
         console.log('BG3 HUD Core | Registering adapter:', adapter.constructor.name);
         BG3HUD_REGISTRY.adapters.push(adapter);
-        
+
         // Set as active if it matches current system
         if (adapter.systemId === game.system.id) {
             BG3HUD_REGISTRY.activeAdapter = adapter;
             console.log('BG3 HUD Core | Active adapter set:', adapter.constructor.name);
+
+            // Connect adapter to target selector manager
+            if (BG3HUD_REGISTRY.targetSelectorManager) {
+                BG3HUD_REGISTRY.targetSelectorManager.setAdapter(adapter);
+                console.log('BG3 HUD Core | Target selector connected to adapter');
+            }
         }
     },
 
@@ -216,7 +225,7 @@ export const BG3HUD_API = {
      */
     registerMenuBuilder(systemId, builderClass, options = {}) {
         console.log(`BG3 HUD Core | Registering menu builder for system '${systemId}':`, builderClass.name);
-        
+
         // Create builder instance with adapter if provided
         const builder = new builderClass({ adapter: options.adapter || null });
         BG3HUD_REGISTRY.menuBuilders[systemId] = builder;
@@ -230,5 +239,53 @@ export const BG3HUD_API = {
     getMenuBuilder(systemId = null) {
         const targetSystemId = systemId || game.system.id;
         return BG3HUD_REGISTRY.menuBuilders[targetSystemId] || null;
+    },
+
+    /**
+     * Set the target selector manager instance
+     * @param {TargetSelectorManager} manager - TargetSelectorManager instance
+     */
+    setTargetSelectorManager(manager) {
+        BG3HUD_REGISTRY.targetSelectorManager = manager;
+        console.log('BG3 HUD Core | TargetSelectorManager registered');
+    },
+
+    /**
+     * Get the target selector manager instance
+     * @returns {TargetSelectorManager|null} The target selector manager or null
+     */
+    getTargetSelectorManager() {
+        return BG3HUD_REGISTRY.targetSelectorManager;
+    },
+
+    /**
+     * Start target selection for an item use
+     * @param {Object} options
+     * @param {Token} options.token - The source token (caster/attacker)
+     * @param {Item} options.item - The item being used
+     * @param {Object} [options.activity] - Optional activity for multi-activity items
+     * @returns {Promise<Token[]>} Promise that resolves with selected targets
+     */
+    async startTargetSelection({ token, item, activity = null }) {
+        const manager = BG3HUD_REGISTRY.targetSelectorManager;
+        if (!manager) {
+            console.warn('BG3 HUD Core | Target selector manager not initialized');
+            return Array.from(game.user.targets);
+        }
+        return manager.select({ token, item, activity });
+    },
+
+    /**
+     * Check if an item needs targeting
+     * @param {Item} item - The item to check
+     * @param {Object} [activity] - Optional activity
+     * @returns {boolean} True if targeting is required
+     */
+    needsTargeting(item, activity = null) {
+        const manager = BG3HUD_REGISTRY.targetSelectorManager;
+        if (!manager) {
+            return false;
+        }
+        return manager.needsTargeting(item, activity);
     }
 };

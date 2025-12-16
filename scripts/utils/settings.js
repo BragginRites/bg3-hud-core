@@ -151,6 +151,17 @@ export function registerSettings() {
         ]
     });
 
+    const TargetSelectorSettingsMenu = createSettingsSubmenu({
+        moduleId: MODULE_ID,
+        titleKey: 'bg3-hud-core.Settings.TargetSelector.MenuTitle',
+        sections: [
+            {
+                legend: 'bg3-hud-core.Settings.TargetSelector.Legend',
+                keys: ['enableTargetSelector', 'skipSelectorWithValidTarget', 'enableRangeChecking', 'autoTargetSelf']
+            }
+        ]
+    });
+
     // ========================================
     // Theme Settings
     // ========================================
@@ -230,6 +241,16 @@ export function registerSettings() {
         hint: 'bg3-hud-core.Settings.GMHotbar.MenuHint',
         icon: 'fas fa-list',
         type: GMHotbarSettingsMenu,
+        restricted: false
+    });
+
+    // Target selector submenu
+    game.settings.registerMenu(MODULE_ID, 'menuTargetSelector', {
+        name: 'bg3-hud-core.Settings.TargetSelector.MenuName',
+        label: 'bg3-hud-core.Settings.TargetSelector.MenuLabel',
+        hint: 'bg3-hud-core.Settings.TargetSelector.MenuHint',
+        icon: 'fas fa-crosshairs',
+        type: TargetSelectorSettingsMenu,
         restricted: false
     });
 
@@ -529,6 +550,46 @@ export function registerSettings() {
     game.settings.register(MODULE_ID, 'masterLockEnabled', {
         name: 'Master Lock State',
         hint: 'Whether the master lock is enabled',
+        scope: 'client',
+        config: false,
+        type: Boolean,
+        default: false
+    });
+
+    // ========================================
+    // Target Selector Settings
+    // ========================================
+
+    game.settings.register(MODULE_ID, 'enableTargetSelector', {
+        name: 'bg3-hud-core.Settings.TargetSelector.EnableName',
+        hint: 'bg3-hud-core.Settings.TargetSelector.EnableHint',
+        scope: 'client',
+        config: false,
+        type: Boolean,
+        default: false
+    });
+
+    game.settings.register(MODULE_ID, 'skipSelectorWithValidTarget', {
+        name: 'bg3-hud-core.Settings.TargetSelector.SkipName',
+        hint: 'bg3-hud-core.Settings.TargetSelector.SkipHint',
+        scope: 'client',
+        config: false,
+        type: Boolean,
+        default: false
+    });
+
+    game.settings.register(MODULE_ID, 'enableRangeChecking', {
+        name: 'bg3-hud-core.Settings.TargetSelector.RangeName',
+        hint: 'bg3-hud-core.Settings.TargetSelector.RangeHint',
+        scope: 'client',
+        config: false,
+        type: Boolean,
+        default: false
+    });
+
+    game.settings.register(MODULE_ID, 'autoTargetSelf', {
+        name: 'bg3-hud-core.Settings.TargetSelector.AutoSelfName',
+        hint: 'bg3-hud-core.Settings.TargetSelector.AutoSelfHint',
         scope: 'client',
         config: false,
         type: Boolean,

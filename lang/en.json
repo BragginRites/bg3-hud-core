@@ -122,6 +122,21 @@
         "MenuHint": "Configure GM hotbar visibility",
         "Legend": "GM Hotbar"
       },
+      "TargetSelector": {
+        "MenuTitle": "Target Selector",
+        "MenuName": "Target Selector",
+        "MenuLabel": "Target Selector Settings",
+        "MenuHint": "Configure BG3-style target selection for spells and abilities",
+        "Legend": "Target Selection",
+        "EnableName": "Enable Target Selector",
+        "EnableHint": "When enabled, clicking spells/abilities that need targets will prompt for target selection",
+        "SkipName": "Skip If Valid Target Exists",
+        "SkipHint": "Skip the target selector if you already have a valid target selected",
+        "RangeName": "Enforce Range Checking",
+        "RangeHint": "Prevent targeting tokens that are out of range",
+        "AutoSelfName": "Auto-Target Self",
+        "AutoSelfHint": "Automatically target yourself for self-targeting abilities"
+      },
       "PortraitData": {
         "Title": "Portrait Data Configuration",
         "MenuName": "Portrait Data",
@@ -150,6 +165,31 @@
     "Tooltips": {
       "InfoButton": "Character Info<br><small>Right-click for Initiative</small>",
       "SwitchWeaponSet": "Click: Switch to weapon set {number}"
+    },
+    "TargetSelector": {
+      "Instructions": "Select {min}-{max} targets. Press {confirm} to confirm, {cancel} to cancel.",
+      "AdjustTargets": "Adjust targets with {plus}/{minus}",
+      "Activated": "Target selection active. Press {confirm} to confirm, {cancel} to cancel.",
+      "Confirm": "Confirm",
+      "Cancel": "Cancel",
+      "SelectedTargets": "Selected Targets",
+      "NoTargetsSelected": "No targets selected",
+      "RemoveTarget": "Remove Target",
+      "Unlimited": "unlimited",
+      "InvalidTarget": "Invalid target",
+      "NoActor": "Target has no actor",
+      "TokenNotVisible": "Target is not visible",
+      "SelfOnly": "Can only target self",
+      "CannotTargetSelf": "Cannot target self",
+      "MustBeEnemy": "Must target an enemy",
+      "MustBeAlly": "Must target an ally",
+      "MustBeCreature": "Must target a creature",
+      "OutOfRange": "Target is out of range",
+      "Flanked": "Flanked",
+      "MaxTargetsReached": "Maximum {max} targets reached",
+      "MinTargetsRequired": "Minimum {min} targets required",
+      "IncreaseMax": "Increase Max Targets",
+      "DecreaseMax": "Decrease Max Targets"
     }
   }
 }

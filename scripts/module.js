@@ -2,6 +2,7 @@ import { BG3Hotbar } from './BG3Hotbar.js';
 import { BG3HUD_REGISTRY, BG3HUD_API } from './utils/registry.js';
 import { registerSettings, applyMacrobarCollapseSetting, applyContainerRowSettings, applyTheme } from './utils/settings.js';
 import { TooltipManager } from './managers/TooltipManager.js';
+import { TargetSelectorManager } from './managers/TargetSelectorManager.js';
 
 /**
  * BG3 HUD Core Module
@@ -31,11 +32,16 @@ Hooks.once('ready', async () => {
     const tooltipManager = new TooltipManager({ delay: tooltipDelay });
     BG3HUD_API.setTooltipManager(tooltipManager);
 
+    // Initialize TargetSelectorManager (will be connected to adapter later)
+    const targetSelectorManager = new TargetSelectorManager();
+    BG3HUD_API.setTargetSelectorManager(targetSelectorManager);
+
     // Make registry and API globally accessible
     ui.BG3HOTBAR = ui.BG3HOTBAR || {};
     ui.BG3HOTBAR.registry = BG3HUD_REGISTRY;
     ui.BG3HOTBAR.api = BG3HUD_API;
     ui.BG3HOTBAR.tooltipManager = tooltipManager;
+    ui.BG3HOTBAR.targetSelectorManager = targetSelectorManager;
 
     // Check if a compatible adapter module is active
     const hasCompatibleAdapter = [...game.modules.values()].some(m =>
