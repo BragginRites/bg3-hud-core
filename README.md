@@ -44,7 +44,7 @@ Check out my other module(s):
 - **Foundry VTT**: Version 13 or higher
 - **Required Module**: socketlib
 - **System Adapter**: A compatible system-specific module (bg3-hud-dnd5e, bg3-hud-pf2e, etc.)
-
+ 
 ## Acknowledgments
 
 This module is an independent fan creation, drawing inspiration from the excellent UI/UX design of Baldur's Gate 3. Special thanks to:
