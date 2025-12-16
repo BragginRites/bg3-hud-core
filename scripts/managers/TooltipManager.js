@@ -736,9 +736,23 @@ export class TooltipManager {
         if (!this.tooltipElement.classList.contains('visible')) return;
         if (this.lockedTooltips.has(this.tooltipElement)) return;
 
-        // Don't reposition on mouse move - tooltip is anchored to source element
-        // Only reposition if the target element itself moves (e.g., during animations)
-        // This prevents jitter and ensures tooltip stays anchored to the source element
+        // Safety Check: If mouse has moved completely off the target and tooltip, hide it
+        // This catches cases where mouseout/mouseleave might have been missed
+        // (e.g. fast movements, modifier keys changing pointer events, frame drops)
+        if (this.currentTarget) {
+            // Check if we are still over the current target or the tooltip itself
+            const isOverTarget = this.currentTarget.contains(event.target);
+            const isOverTooltip = this.tooltipElement.contains(event.target);
+
+            // If checking fails, also check if we are over a NEW potential target
+            // If we are over a NEW target, we respect the "continuity" logic (let mouseover handle it)
+            // If we are over NO target, we FORCE hide.
+            const isOverNewTarget = event.target.closest('[data-tooltip], [data-uuid]') !== null;
+
+            if (!isOverTarget && !isOverTooltip && !isOverNewTarget) {
+                this.hideTooltip();
+            }
+        }
     }
 
     /**
