@@ -7,6 +7,11 @@ assignees: ''
 
 ---
 
+**Is your issue system specific?**
+If your issue relates to specific rules (like Pathfinder 2e strikes, DnD 5e spell slots, etc), please report it on the adapter repository:
+- [PF2e Adapter Issues](https://github.com/BragginRites/bg3-hud-pf2e/issues)
+- [DnD 5e Adapter Issues](https://github.com/BragginRites/bg3-hud-dnd5e/issues)
+
 **Describe the bug**
 A clear and concise description of what the bug is.
 
