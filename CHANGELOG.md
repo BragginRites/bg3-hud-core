@@ -1,3 +1,10 @@
+## [0.1.3] - 2025-12-17
+### Added
+- **Macro Support**: Macros can now be dragged onto the BG3 HUD hotbar and executed when clicked. Macro execution is handled in core, providing automatic support to all adapters.
+
+### Fixed
+- **GM Hotbar Macros**: Fixed error when dragging macros onto GM hotbar (missing null check for weapon sets in GM mode).
+
 ## [0.1.2] - 2025-12-16
 ### Added
 - **Global HUD Toggle**: Added ability to show/hide the entire HUD via a keybinding (default: `H`) or by clicking the gamepad icon in the Token Controls sidebar. State persists per-client.

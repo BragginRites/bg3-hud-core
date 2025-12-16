@@ -21,7 +21,7 @@ export class PersistenceManager {
         this._lastSaveTimestamp = 0; // Track when we last saved locally
         this._stateRevision = 0; // Incremented on each save for conflict detection
         this.socketManager = null; // Set by BG3Hotbar
-        
+
         // Default grid configuration - can be overridden by system adapters
         this.DEFAULT_GRID_CONFIG = {
             rows: 3,
@@ -65,9 +65,9 @@ export class PersistenceManager {
      * @returns {boolean} True if in GM hotbar mode
      */
     isGMHotbarMode() {
-        return !this.currentActor && 
-               game.user.isGM && 
-               game.settings.get(this.MODULE_ID, 'enableGMHotbar');
+        return !this.currentActor &&
+            game.user.isGM &&
+            game.settings.get(this.MODULE_ID, 'enableGMHotbar');
     }
 
     /**
@@ -100,7 +100,7 @@ export class PersistenceManager {
 
         // Try to load unified state
         let savedState = this.currentActor.getFlag(this.MODULE_ID, this.FLAG_NAME);
-        
+
         if (savedState && savedState.version === this.VERSION) {
             this.state = foundry.utils.deepClone(savedState);
             // Migrate quickAccess from array to object if needed
@@ -127,13 +127,13 @@ export class PersistenceManager {
         if (oldHotbarData || oldWeaponSets || oldQuickAccess) {
             console.log('BG3 HUD Core | PersistenceManager: Migrating from old flag format');
             this.state = await this._migrateFromOldFlags(oldHotbarData, oldWeaponSets, oldQuickAccess, oldActiveSet);
-            
+
             // Save migrated state
             await this.saveState(this.state);
-            
+
             // Clean up old flags
             await this._cleanupOldFlags();
-            
+
             console.log('BG3 HUD Core | PersistenceManager: Migration complete, old flags cleaned');
             return this.state;
         }
@@ -303,7 +303,7 @@ export class PersistenceManager {
         if (!state) {
             state = await this.loadState();
         }
-        
+
         // Navigate to the correct items object and assign directly
         switch (container) {
             case 'hotbar': {
@@ -318,7 +318,7 @@ export class PersistenceManager {
             case 'quickAccess': {
                 if (!state.quickAccess || !Array.isArray(state.quickAccess.grids)) {
                     console.warn('BG3 HUD Core | PersistenceManager: QuickAccess branch missing, creating new one.');
-                    state.quickAccess = { grids: [ { rows: 2, cols: 3, items: {} } ] };
+                    state.quickAccess = { grids: [{ rows: 2, cols: 3, items: {} }] };
                 }
                 const qGrid = state.quickAccess.grids[containerIndex] || (state.quickAccess.grids[containerIndex] = { rows: 2, cols: 3, items: {} });
                 if (!qGrid.items || typeof qGrid.items !== 'object') {
@@ -342,7 +342,7 @@ export class PersistenceManager {
                     console.error('BG3 HUD Core | PersistenceManager: No parent cell provided for containerPopover');
                     return;
                 }
-                
+
                 // Get the parent container's state
                 let parentGrid;
                 switch (parentCell.containerType) {
@@ -362,7 +362,7 @@ export class PersistenceManager {
                         console.error('BG3 HUD Core | PersistenceManager: Unknown parent container type:', parentCell.containerType);
                         return;
                 }
-                
+
                 if (!parentGrid) {
                     console.error('BG3 HUD Core | PersistenceManager: Parent grid not found', {
                         parentType: parentCell.containerType,
@@ -370,10 +370,10 @@ export class PersistenceManager {
                     });
                     return;
                 }
-                
+
                 const parentSlotKey = parentCell.getSlotKey();
                 const parentCellData = parentGrid.items[parentSlotKey];
-                
+
                 if (!parentCellData) {
                     console.error('BG3 HUD Core | PersistenceManager: Parent cell has no data', {
                         parentSlotKey,
@@ -381,7 +381,7 @@ export class PersistenceManager {
                     });
                     return;
                 }
-                
+
                 // Initialize containerGrid if it doesn't exist
                 if (!parentCellData.containerGrid) {
                     parentCellData.containerGrid = {
@@ -390,10 +390,10 @@ export class PersistenceManager {
                         items: {}
                     };
                 }
-                
+
                 // Update the nested item
                 parentCellData.containerGrid.items[slotKey] = data;
-                
+
                 // CRITICAL: Update the parent cell's in-memory data so it reflects the changes
                 // This ensures the popover reads the correct data when reopened
                 if (parentCell.data) {
@@ -406,20 +406,20 @@ export class PersistenceManager {
                     }
                     parentCell.data.containerGrid.items[slotKey] = data;
                 }
-                
+
                 break;
             }
             default:
                 console.warn('BG3 HUD Core | PersistenceManager: Unknown container type:', container);
                 return;
         }
-        
+
         // Sync changes to active view's hotbar state
         this._syncCurrentStateToActiveView(state);
-        
+
         // Save the entire state
         await this.saveState(state);
-        
+
         // Broadcast update via socket for instant sync
         if (this.socketManager && this.currentActor) {
             await this.socketManager.broadcastUpdate(this.currentActor.uuid, {
@@ -442,12 +442,12 @@ export class PersistenceManager {
     async setActiveWeaponSet(index) {
         const state = await this.loadState();
         state.weaponSets.activeSet = index;
-        
+
         // Sync to active view
         this._syncCurrentStateToActiveView(state);
-        
+
         await this.saveState(state);
-        
+
         // Broadcast update via socket for instant sync
         if (this.socketManager && this.currentActor) {
             await this.socketManager.broadcastUpdate(this.currentActor.uuid, {
@@ -467,24 +467,24 @@ export class PersistenceManager {
      */
     async updateGridConfig(gridIndex, config) {
         const state = await this.loadState();
-        
+
         if (!state.hotbar.grids[gridIndex]) {
             console.error('BG3 HUD Core | PersistenceManager: Invalid grid index:', gridIndex);
             return;
         }
-        
+
         if (config.rows !== undefined) {
             state.hotbar.grids[gridIndex].rows = config.rows;
         }
         if (config.cols !== undefined) {
             state.hotbar.grids[gridIndex].cols = config.cols;
         }
-        
+
         // Sync to active view
         this._syncCurrentStateToActiveView(state);
-        
+
         await this.saveState(state);
-        
+
         // Broadcast update via socket for instant sync
         if (this.socketManager && this.currentActor) {
             await this.socketManager.broadcastUpdate(this.currentActor.uuid, {
@@ -506,7 +506,7 @@ export class PersistenceManager {
      */
     async updateContainer(containerType, containerIndex, items) {
         const state = await this.loadState();
-        
+
         switch (containerType) {
             case 'hotbar':
                 if (!state.hotbar.grids[containerIndex]) {
@@ -515,7 +515,7 @@ export class PersistenceManager {
                 }
                 state.hotbar.grids[containerIndex].items = items;
                 break;
-                
+
             case 'weaponSet':
                 if (!state.weaponSets.sets[containerIndex]) {
                     console.error('BG3 HUD Core | PersistenceManager: Invalid weapon set index:', containerIndex);
@@ -523,32 +523,32 @@ export class PersistenceManager {
                 }
                 state.weaponSets.sets[containerIndex].items = items;
                 break;
-                
+
             case 'quickAccess':
                 if (!state.quickAccess || !Array.isArray(state.quickAccess.grids)) {
-                    state.quickAccess = { grids: [ { rows: 2, cols: 3, items: {} } ] };
+                    state.quickAccess = { grids: [{ rows: 2, cols: 3, items: {} }] };
                 }
                 if (!state.quickAccess.grids[containerIndex]) {
                     state.quickAccess.grids[containerIndex] = { rows: 2, cols: 3, items: {} };
                 }
                 state.quickAccess.grids[containerIndex].items = items;
                 break;
-                
+
             case 'containerPopover':
                 // Container popovers save their grid state nested within the parent container item's cell data
                 // The containerIndex for popovers is actually the parent cell's slot key
                 return;
-                
+
             default:
                 console.error('BG3 HUD Core | PersistenceManager: Unknown container type:', containerType);
                 return;
         }
-        
+
         // Sync to active view
         this._syncCurrentStateToActiveView(state);
-        
+
         await this.saveState(state);
-        
+
         // Broadcast update via socket for instant sync
         if (this.socketManager && this.currentActor) {
             await this.socketManager.broadcastUpdate(this.currentActor.uuid, {
@@ -568,29 +568,29 @@ export class PersistenceManager {
      */
     async clearAll() {
         const state = await this.loadState();
-        
+
         // Clear hotbar grids
         for (const grid of state.hotbar.grids) {
             grid.items = {};
         }
-        
+
         // Clear weapon sets
         for (const set of state.weaponSets.sets) {
             set.items = {};
         }
-        
+
         // Clear quick access
         if (Array.isArray(state.quickAccess?.grids)) {
             for (const grid of state.quickAccess.grids) {
                 grid.items = {};
             }
         }
-        
+
         // Sync to active view
         this._syncCurrentStateToActiveView(state);
-        
+
         await this.saveState(state);
-        
+
         // Broadcast update via socket for instant sync
         if (this.socketManager && this.currentActor) {
             await this.socketManager.broadcastUpdate(this.currentActor.uuid, {
@@ -608,14 +608,14 @@ export class PersistenceManager {
      */
     _migrateQuickAccessFormat(state) {
         if (!state.quickAccess) return;
-        
+
         // If legacy quickAccess is a single grid object with items array, convert to object map and wrap into grids[]
         if (Array.isArray(state.quickAccess.items)) {
             console.log('BG3 HUD Core | PersistenceManager: Migrating quickAccess from array to object map');
             const cols = state.quickAccess.cols || 3;
             const arrayItems = state.quickAccess.items;
             const mapItems = {};
-            
+
             for (let i = 0; i < arrayItems.length; i++) {
                 if (arrayItems[i]) {
                     const row = Math.floor(i / cols);
@@ -624,7 +624,7 @@ export class PersistenceManager {
                     mapItems[slotKey] = arrayItems[i];
                 }
             }
-            
+
             state.quickAccess.items = mapItems;
             console.log('BG3 HUD Core | PersistenceManager: QuickAccess migrated to object map format');
         }
@@ -635,7 +635,7 @@ export class PersistenceManager {
             const cols = state.quickAccess.cols ?? 3;
             const items = state.quickAccess.items && typeof state.quickAccess.items === 'object' ? state.quickAccess.items : {};
             state.quickAccess = {
-                grids: [ { rows, cols, items } ]
+                grids: [{ rows, cols, items }]
             };
             console.log('BG3 HUD Core | PersistenceManager: QuickAccess wrapped into grids[]');
         }
@@ -730,7 +730,7 @@ export class PersistenceManager {
      */
     async _migrateFromOldFlags(oldHotbarData, oldWeaponSets, oldQuickAccess, oldActiveSet) {
         const state = this._getDefaultState();
-        
+
         // Migrate hotbar data
         if (Array.isArray(oldHotbarData)) {
             for (let i = 0; i < Math.min(oldHotbarData.length, state.hotbar.grids.length); i++) {
@@ -742,7 +742,7 @@ export class PersistenceManager {
                 }
             }
         }
-        
+
         // Migrate weapon sets
         if (Array.isArray(oldWeaponSets)) {
             for (let i = 0; i < Math.min(oldWeaponSets.length, state.weaponSets.sets.length); i++) {
@@ -754,12 +754,12 @@ export class PersistenceManager {
                 }
             }
         }
-        
+
         // Migrate active weapon set
         if (typeof oldActiveSet === 'number') {
             state.weaponSets.activeSet = oldActiveSet;
         }
-        
+
         // Migrate quick access
         if (oldQuickAccess) {
             const rows = oldQuickAccess.rows || 2;
@@ -771,7 +771,7 @@ export class PersistenceManager {
                 ]
             };
         }
-        
+
         console.log('BG3 HUD Core | PersistenceManager: Migration complete');
         return state;
     }
@@ -783,7 +783,7 @@ export class PersistenceManager {
      */
     async _cleanupOldFlags() {
         if (!this.currentActor) return;
-        
+
         try {
             console.log('BG3 HUD Core | PersistenceManager: Cleaning up old flags');
             await this.currentActor.unsetFlag(this.MODULE_ID, 'hotbarData');
@@ -828,13 +828,13 @@ export class PersistenceManager {
      */
     async createView(name, icon = null) {
         const state = await this.loadState();
-        
+
         // Generate new view ID
         const viewId = this._generateViewId();
-        
+
         // Create empty hotbar state for new view
         const emptyHotbarState = this._getEmptyHotbarState();
-        
+
         // Create new view
         const newView = {
             id: viewId,
@@ -842,18 +842,18 @@ export class PersistenceManager {
             icon: icon || 'fa-bookmark',
             hotbarState: emptyHotbarState
         };
-        
+
         // Add view to list
         state.views.list.push(newView);
-        
+
         // Switch to new view (this will load the empty state)
         state.views.activeViewId = viewId;
-        
+
         // Load the new view's empty hotbar state into current state
         state.hotbar = foundry.utils.deepClone(emptyHotbarState.hotbar);
-        
+
         await this.saveState(state);
-        
+
         console.log('BG3 HUD Core | PersistenceManager: Created empty view:', name);
         return viewId;
     }
@@ -865,20 +865,20 @@ export class PersistenceManager {
      */
     async deleteView(viewId) {
         let state = await this.loadState();
-        
+
         // Can't delete if it's the only view
         if (state.views.list.length <= 1) {
             console.warn('BG3 HUD Core | PersistenceManager: Cannot delete the only view');
             return;
         }
-        
+
         // Find view index
         const viewIndex = state.views.list.findIndex(v => v.id === viewId);
         if (viewIndex === -1) {
             console.warn('BG3 HUD Core | PersistenceManager: View not found:', viewId);
             return;
         }
-        
+
         // If deleting active view, switch to another view first
         if (state.views.activeViewId === viewId) {
             // Switch to first available view that's not this one
@@ -889,12 +889,12 @@ export class PersistenceManager {
                 state = await this.loadState();
             }
         }
-        
+
         // Remove view from list
         state.views.list.splice(viewIndex, 1);
-        
+
         await this.saveState(state);
-        
+
         console.log('BG3 HUD Core | PersistenceManager: Deleted view:', viewId);
     }
 
@@ -905,20 +905,20 @@ export class PersistenceManager {
      */
     async switchView(viewId) {
         const state = await this.loadState();
-        
+
         // Find the view
         const view = state.views.list.find(v => v.id === viewId);
         if (!view) {
             console.warn('BG3 HUD Core | PersistenceManager: View not found:', viewId);
             return;
         }
-        
+
         // Update active view ID
         state.views.activeViewId = viewId;
-        
+
         // Load the view's hotbar state into current state (views only affect hotbar)
         state.hotbar = foundry.utils.deepClone(view.hotbarState.hotbar);
-        
+
         await this.saveState(state);
 
     }
@@ -932,22 +932,22 @@ export class PersistenceManager {
      */
     async renameView(viewId, newName, newIcon = null) {
         const state = await this.loadState();
-        
+
         // Find the view
         const view = state.views.list.find(v => v.id === viewId);
         if (!view) {
             console.warn('BG3 HUD Core | PersistenceManager: View not found:', viewId);
             return;
         }
-        
+
         // Update name and icon
         view.name = newName;
         if (newIcon !== null) {
             view.icon = newIcon;
         }
-        
+
         await this.saveState(state);
-        
+
         console.log('BG3 HUD Core | PersistenceManager: Renamed view to:', newName);
     }
 
@@ -959,17 +959,17 @@ export class PersistenceManager {
      */
     async duplicateView(viewId, newName = null) {
         const state = await this.loadState();
-        
+
         // Find the view to duplicate
         const sourceView = state.views.list.find(v => v.id === viewId);
         if (!sourceView) {
             console.warn('BG3 HUD Core | PersistenceManager: View not found:', viewId);
             return null;
         }
-        
+
         // Generate new view ID
         const newViewId = this._generateViewId();
-        
+
         // Create duplicate view
         const duplicateView = {
             id: newViewId,
@@ -977,12 +977,12 @@ export class PersistenceManager {
             icon: sourceView.icon,
             hotbarState: foundry.utils.deepClone(sourceView.hotbarState)
         };
-        
+
         // Add to list
         state.views.list.push(duplicateView);
-        
+
         await this.saveState(state);
-        
+
         console.log('BG3 HUD Core | PersistenceManager: Duplicated view:', duplicateView.name);
         return newViewId;
     }
@@ -994,26 +994,26 @@ export class PersistenceManager {
      */
     async updateView(viewId = null) {
         const state = await this.loadState();
-        
+
         // Default to active view if not specified
         const targetViewId = viewId || state.views.activeViewId;
-        
+
         // Find the view
         const view = state.views.list.find(v => v.id === targetViewId);
         if (!view) {
             console.warn('BG3 HUD Core | PersistenceManager: View not found:', targetViewId);
             return;
         }
-        
+
         // Update view's hotbar state with current state
         view.hotbarState = {
             hotbar: foundry.utils.deepClone(state.hotbar),
             weaponSets: foundry.utils.deepClone(state.weaponSets),
             quickAccess: foundry.utils.deepClone(state.quickAccess)
         };
-        
+
         await this.saveState(state);
-        
+
         console.log('BG3 HUD Core | PersistenceManager: Updated view:', view.name);
     }
 
@@ -1074,10 +1074,10 @@ export class PersistenceManager {
      */
     _syncCurrentStateToActiveView(state) {
         if (!state.views || !state.views.activeViewId) return;
-        
+
         const activeView = state.views.list.find(v => v.id === state.views.activeViewId);
         if (!activeView) return;
-        
+
         // Update the active view's hotbar state with current hotbar state only
         activeView.hotbarState = {
             hotbar: foundry.utils.deepClone(state.hotbar)
@@ -1122,7 +1122,7 @@ export class PersistenceManager {
                     hotbar: foundry.utils.deepClone(state.hotbar)
                 }
             };
-            
+
             state.views = {
                 list: [defaultView],
                 activeViewId: defaultView.id
@@ -1149,7 +1149,7 @@ export class PersistenceManager {
                 hotbar: foundry.utils.deepClone(oldState.hotbar)
             }
         };
-        
+
         return {
             version: 2,
             views: {
@@ -1207,32 +1207,34 @@ export class PersistenceManager {
             }
         }
 
-        // Check weapon sets
-        if (excludeContainer !== 'weaponSet') {
-            for (let i = 0; i < this.state.weaponSets.sets.length; i++) {
-                const set = this.state.weaponSets.sets[i];
-                for (const [slotKey, item] of Object.entries(set.items || {})) {
-                    if (item?.uuid === uuid) {
-                        return { container: 'weaponSet', containerIndex: i, slotKey };
+        // Check weapon sets (GM hotbar mode doesn't have weapon sets)
+        if (this.state.weaponSets?.sets) {
+            if (excludeContainer !== 'weaponSet') {
+                for (let i = 0; i < this.state.weaponSets.sets.length; i++) {
+                    const set = this.state.weaponSets.sets[i];
+                    for (const [slotKey, item] of Object.entries(set.items || {})) {
+                        if (item?.uuid === uuid) {
+                            return { container: 'weaponSet', containerIndex: i, slotKey };
+                        }
                     }
                 }
-            }
-        } else if (excludeContainerIndex !== undefined) {
-            // Check other weapon sets
-            for (let i = 0; i < this.state.weaponSets.sets.length; i++) {
-                if (i === excludeContainerIndex) continue;
-                const set = this.state.weaponSets.sets[i];
-                for (const [slotKey, item] of Object.entries(set.items || {})) {
-                    if (item?.uuid === uuid) {
-                        return { container: 'weaponSet', containerIndex: i, slotKey };
+            } else if (excludeContainerIndex !== undefined) {
+                // Check other weapon sets
+                for (let i = 0; i < this.state.weaponSets.sets.length; i++) {
+                    if (i === excludeContainerIndex) continue;
+                    const set = this.state.weaponSets.sets[i];
+                    for (const [slotKey, item] of Object.entries(set.items || {})) {
+                        if (item?.uuid === uuid) {
+                            return { container: 'weaponSet', containerIndex: i, slotKey };
+                        }
                     }
                 }
-            }
-            // Check the same set but different slots
-            const sameSet = this.state.weaponSets.sets[excludeContainerIndex];
-            for (const [slotKey, item] of Object.entries(sameSet.items || {})) {
-                if (slotKey !== excludeSlotKey && item?.uuid === uuid) {
-                    return { container: 'weaponSet', containerIndex: excludeContainerIndex, slotKey };
+                // Check the same set but different slots
+                const sameSet = this.state.weaponSets.sets[excludeContainerIndex];
+                for (const [slotKey, item] of Object.entries(sameSet.items || {})) {
+                    if (slotKey !== excludeSlotKey && item?.uuid === uuid) {
+                        return { container: 'weaponSet', containerIndex: excludeContainerIndex, slotKey };
+                    }
                 }
             }
         }

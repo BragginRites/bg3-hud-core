@@ -13,16 +13,16 @@ export class InteractionCoordinator {
         this.hotbarApp = options.hotbarApp;
         this.persistenceManager = options.persistenceManager;
         this.adapter = options.adapter;
-        
+
         // Drag state tracking
         this.dragSourceCell = null;
-        
+
         // Context menu builder (adapter set via setAdapter)
         this.contextMenu = new SlotContextMenu({
             interactionCoordinator: this,
             adapter: this.adapter
         });
-        
+
         // Container popover tracking
         this.activePopover = null;
     }
@@ -50,9 +50,15 @@ export class InteractionCoordinator {
                 return;
             }
         }
-        
+
         // If no data in cell, do nothing
         if (!cell.data) return;
+
+        // Handle macros directly in core (system-agnostic)
+        if (cell.data.type === 'Macro') {
+            await this._executeMacro(cell.data.uuid);
+            return;
+        }
 
         // Check if this is a container item (ask adapter)
         const isContainer = this.adapter && typeof this.adapter.isContainer === 'function'
@@ -158,7 +164,7 @@ export class InteractionCoordinator {
 
         try {
             await this.adapter.autoSort.sortContainer(container);
-            
+
             // Persist the changes
             const containerInfo = ContainerTypeDetector.detectContainer(container.cells[0]);
             if (containerInfo && this.persistenceManager) {
@@ -193,7 +199,7 @@ export class InteractionCoordinator {
         try {
             // Pass persistence manager for global UUID duplicate checking
             await this.adapter.autoPopulate.populateContainer(container, actor, this.persistenceManager);
-            
+
             // Persist the changes
             const containerInfo = ContainerTypeDetector.detectContainer(container.cells[0]);
             if (containerInfo && this.persistenceManager) {
@@ -217,7 +223,7 @@ export class InteractionCoordinator {
         try {
             // Clear the container visually
             await container.clear();
-            
+
             // Persist the changes using container's own metadata
             if (this.persistenceManager) {
                 await this.persistenceManager.updateContainer(
@@ -242,7 +248,7 @@ export class InteractionCoordinator {
     async removeCell(cell) {
         // STEP 1: Update visual state
         await cell.setData(null, { skipSave: true });
-        
+
         // Update two-handed weapon display immediately (parallel with visual update)
         if (ContainerTypeDetector.isWeaponSet(cell)) {
             const weaponContainer = this.hotbarApp.components.weaponSets;
@@ -278,7 +284,7 @@ export class InteractionCoordinator {
                 return;
             }
         }
-        
+
         this.dragSourceCell = cell;
     }
 
@@ -306,13 +312,13 @@ export class InteractionCoordinator {
             if (!ContainerTypeDetector.isActiveWeaponSet(targetCell, activeSet)) {
                 return;
             }
-            
+
             // Check if weapon set container wants to prevent this drop (e.g., locked slots)
             if (weaponContainer?.shouldPreventDrop && weaponContainer.shouldPreventDrop(targetCell)) {
                 return; // Drop prevented
             }
         }
-        
+
         // Internal drop (from another cell)
         if (dragData?.sourceSlot && this.dragSourceCell) {
             await this._handleInternalDrop(targetCell, dragData);
@@ -345,7 +351,7 @@ export class InteractionCoordinator {
         // Block cross-container moves involving container popovers
         const sourceIsPopover = sourceCell.containerType === 'containerPopover';
         const targetIsPopover = targetCell.containerType === 'containerPopover';
-        
+
         if (sourceIsPopover !== targetIsPopover) {
             ui.notifications.warn('Cannot move items between the container and the hotbar');
             return;
@@ -367,7 +373,7 @@ export class InteractionCoordinator {
                 excludeContainerIndex: targetCell.containerIndex,
                 excludeSlotKey: targetSlotKey
             });
-            
+
             if (existingLocation) {
                 ui.notifications.warn('This item already exists elsewhere in the HUD');
                 return;
@@ -385,7 +391,7 @@ export class InteractionCoordinator {
                 excludeContainerIndex: sourceCell.containerIndex,
                 excludeSlotKey: sourceSlotKey
             });
-            
+
             if (existingLocation) {
                 ui.notifications.warn('This item already exists elsewhere in the HUD');
                 return;
@@ -394,7 +400,7 @@ export class InteractionCoordinator {
 
         if (sameContainer) {
             // SAME CONTAINER: Swap items
-            
+
             // STEP 2: Update visual state (both cells in parallel)
             await Promise.all([
                 sourceCell.setData(targetData, { skipSave: true }),
@@ -411,7 +417,7 @@ export class InteractionCoordinator {
                     ]);
                 }
             }
-            
+
             // STEP 4: Persist both changes
             if (this.persistenceManager) {
                 await this.persistenceManager.updateCell({
@@ -421,7 +427,7 @@ export class InteractionCoordinator {
                     data: targetData,
                     parentCell: sourceCell.parentCell // For containerPopover
                 });
-                
+
                 await this.persistenceManager.updateCell({
                     container: targetCell.containerType,
                     containerIndex: targetCell.containerIndex,
@@ -432,7 +438,7 @@ export class InteractionCoordinator {
             }
         } else {
             // CROSS-CONTAINER: Move item (clear source)
-            
+
             // STEP 2: Update visual state (both cells in parallel)
             await Promise.all([
                 sourceCell.setData(null, { skipSave: true }),
@@ -453,7 +459,7 @@ export class InteractionCoordinator {
                     await Promise.all(updates);
                 }
             }
-            
+
             // STEP 4: Persist both changes (clear source, set target)
             if (this.persistenceManager) {
                 await this.persistenceManager.updateCell({
@@ -463,7 +469,7 @@ export class InteractionCoordinator {
                     data: null,
                     parentCell: sourceCell.parentCell // For containerPopover
                 });
-                
+
                 await this.persistenceManager.updateCell({
                     container: targetCell.containerType,
                     containerIndex: targetCell.containerIndex,
@@ -485,38 +491,45 @@ export class InteractionCoordinator {
      * @private
      */
     async _handleExternalDrop(targetCell, event) {
-        // STEP 1: Get and transform item data
-        const item = await this._getItemFromDragData(event);
-        if (!item) {
-            console.warn('BG3 HUD Core | Could not get item from drag data');
+        // STEP 1: Get document from drag data (supports Item and Macro)
+        const result = await this._getDocumentFromDragData(event);
+        if (!result) {
+            console.warn('BG3 HUD Core | Could not get document from drag data');
             return;
         }
 
-        // STEP 2: Check if adapter wants to block this item from the hotbar
-        if (this.adapter && typeof this.adapter.shouldBlockFromHotbar === 'function') {
-            const blockResult = await this.adapter.shouldBlockFromHotbar(item);
+        const { document, type } = result;
+        const isMacro = type === 'Macro';
+
+        // STEP 2: Check if adapter wants to block this item from the hotbar (Items only)
+        if (!isMacro && this.adapter && typeof this.adapter.shouldBlockFromHotbar === 'function') {
+            const blockResult = await this.adapter.shouldBlockFromHotbar(document);
             if (blockResult?.blocked) {
                 ui.notifications.warn(blockResult.reason || 'This item cannot be added to the hotbar');
                 return;
             }
         }
 
-        // STEP 3: Validate item ownership (must belong to current actor)
-        const currentActor = this.hotbarApp?.currentActor;
-        if (!currentActor) {
-            ui.notifications.warn('No actor selected');
-            return;
+        // STEP 3: Validate item ownership (Items only - Macros are world-level)
+        if (!isMacro) {
+            const currentActor = this.hotbarApp?.currentActor;
+            if (!currentActor) {
+                ui.notifications.warn('No actor selected');
+                return;
+            }
+
+            if (document.actor && document.actor.id !== currentActor.id) {
+                ui.notifications.warn(`This item belongs to ${document.actor.name}, not ${currentActor.name}`);
+                return;
+            }
         }
 
-        if (item.actor && item.actor.id !== currentActor.id) {
-            ui.notifications.warn(`This item belongs to ${item.actor.name}, not ${currentActor.name}`);
-            return;
-        }
-
-        // STEP 4: Transform item to cell data
-        const cellData = await this._transformItemToCellData(item);
+        // STEP 4: Transform document to cell data
+        const cellData = isMacro
+            ? this._transformMacroToCellData(document)
+            : await this._transformItemToCellData(document);
         if (!cellData) {
-            console.warn('BG3 HUD Core | Could not transform item to cell data');
+            console.warn('BG3 HUD Core | Could not transform document to cell data');
             return;
         }
 
@@ -524,14 +537,14 @@ export class InteractionCoordinator {
         if (cellData.uuid && !ContainerTypeDetector.isWeaponSet(targetCell)) {
             const existingLocation = this.persistenceManager.findUuidInHud(cellData.uuid);
             if (existingLocation) {
-                ui.notifications.warn('This item is already in the HUD');
+                ui.notifications.warn(isMacro ? 'This macro is already in the HUD' : 'This item is already in the HUD');
                 return;
             }
         }
 
-        // STEP 2: Update visual state and two-handed weapon display simultaneously
+        // STEP 6: Update visual state and two-handed weapon display simultaneously
         await targetCell.setData(cellData, { skipSave: true });
-        
+
         // Update two-handed weapon display immediately (parallel with visual update)
         if (ContainerTypeDetector.isWeaponSet(targetCell)) {
             const weaponContainer = this.hotbarApp.components.weaponSets;
@@ -540,7 +553,7 @@ export class InteractionCoordinator {
             }
         }
 
-        // STEP 3: Persist the change
+        // STEP 7: Persist the change
         if (this.persistenceManager) {
             await this.persistenceManager.updateCell({
                 container: targetCell.containerType,
@@ -553,16 +566,19 @@ export class InteractionCoordinator {
     }
 
     /**
-     * Get item from drag data
+     * Get document from drag data (supports Item and Macro)
      * @param {DragEvent} event
-     * @returns {Promise<Item|null>}
+     * @returns {Promise<{document: Document, type: string}|null>}
      * @private
      */
-    async _getItemFromDragData(event) {
+    async _getDocumentFromDragData(event) {
         try {
             const dragData = JSON.parse(event.dataTransfer.getData('text/plain'));
-            if (dragData.type === 'Item') {
-                return await fromUuid(dragData.uuid);
+            if (dragData.type === 'Item' || dragData.type === 'Macro') {
+                const document = await fromUuid(dragData.uuid);
+                if (document) {
+                    return { document, type: dragData.type };
+                }
             }
         } catch (e) {
             console.warn('BG3 HUD Core | Failed to parse drag data:', e);
@@ -581,13 +597,48 @@ export class InteractionCoordinator {
         if (this.adapter && typeof this.adapter.transformItemToCellData === 'function') {
             return await this.adapter.transformItemToCellData(item);
         }
-        
+
         // Default transformation
         return {
             uuid: item.uuid,
             name: item.name,
             img: item.img
         };
+    }
+
+    /**
+     * Transform macro to cell data
+     * @param {Macro} macro
+     * @returns {Object}
+     * @private
+     */
+    _transformMacroToCellData(macro) {
+        return {
+            uuid: macro.uuid,
+            name: macro.name,
+            img: macro.img || 'icons/svg/dice-target.svg',
+            type: 'Macro'
+        };
+    }
+
+    /**
+     * Execute a macro
+     * @param {string} uuid - Macro UUID
+     * @private
+     */
+    async _executeMacro(uuid) {
+        const macro = await fromUuid(uuid);
+        if (!macro) {
+            ui.notifications.warn('Macro not found');
+            return;
+        }
+
+        // Execute with current actor/token context
+        const actor = this.hotbarApp?.currentActor;
+        const token = this.hotbarApp?.currentToken;
+
+        console.log('BG3 HUD Core | Executing macro:', macro.name);
+        await macro.execute({ actor, token });
     }
 
 }
