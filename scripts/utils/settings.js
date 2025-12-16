@@ -163,6 +163,33 @@ export function registerSettings() {
     });
 
     // ========================================
+    // UI Visibility Settings
+    // ========================================
+
+    game.settings.register(MODULE_ID, 'uiEnabled', {
+        name: 'UI Enabled',
+        hint: 'Toggle visibility of the BG3 HUD',
+        scope: 'client',
+        config: false,
+        type: Boolean,
+        default: true,
+        onChange: (value) => {
+            ui.BG3HUD_APP?.updateVisibility(value);
+        }
+    });
+
+    game.keybindings.register(MODULE_ID, "toggleUI", {
+        name: "Toggle BG3 HUD",
+        hint: "Toggle visibility of the entire HUD",
+        editable: [{ key: "KeyH" }],
+        onDown: () => {
+            ui.BG3HUD_APP?.toggle();
+        },
+        restricted: false,
+        precedence: CONST.KEYBINDING_PRECEDENCE.NORMAL
+    });
+
+    // ========================================
     // Theme Settings
     // ========================================
 

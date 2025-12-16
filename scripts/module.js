@@ -73,6 +73,31 @@ Hooks.once('ready', async () => {
     applyContainerRowSettings();
 
     console.log('BG3 HUD Core | Initialization complete');
+    console.log('BG3 HUD Core | Initialization complete');
+});
+
+// ========================================
+// Scene Controls Hook
+// ========================================
+
+Hooks.on('getSceneControlButtons', (controls) => {
+    // V13 API: controls is a Record<string, SceneControl>, accessed by key
+    const tokenTools = controls.tokens;
+    if (!tokenTools) return;
+
+    const isActive = game.settings.get(MODULE_ID, 'uiEnabled') ?? true;
+
+    // V13 API: tools is also a Record<string, SceneControlTool>, assigned by key
+    tokenTools.tools.toggleBG3UI = {
+        name: "toggleBG3UI",
+        title: "Toggle BG3 HUD",
+        icon: "fas fa-gamepad",
+        toggle: true,
+        active: isActive,
+        order: 100, // Place at the end
+        // V13 API: onChange signature is (event: Event, active: boolean) => void
+        onChange: (event, active) => ui.BG3HUD_APP?.toggle(active)
+    };
 });
 
 // ========================================

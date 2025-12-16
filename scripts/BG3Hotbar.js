@@ -200,8 +200,57 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
         // Initialize lock state (button UI and dataset attributes)
         ControlsManager.initializeLockState();
 
+        // Check user visibility setting
+        if (!game.settings.get('bg3-hud-core', 'uiEnabled')) {
+            this.updateVisibility(false);
+        }
+
         // Only now, when UI is fully built and styled, show it (fade-in)
+        // Checks internal state (building/hidden) but also respects global visibility
         this._finalizeRenderVisibility();
+    }
+
+    /**
+     * Toggle HUD visibility
+     * @param {boolean|null} state - Force state or null to toggle
+     * @returns {Promise<boolean>} New state
+     */
+    async toggle(state = null) {
+        const currentState = game.settings.get('bg3-hud-core', 'uiEnabled');
+        const newState = state ?? !currentState;
+
+        if (currentState !== newState) {
+            await game.settings.set('bg3-hud-core', 'uiEnabled', newState);
+        }
+        return newState;
+    }
+
+    /**
+     * Update visibility based on setting
+     * @param {boolean} visible - Whether UI should be visible
+     */
+    updateVisibility(visible) {
+        if (!this.element) return;
+
+        if (visible) {
+            this.element.classList.remove('bg3-hud-user-hidden');
+            // If we are unhiding, ensure we aren't stuck in hidden state
+            if (!this.element.classList.contains('bg3-hud-hidden')) {
+                this.element.style.display = '';
+            }
+        } else {
+            this.element.classList.add('bg3-hud-user-hidden');
+            // Force hide
+            this.element.style.display = 'none';
+        }
+
+        // Sync token control button
+        // V13 API: ui.controls.controls is a Record<string, SceneControl>
+        const tool = ui.controls?.controls?.tokens?.tools?.toggleBG3UI;
+        if (tool) {
+            tool.active = visible;
+            if (ui.controls.rendered) ui.controls.render();
+        }
     }
 
     /**
