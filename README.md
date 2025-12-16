@@ -2,6 +2,8 @@
 
 The core UI framework for the BG3 Inspired HUD system. This module provides the foundational components and infrastructure that system-specific adapter modules build upon to deliver a Baldur's Gate 3-inspired interface for Foundry VTT.
 
+<img width="1247" height="282" alt="image" src="https://github.com/user-attachments/assets/a684e66d-f540-460f-9e04-e35915c8feba" />
+
 **This is a library module and requires a system-specific adapter module (bg3-hud-dnd5e, bg3-hud-pf2e, etc.) to function.**
 
 ## BG3 HUD Modules
