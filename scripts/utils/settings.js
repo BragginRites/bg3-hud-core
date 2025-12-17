@@ -460,6 +460,7 @@ export function registerSettings() {
         choices: {
             'always': 'Always Hide',
             'never': 'Never Hide',
+            'whenHudVisible': 'Hide When BG3 HUD Visible',
             'full': 'Fully Hidden (display:none)'
         },
         default: 'always',
@@ -666,8 +667,9 @@ export function registerSettings() {
 /**
  * Apply macrobar collapse setting
  * Called by BG3Hotbar when ready and when setting changes
+ * @param {boolean} [hudVisible] - Optional override for HUD visibility state
  */
-export function applyMacrobarCollapseSetting() {
+export function applyMacrobarCollapseSetting(hudVisible) {
     // Wait for UI to be ready
     if (!ui.hotbar) {
         Hooks.once('renderHotbar', () => applyMacrobarCollapseSetting());
@@ -683,23 +685,37 @@ export function applyMacrobarCollapseSetting() {
         hotbarDiv.style.display = 'flex';
     }
 
-    // Apply setting
+    // Determine if we should hide based on setting
+    let shouldHide = false;
     if (collapseMacrobar === 'always') {
+        shouldHide = true;
+    } else if (collapseMacrobar === 'never') {
+        shouldHide = false;
+    } else if (collapseMacrobar === 'whenHudVisible') {
+        // Use provided visibility or check current state
+        shouldHide = hudVisible !== undefined
+            ? hudVisible
+            : (ui.BG3HUD_APP?.isVisible ?? true);
+    } else if (collapseMacrobar === 'full') {
+        if (hotbarDiv && hotbarDiv.style.display !== 'none') {
+            hotbarDiv.style.display = 'none';
+        }
+        return;
+    }
+
+    // Apply visibility
+    if (shouldHide) {
         // Foundry V13+ uses classes, older uses collapse/expand methods
         if (hotbarElement?.classList) {
             hotbarElement.classList.add('hidden');
         } else if (ui.hotbar.collapse) {
             ui.hotbar.collapse();
         }
-    } else if (collapseMacrobar === 'never') {
+    } else {
         if (hotbarElement?.classList) {
             hotbarElement.classList.remove('hidden');
         } else if (ui.hotbar.expand) {
             ui.hotbar.expand();
-        }
-    } else if (collapseMacrobar === 'full') {
-        if (hotbarDiv && hotbarDiv.style.display !== 'none') {
-            hotbarDiv.style.display = 'none';
         }
     }
 }

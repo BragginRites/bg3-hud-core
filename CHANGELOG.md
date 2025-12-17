@@ -1,6 +1,7 @@
 ## [0.1.3] - 2025-12-17
 ### Added
 - **Macro Support**: Macros can now be dragged onto the BG3 HUD hotbar and executed when clicked. Macro execution is handled in core, providing automatic support to all adapters.
+- **Foundry Macro Bar Visibility**: New option "Hide When BG3 HUD Visible" - shows Foundry's native macro bar only when the BG3 HUD is hidden, and hides it when BG3 HUD is visible. (Closes #5)
 
 ### Fixed
 - **GM Hotbar Macros**: Fixed error when dragging macros onto GM hotbar (missing null check for weapon sets in GM mode).

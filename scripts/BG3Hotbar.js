@@ -101,6 +101,14 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
     }
 
     /**
+     * Check if the HUD is currently visible
+     * @returns {boolean} True if the HUD is visible
+     */
+    get isVisible() {
+        return game.settings.get('bg3-hud-core', 'uiEnabled');
+    }
+
+    /**
      * Apply macrobar collapse setting
      * Public method that can be called from settings onChange
      */
@@ -243,6 +251,9 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
             // Force hide
             this.element.style.display = 'none';
         }
+
+        // Sync Foundry macro bar visibility (for 'whenHudVisible' option)
+        applyMacrobarCollapseSetting(visible);
 
         // Sync token control button
         // V13 API: ui.controls.controls is a Record<string, SceneControl>
