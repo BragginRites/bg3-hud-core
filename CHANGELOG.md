@@ -1,3 +1,8 @@
+## [0.1.4] - 2025-12-17
+### Added
+- **Activity Drag Support**: Extended drag-and-drop coordinator to support `Activity` type data, enabling adapters to handle improved activity dragging (e.g. D&D 5e v5+).
+- **Auto-Populate Options**: Added support for option toggles in the Auto-Populate configuration dialog.
+
 ## [0.1.3] - 2025-12-17
 ### Added
 - **Macro Support**: Macros can now be dragged onto the BG3 HUD hotbar and executed when clicked. Macro execution is handled in core, providing automatic support to all adapters.

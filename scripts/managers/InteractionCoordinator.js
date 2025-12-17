@@ -491,7 +491,7 @@ export class InteractionCoordinator {
      * @private
      */
     async _handleExternalDrop(targetCell, event) {
-        // STEP 1: Get document from drag data (supports Item and Macro)
+        // STEP 1: Get document from drag data (supports Item, Macro, and Activity)
         const result = await this._getDocumentFromDragData(event);
         if (!result) {
             console.warn('BG3 HUD Core | Could not get document from drag data');
@@ -500,9 +500,10 @@ export class InteractionCoordinator {
 
         const { document, type } = result;
         const isMacro = type === 'Macro';
+        const isActivity = type === 'Activity';
 
         // STEP 2: Check if adapter wants to block this item from the hotbar (Items only)
-        if (!isMacro && this.adapter && typeof this.adapter.shouldBlockFromHotbar === 'function') {
+        if (!isMacro && !isActivity && this.adapter && typeof this.adapter.shouldBlockFromHotbar === 'function') {
             const blockResult = await this.adapter.shouldBlockFromHotbar(document);
             if (blockResult?.blocked) {
                 ui.notifications.warn(blockResult.reason || 'This item cannot be added to the hotbar');
@@ -510,7 +511,7 @@ export class InteractionCoordinator {
             }
         }
 
-        // STEP 3: Validate item ownership (Items only - Macros are world-level)
+        // STEP 3: Validate ownership (Items and Activities - Macros are world-level)
         if (!isMacro) {
             const currentActor = this.hotbarApp?.currentActor;
             if (!currentActor) {
@@ -518,16 +519,35 @@ export class InteractionCoordinator {
                 return;
             }
 
-            if (document.actor && document.actor.id !== currentActor.id) {
-                ui.notifications.warn(`This item belongs to ${document.actor.name}, not ${currentActor.name}`);
+            // For activities, check the parent item's actor
+            const ownerActor = isActivity ? document.actor : document.actor;
+            if (ownerActor && ownerActor.id !== currentActor.id) {
+                ui.notifications.warn(`This ${isActivity ? 'activity' : 'item'} belongs to ${ownerActor.name}, not ${currentActor.name}`);
                 return;
             }
         }
 
         // STEP 4: Transform document to cell data
-        const cellData = isMacro
-            ? this._transformMacroToCellData(document)
-            : await this._transformItemToCellData(document);
+        let cellData;
+        if (isMacro) {
+            cellData = this._transformMacroToCellData(document);
+        } else if (isActivity) {
+            // Use adapter's activity transformer if available
+            if (this.adapter && typeof this.adapter.transformActivityToCellData === 'function') {
+                cellData = await this.adapter.transformActivityToCellData(document);
+            } else {
+                // Fallback transformation
+                cellData = {
+                    uuid: document.uuid,
+                    name: document.name,
+                    img: document.img || document.item?.img,
+                    type: 'Activity'
+                };
+            }
+        } else {
+            cellData = await this._transformItemToCellData(document);
+        }
+
         if (!cellData) {
             console.warn('BG3 HUD Core | Could not transform document to cell data');
             return;
@@ -537,7 +557,8 @@ export class InteractionCoordinator {
         if (cellData.uuid && !ContainerTypeDetector.isWeaponSet(targetCell)) {
             const existingLocation = this.persistenceManager.findUuidInHud(cellData.uuid);
             if (existingLocation) {
-                ui.notifications.warn(isMacro ? 'This macro is already in the HUD' : 'This item is already in the HUD');
+                const label = isMacro ? 'macro' : isActivity ? 'activity' : 'item';
+                ui.notifications.warn(`This ${label} is already in the HUD`);
                 return;
             }
         }
@@ -566,7 +587,7 @@ export class InteractionCoordinator {
     }
 
     /**
-     * Get document from drag data (supports Item and Macro)
+     * Get document from drag data (supports Item, Macro, and Activity)
      * @param {DragEvent} event
      * @returns {Promise<{document: Document, type: string}|null>}
      * @private
@@ -574,10 +595,19 @@ export class InteractionCoordinator {
     async _getDocumentFromDragData(event) {
         try {
             const dragData = JSON.parse(event.dataTransfer.getData('text/plain'));
+
             if (dragData.type === 'Item' || dragData.type === 'Macro') {
                 const document = await fromUuid(dragData.uuid);
                 if (document) {
                     return { document, type: dragData.type };
+                }
+            }
+
+            // Handle Activity type (D&D 5e v5+)
+            if (dragData.type === 'Activity' && dragData.uuid) {
+                const activity = await fromUuid(dragData.uuid);
+                if (activity) {
+                    return { document: activity, type: 'Activity' };
                 }
             }
         } catch (e) {

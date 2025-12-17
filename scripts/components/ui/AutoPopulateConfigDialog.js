@@ -10,18 +10,26 @@ export class AutoPopulateConfigDialog extends BG3Component {
      * Create new auto-populate config dialog
      * @param {Object} options - Dialog options
      * @param {Array<{value: string, label: string}>} options.choices - Available item type choices
-     * @param {Object} options.configuration - Current configuration {grid0: [], grid1: [], grid2: []}
+     * @param {Object} options.configuration - Current configuration {grid0: [], grid1: [], grid2: [], options: {}}
+     * @param {Array<{key: string, label: string, hint: string}>} [options.toggleOptions] - Optional toggle options
      */
     constructor(options = {}) {
         super(options);
         this.title = options.title || 'Auto-Populate Configuration';
         this.choices = options.choices || [];
-        // Configuration maps grid index to array of item type values
+        // Toggle options (checkboxes at top of dialog)
+        this.toggleOptions = options.toggleOptions || [];
+        // Configuration maps grid index to array of item type values, plus options object
         this.configuration = options.configuration || {
             grid0: [],
             grid1: [],
-            grid2: []
+            grid2: [],
+            options: {}
         };
+        // Ensure options object exists
+        if (!this.configuration.options) {
+            this.configuration.options = {};
+        }
         this.resolve = null;
     }
 
@@ -43,10 +51,10 @@ export class AutoPopulateConfigDialog extends BG3Component {
     _renderDialog() {
         // Create dialog overlay
         this.element = this.createElement('div', ['bg3-dialog-overlay', 'auto-populate-config-overlay']);
-        
+
         // Create dialog box
         const dialogBox = this.createElement('div', ['bg3-dialog', 'auto-populate-config-dialog']);
-        
+
         // Title
         const title = this.createElement('h2', ['bg3-dialog-title']);
         title.textContent = this.title;
@@ -55,37 +63,43 @@ export class AutoPopulateConfigDialog extends BG3Component {
         // Description
         const description = this.createElement('p', ['bg3-dialog-description']);
         description.innerHTML = 'Assign item types to hotbar grids for <strong>NPCs only</strong>. Each type can only be assigned to one grid.<br>' +
-                              '<small>Note: This auto-populates when NPC tokens are created. Player characters should use right-click → Auto-Populate Container instead.</small>';
+            '<small>Note: This auto-populates when NPC tokens are created. Player characters should use right-click → Auto-Populate Container instead.</small>';
         dialogBox.appendChild(description);
 
-        // Content area with 3 grid containers
+        // Content area with optional toggles and 3 grid containers
         const content = this.createElement('div', ['bg3-dialog-content', 'grids-layout']);
-        
+
+        // Render toggle options at top if any
+        if (this.toggleOptions.length > 0) {
+            const optionsSection = this._createOptionsSection();
+            content.appendChild(optionsSection);
+        }
+
         // Create 3 grid sections
         for (let i = 0; i < 3; i++) {
             const gridSection = this._createGridSection(i);
             content.appendChild(gridSection);
         }
-        
+
         dialogBox.appendChild(content);
 
         // Buttons
         const buttons = this.createElement('div', ['bg3-dialog-buttons']);
-        
+
         const confirmButton = this.createElement('button', ['bg3-button', 'bg3-button-primary']);
         confirmButton.innerHTML = '<i class="fas fa-save"></i> Save';
         confirmButton.addEventListener('click', () => this._onConfirm());
-        
+
         const cancelButton = this.createElement('button', ['bg3-button']);
         cancelButton.innerHTML = '<i class="fas fa-times"></i> Cancel';
         cancelButton.addEventListener('click', () => this._onCancel());
-        
+
         buttons.appendChild(cancelButton);
         buttons.appendChild(confirmButton);
         dialogBox.appendChild(buttons);
 
         this.element.appendChild(dialogBox);
-        
+
         // Add to DOM
         document.body.appendChild(this.element);
 
@@ -106,6 +120,50 @@ export class AutoPopulateConfigDialog extends BG3Component {
     }
 
     /**
+     * Create options section with toggle checkboxes
+     * @returns {HTMLElement}
+     * @private
+     */
+    _createOptionsSection() {
+        const section = this.createElement('div', ['options-section']);
+
+        const header = this.createElement('div', ['options-section-header']);
+        header.textContent = 'Options';
+        section.appendChild(header);
+
+        const optionsContainer = this.createElement('div', ['options-container']);
+
+        for (const opt of this.toggleOptions) {
+            const optionRow = this.createElement('label', ['option-row']);
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.dataset.optionKey = opt.key;
+            checkbox.checked = !!this.configuration.options[opt.key];
+            checkbox.addEventListener('change', () => {
+                this.configuration.options[opt.key] = checkbox.checked;
+            });
+
+            const labelText = this.createElement('span', ['option-label']);
+            labelText.textContent = opt.label;
+
+            optionRow.appendChild(checkbox);
+            optionRow.appendChild(labelText);
+
+            if (opt.hint) {
+                const hint = this.createElement('span', ['option-hint']);
+                hint.textContent = opt.hint;
+                optionRow.appendChild(hint);
+            }
+
+            optionsContainer.appendChild(optionRow);
+        }
+
+        section.appendChild(optionsContainer);
+        return section;
+    }
+
+    /**
      * Create a grid section with grouped pills
      * @param {number} gridIndex - Grid index (0, 1, 2)
      * @returns {HTMLElement}
@@ -113,7 +171,7 @@ export class AutoPopulateConfigDialog extends BG3Component {
      */
     _createGridSection(gridIndex) {
         const section = this.createElement('div', ['grid-section']);
-        
+
         // Header
         const header = this.createElement('div', ['grid-section-header']);
         header.textContent = `Hotbar Grid ${gridIndex + 1}`;
@@ -132,26 +190,26 @@ export class AutoPopulateConfigDialog extends BG3Component {
                 const groupHeader = this.createElement('div', ['bg3-pills-group-header']);
                 groupHeader.textContent = group.group;
                 section.appendChild(groupHeader);
-                
+
                 // Pills container for this group
                 const pillsContainer = this.createElement('div', ['bg3-pills-container']);
-                
+
                 for (const choice of group.choices) {
                     const pill = this._createPill(choice, gridIndex, assignedTypes);
                     pillsContainer.appendChild(pill);
                 }
-                
+
                 section.appendChild(pillsContainer);
             }
         } else {
             // Render flat choices (fallback)
             const pillsContainer = this.createElement('div', ['bg3-pills-container']);
-            
+
             for (const choice of this.choices) {
                 const pill = this._createPill(choice, gridIndex, assignedTypes);
                 pillsContainer.appendChild(pill);
             }
-            
+
             section.appendChild(pillsContainer);
         }
 
@@ -249,10 +307,10 @@ export class AutoPopulateConfigDialog extends BG3Component {
      */
     _updateAllPills(value, activeGrid) {
         const allPills = this.element.querySelectorAll(`.bg3-pill[data-value="${value}"]`);
-        
+
         for (const pill of allPills) {
             const pillGrid = parseInt(pill.dataset.gridIndex);
-            
+
             if (activeGrid === null) {
                 // Enable all
                 pill.classList.remove('disabled');

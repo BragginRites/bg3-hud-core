@@ -96,7 +96,7 @@ export class FilterContainer extends BG3Component {
             const isHighlighted = this._highlighted === filter;
 
             // Update border color
-            filter.element.style.borderColor = isHighlighted && !isUsed ? 
+            filter.element.style.borderColor = isHighlighted && !isUsed ?
                 filter.data.color : 'transparent';
 
             // Update used class
@@ -115,7 +115,7 @@ export class FilterContainer extends BG3Component {
 
         for (const cell of cells) {
             const isUsed = this._used.some(f => this.matchesFilter(f, cell));
-            const isHighlighted = this._highlighted ? 
+            const isHighlighted = this._highlighted ?
                 this.matchesFilter(this._highlighted, cell) : false;
 
             // Update used class
@@ -125,7 +125,7 @@ export class FilterContainer extends BG3Component {
             if (!this._highlighted) {
                 cell.dataset.highlight = 'false';
             } else {
-                cell.dataset.highlight = isHighlighted && !isUsed ? 
+                cell.dataset.highlight = isHighlighted && !isUsed ?
                     'highlight' : 'excluded';
             }
         }
@@ -169,22 +169,25 @@ export class FilterContainer extends BG3Component {
     async update() {
         // Get fresh filter definitions from adapter
         const filterDefs = this.getFilters();
-        
+
         // Update existing filter buttons in-place
         for (let i = 0; i < filterDefs.length && i < this.filterButtons.length; i++) {
             const filterDef = filterDefs[i];
             const button = this.filterButtons[i];
-            
-            // Update only the data that can change (spell slots, etc.)
-            if (filterDef.value !== undefined && button.data.value !== filterDef.value) {
+
+            // Check if value or max has changed
+            const valueChanged = filterDef.value !== undefined && button.data.value !== filterDef.value;
+            const maxChanged = filterDef.max !== undefined && button.data.max !== filterDef.max;
+
+            if (valueChanged || maxChanged) {
                 button.data.value = filterDef.value;
                 button.data.max = filterDef.max;
-                
+
                 // Update the visual representation without full re-render
                 await button.updateSlots(filterDef.value, filterDef.max);
             }
         }
-        
+
         // If filter count changed (rare), do a full rebuild
         if (filterDefs.length !== this.filterButtons.length) {
             await this.render();

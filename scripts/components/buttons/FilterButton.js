@@ -108,23 +108,54 @@ export class FilterButton extends BG3Component {
 
     /**
      * Update spell slot display without full re-render
-     * @param {number} value - Current value
-     * @param {number} max - Maximum value
+     * Handles changes to both value (filled state) and max (number of slots)
+     * @param {number} value - Current value (slots remaining)
+     * @param {number} max - Maximum value (total slots)
      */
     async updateSlots(value, max) {
         if (!this.element) return;
-        
-        // Find existing slot track
-        const track = this.element.querySelector('.slot-track');
-        if (!track) return;
-        
+
         const filled = Number(value) || 0;
+        const maxSlots = Number(max) || 0;
+
+        // Find or create slot track
+        let track = this.element.querySelector('.slot-track');
+        if (!track && maxSlots > 0) {
+            track = document.createElement('div');
+            track.classList.add('slot-track');
+            this.element.appendChild(track);
+        } else if (!track) {
+            return; // No track and no slots needed
+        }
+
         const boxes = track.querySelectorAll('.slot-box');
-        
-        // Update filled state of each box
-        boxes.forEach((box, i) => {
+        const currentCount = boxes.length;
+
+        // Add slots if max increased
+        if (maxSlots > currentCount) {
+            for (let i = currentCount; i < maxSlots; i++) {
+                const box = document.createElement('span');
+                box.classList.add('slot-box');
+                if (i < filled) box.classList.add('filled');
+                track.appendChild(box);
+            }
+        }
+        // Remove slots if max decreased
+        else if (maxSlots < currentCount) {
+            for (let i = currentCount - 1; i >= maxSlots; i--) {
+                boxes[i].remove();
+            }
+        }
+
+        // Update filled state on all remaining boxes
+        track.querySelectorAll('.slot-box').forEach((box, i) => {
             box.classList.toggle('filled', i < filled);
         });
+
+        // If max is 0, remove the track entirely
+        if (maxSlots === 0 && track) {
+            track.remove();
+        }
     }
 
     /**
@@ -133,12 +164,12 @@ export class FilterButton extends BG3Component {
      */
     getTooltipContent() {
         let content = `<strong>${this.data.label}</strong>`;
-        
+
         if (!this.data.isCustomResource) {
             content += '<br><em>Left Click: Highlight matching items</em>';
             content += '<br><em>Right Click: Mark as used</em>';
         }
-        
+
         return content;
     }
 }

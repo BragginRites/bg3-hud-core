@@ -490,6 +490,71 @@
     margin-bottom: 0;
 }
 
+/* Options section (toggle checkboxes) */
+.options-section {
+    border: 2px solid var(--bg3-border, #2f2f2f);
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 16px;
+    margin-bottom: 8px;
+}
+
+.options-section-header {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: var(--bg3-bonus-action, #f39c12);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid rgba(243, 156, 18, 0.4);
+    text-shadow: var(--shadow-text-stroke);
+}
+
+.options-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.option-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 4px;
+    transition: background 0.2s ease;
+}
+
+.option-row:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.option-row input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    margin-top: 2px;
+    cursor: pointer;
+    flex-shrink: 0;
+    accent-color: var(--bg3-action, #2ecc71);
+}
+
+.option-label {
+    font-weight: 500;
+    color: var(--bg3-text, #ddd);
+    text-shadow: var(--shadow-text-stroke);
+}
+
+.option-hint {
+    display: block;
+    font-size: 0.85em;
+    color: var(--bg3-text, #ddd);
+    opacity: 0.7;
+    margin-top: 2px;
+    margin-left: 28px;
+}
+
 /* Disabled pills for types assigned to other grids */
 .bg3-pill.disabled {
     opacity: 0.3;

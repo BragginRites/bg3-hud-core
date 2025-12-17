@@ -20,7 +20,7 @@ export class AutoPopulateFramework {
         try {
             // Get item type choices from adapter
             const choices = await this.getItemTypeChoices();
-            
+
             if (!choices || choices.length === 0) {
                 ui.notifications.warn('No item types available for auto-populate');
                 return;
@@ -28,7 +28,7 @@ export class AutoPopulateFramework {
 
             // Show dialog and get user selection
             const selectedTypes = await this.showSelectionDialog(choices);
-            
+
             if (!selectedTypes || selectedTypes.length === 0) {
                 // User cancelled or selected nothing
                 return;
@@ -36,7 +36,7 @@ export class AutoPopulateFramework {
 
             // Get items from actor that match selected types
             const items = await this.getMatchingItems(actor, selectedTypes);
-            
+
             if (items.length === 0) {
                 ui.notifications.warn('No matching items found');
                 return;
@@ -77,7 +77,7 @@ export class AutoPopulateFramework {
      */
     async showSelectionDialog(choices) {
         const { AutoPopulateDialog } = await import('../components/ui/AutoPopulateDialog.js');
-        
+
         const dialog = new AutoPopulateDialog({
             title: 'Auto-Populate Container',
             choices: choices
@@ -114,7 +114,7 @@ export class AutoPopulateFramework {
         if (this.autoSort && typeof this.autoSort.sortUuidEntries === 'function') {
             return await this.autoSort.sortUuidEntries(items);
         }
-        
+
         // Otherwise, return unsorted
         return items;
     }
@@ -130,7 +130,7 @@ export class AutoPopulateFramework {
     async addItemsToContainer(items, container, persistenceManager = null) {
         // Filter out items that already exist in the HUD (global check)
         const newItems = [];
-        
+
         for (const item of items) {
             if (!item.uuid) continue;
 
@@ -153,10 +153,10 @@ export class AutoPopulateFramework {
                     continue;
                 }
             }
-            
+
             newItems.push(item);
         }
-        
+
         if (newItems.length === 0) {
             ui.notifications.info('All selected items are already in the HUD');
             return 0;
@@ -181,7 +181,7 @@ export class AutoPopulateFramework {
                         type: itemData.type
                     };
                 }
-                
+
                 if (cellData) {
                     enrichedItems.push(cellData);
                 }
@@ -197,7 +197,7 @@ export class AutoPopulateFramework {
         for (let r = 0; r < rows && itemIndex < enrichedItems.length; r++) {
             for (let c = 0; c < cols && itemIndex < enrichedItems.length; c++) {
                 const slotKey = `${c}-${r}`;
-                
+
                 // If slot is empty, add item
                 if (!container.items[slotKey]) {
                     container.items[slotKey] = enrichedItems[itemIndex];
@@ -260,7 +260,7 @@ export class AutoPopulateFramework {
         for (let gridIndex = 0; gridIndex < 3; gridIndex++) {
             const gridKey = `grid${gridIndex}`;
             const itemTypes = configuration[gridKey];
-            
+
             if (!itemTypes || itemTypes.length === 0) {
                 continue; // Skip grids with no configured types
             }
@@ -274,8 +274,9 @@ export class AutoPopulateFramework {
             const grid = state.hotbar.grids[gridIndex];
 
             // Get items matching the configured types for this grid
-            const items = await this.getMatchingItems(actor, itemTypes);
-            
+            const options = configuration.options || {};
+            const items = await this.getMatchingItems(actor, itemTypes, options);
+
             if (items.length === 0) {
                 continue; // No items to populate
             }
@@ -301,14 +302,22 @@ export class AutoPopulateFramework {
                 if (!itemData) continue;
 
                 const adapter = ui.BG3HOTBAR?.registry?.activeAdapter;
-                const cellData = adapter?.transformItemToCellData
-                    ? await adapter.transformItemToCellData(itemData)
-                    : {
+                let cellData;
+
+                // Check if this is an Activity (from getMatchingItems with includeActivities)
+                if (item.type === 'Activity' && adapter?.transformActivityToCellData) {
+                    cellData = await adapter.transformActivityToCellData(itemData);
+                } else if (adapter?.transformItemToCellData) {
+                    cellData = await adapter.transformItemToCellData(itemData);
+                } else {
+                    // Fallback: basic transformation
+                    cellData = {
                         uuid: item.uuid,
                         name: itemData.name,
                         img: itemData.img,
                         type: itemData.type
                     };
+                }
 
                 if (cellData) enrichedItems.push(cellData);
             }
@@ -321,7 +330,7 @@ export class AutoPopulateFramework {
             for (let r = 0; r < rows && itemIndex < enrichedItems.length; r++) {
                 for (let c = 0; c < cols && itemIndex < enrichedItems.length; c++) {
                     const slotKey = `${c}-${r}`;
-                    
+
                     // Only populate empty slots
                     if (!grid.items[slotKey]) {
                         grid.items[slotKey] = enrichedItems[itemIndex];
@@ -332,7 +341,7 @@ export class AutoPopulateFramework {
 
             // Save state after each grid
             await persistenceManager.saveState(state);
-            
+
             // Delay before next grid (50ms between grids)
             // Only delay if not the last grid (gridIndex 0 or 1, not 2)
             if (gridIndex < 2) {
@@ -347,7 +356,7 @@ export class AutoPopulateFramework {
      */
     async showConfigDialog() {
         const { AutoPopulateConfigDialog } = await import('../components/ui/AutoPopulateConfigDialog.js');
-        
+
         const choices = await this.getItemTypeChoices();
         if (!choices || choices.length === 0) {
             ui.notifications.warn('No item types available for configuration');
