@@ -14,10 +14,17 @@ export class SocketManager {
         this.hotbarApp = hotbarApp;
         this.socket = null;
         this.MODULE_ID = 'bg3-hud-core';
+
+        // Inbound batching (receiving updates from other clients)
         this._updateQueue = [];
         this._updateTimeout = null;
         this._batchDelay = 50; // ms - batch updates within this window
         this._isProcessing = false; // Prevent concurrent batch processing
+
+        // Outbound batching (sending updates to other clients)
+        this._outboundQueue = [];
+        this._outboundTimeout = null;
+        this._outboundDelay = 100; // ms - collect updates within this window before sending
     }
 
     /**
@@ -33,10 +40,10 @@ export class SocketManager {
 
         try {
             this.socket = socketlib.registerModule(this.MODULE_ID);
-            
+
             // Register socket handlers
             this.socket.register('hudStateUpdate', this._onHudStateUpdate.bind(this));
-            
+
             console.log('BG3 HUD Core | Socket manager initialized');
             return true;
         } catch (error) {
@@ -47,7 +54,7 @@ export class SocketManager {
 
     /**
      * Broadcast HUD state update to all clients
-     * Called immediately after local optimistic update
+     * Updates are queued and debounced to prevent flooding during rapid operations
      * @param {string} actorUuid - Actor UUID
      * @param {Object} updateData - Update payload
      */
@@ -57,10 +64,58 @@ export class SocketManager {
         // Add timestamp for ordering
         updateData.timestamp = Date.now();
 
-        try {
-            await this.socket.executeForEveryone('hudStateUpdate', actorUuid, updateData);
-        } catch (error) {
-            console.error('BG3 HUD Core | Failed to broadcast update:', error);
+        // Queue the update for batched sending
+        this._outboundQueue.push({ actorUuid, updateData });
+
+        // Reset debounce timer
+        if (this._outboundTimeout) {
+            clearTimeout(this._outboundTimeout);
+        }
+
+        this._outboundTimeout = setTimeout(() => {
+            this._flushOutboundQueue();
+        }, this._outboundDelay);
+    }
+
+    /**
+     * Flush outbound queue - coalesce and send all pending updates
+     * Groups updates by actor, coalesces them, and sends as batch payloads
+     * @private
+     */
+    async _flushOutboundQueue() {
+        if (this._outboundQueue.length === 0) return;
+
+        const updates = [...this._outboundQueue];
+        this._outboundQueue = [];
+        this._outboundTimeout = null;
+
+        // Group by actorUuid
+        const byActor = new Map();
+        for (const { actorUuid, updateData } of updates) {
+            if (!byActor.has(actorUuid)) {
+                byActor.set(actorUuid, []);
+            }
+            byActor.get(actorUuid).push(updateData);
+        }
+
+        // Send coalesced updates per actor
+        for (const [actorUuid, actorUpdates] of byActor) {
+            // Coalesce to remove redundant updates
+            const coalesced = this._coalesceUpdates(actorUpdates);
+
+            if (coalesced.length === 0) continue;
+
+            try {
+                // Send as batch payload
+                await this.socket.executeForEveryone('hudStateUpdate', actorUuid, {
+                    type: 'batch',
+                    updates: coalesced,
+                    userId: game.user.id,
+                    timestamp: Date.now()
+                });
+            } catch (error) {
+                console.error('BG3 HUD Core | Failed to broadcast batch update:', error);
+            }
         }
     }
 
@@ -68,7 +123,7 @@ export class SocketManager {
      * Handle incoming HUD state update from another client
      * Batches updates to prevent incremental rendering
      * @param {string} actorUuid - Actor UUID
-     * @param {Object} updateData - Update payload
+     * @param {Object} updateData - Update payload (may be a batch or single update)
      * @private
      */
     async _onHudStateUpdate(actorUuid, updateData) {
@@ -82,14 +137,21 @@ export class SocketManager {
             return;
         }
 
-        // Add to queue and batch process
-        this._updateQueue.push(updateData);
-        
+        // Handle batch payloads (coalesced updates from sender)
+        if (updateData.type === 'batch' && Array.isArray(updateData.updates)) {
+            for (const update of updateData.updates) {
+                this._updateQueue.push(update);
+            }
+        } else {
+            // Single update (legacy or non-batched)
+            this._updateQueue.push(updateData);
+        }
+
         // Clear existing timeout
         if (this._updateTimeout) {
             clearTimeout(this._updateTimeout);
         }
-        
+
         // Set new timeout to process batch
         this._updateTimeout = setTimeout(() => {
             this._processBatchedUpdates();
@@ -123,18 +185,18 @@ export class SocketManager {
                     containerUpdates.clear();
                     weaponSetChange = null;
                     break;
-                    
+
                 case 'gridConfig':
                     // Keep latest grid config per grid index
                     gridConfigs.set(update.gridIndex, update);
                     break;
-                    
+
                 case 'cellUpdate': {
                     const key = `${update.container}-${update.containerIndex}-${update.slotKey}`;
                     cellUpdates.set(key, update);
                     break;
                 }
-                    
+
                 case 'containerUpdate': {
                     const key = `${update.containerType}-${update.containerIndex}`;
                     // Container update supersedes individual cell updates for same container
@@ -147,7 +209,7 @@ export class SocketManager {
                     }
                     break;
                 }
-                
+
                 case 'weaponSetChange':
                     // Keep only the latest weapon set change
                     weaponSetChange = update;
@@ -163,7 +225,7 @@ export class SocketManager {
                     const [col, row] = cellUpdate.slotKey.split('-').map(Number);
                     const newRows = gridConfig.config.rows;
                     const newCols = gridConfig.config.cols;
-                    if ((newRows !== undefined && row >= newRows) || 
+                    if ((newRows !== undefined && row >= newRows) ||
                         (newCols !== undefined && col >= newCols)) {
                         cellUpdates.delete(key);
                     }
@@ -173,26 +235,26 @@ export class SocketManager {
 
         // Build ordered result: clearAll -> gridConfigs -> containerUpdates -> weaponSetChange -> cellUpdates
         const result = [];
-        
+
         if (clearAll) {
             result.push(clearAll);
         }
-        
+
         // Grid configs first (shape changes)
         for (const config of gridConfigs.values()) {
             result.push(config);
         }
-        
+
         // Container updates (bulk content)
         for (const container of containerUpdates.values()) {
             result.push(container);
         }
-        
+
         // Weapon set change
         if (weaponSetChange) {
             result.push(weaponSetChange);
         }
-        
+
         // Cell updates last (individual content)
         for (const cell of cellUpdates.values()) {
             result.push(cell);
@@ -209,22 +271,22 @@ export class SocketManager {
      */
     async _processBatchedUpdates() {
         if (this._updateQueue.length === 0 || this._isProcessing) return;
-        
+
         this._isProcessing = true;
-        
+
         try {
             const rawUpdates = [...this._updateQueue];
             this._updateQueue = [];
             this._updateTimeout = null;
-            
+
             // Coalesce updates to prevent conflicts
             const updates = this._coalesceUpdates(rawUpdates);
-            
+
             // Separate grid config updates from other updates
             // Grid configs must be applied atomically (all together) before any content updates
             const gridConfigUpdates = [];
             const otherUpdates = [];
-            
+
             for (const update of updates) {
                 if (update.type === 'gridConfig') {
                     gridConfigUpdates.push(update);
@@ -232,12 +294,12 @@ export class SocketManager {
                     otherUpdates.push(update);
                 }
             }
-            
+
             // Apply all grid config changes atomically (update data, then render all together)
             if (gridConfigUpdates.length > 0) {
                 await this._applyGridConfigUpdatesAtomically(gridConfigUpdates);
             }
-            
+
             // Process other updates in order
             for (const updateData of otherUpdates) {
                 switch (updateData.type) {
@@ -255,10 +317,10 @@ export class SocketManager {
                         break;
                 }
             }
-            
+
             // Update persistence manager's cached state to match
             await this._syncCachedState();
-            
+
         } finally {
             this._isProcessing = false;
         }
@@ -322,7 +384,7 @@ export class SocketManager {
         // Phase 1: Update all grid data structures (no rendering yet)
         for (const updateData of gridConfigUpdates) {
             const { gridIndex, config } = updateData;
-            
+
             if (hotbarContainer.grids[gridIndex]) {
                 // Update grid data in the parent container's grids array
                 if (config.rows !== undefined) {
@@ -350,7 +412,7 @@ export class SocketManager {
     async _applyGridConfigUpdate(updateData, containersToRender) {
         const { gridIndex, config } = updateData;
         const hotbarContainer = this.hotbarApp.components?.hotbar;
-        
+
         if (!hotbarContainer) return;
 
         // Update grid data
@@ -367,7 +429,7 @@ export class SocketManager {
             if (gridContainer) {
                 gridContainer.rows = hotbarContainer.grids[gridIndex].rows;
                 gridContainer.cols = hotbarContainer.grids[gridIndex].cols;
-                
+
                 // If tracking containers, mark for render; otherwise render immediately
                 if (containersToRender) {
                     containersToRender.add(`hotbar-${gridIndex}`);
@@ -384,10 +446,10 @@ export class SocketManager {
      */
     async _applyCellUpdate(updateData) {
         const { container, containerIndex, slotKey, data } = updateData;
-        
+
         // Find the appropriate container and update the cell
         let targetContainer = null;
-        
+
         switch (container) {
             case 'hotbar':
                 targetContainer = this.hotbarApp.components?.hotbar?.gridContainers[containerIndex];
@@ -415,7 +477,7 @@ export class SocketManager {
 
         // Update the item data and re-render the specific cell
         targetContainer.items[slotKey] = data;
-        
+
         // Find and update the cell
         const cell = targetContainer.getCell(col, row);
         if (cell) {
@@ -430,9 +492,9 @@ export class SocketManager {
      */
     async _applyContainerUpdate(updateData) {
         const { containerType, containerIndex, items } = updateData;
-        
+
         let targetContainer = null;
-        
+
         switch (containerType) {
             case 'hotbar':
                 targetContainer = this.hotbarApp.components?.hotbar?.gridContainers[containerIndex];
@@ -459,7 +521,7 @@ export class SocketManager {
     async _applyWeaponSetChange(updateData) {
         const { activeSet } = updateData;
         const weaponSetsContainer = this.hotbarApp.components?.weaponSets;
-        
+
         if (weaponSetsContainer && typeof weaponSetsContainer.setActiveSet === 'function') {
             await weaponSetsContainer.setActiveSet(activeSet, true);
         }
