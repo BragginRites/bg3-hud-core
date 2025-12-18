@@ -219,6 +219,42 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
     }
 
     /**
+     * Toggle between GM Hotbar and Token Hotbar
+     * Switches context between the selected token and the global GM hotbar
+     */
+    async toggleGMHotbarMode() {
+        if (!game.user.isGM) return;
+
+        // Check if GM hotbar is enabled
+        if (!game.settings.get('bg3-hud-core', 'enableGMHotbar')) {
+            ui.notifications.warn("GM Hotbar is not enabled in module settings.");
+            return;
+        }
+
+        const token = canvas.tokens.controlled[0];
+        // If we have no current token, we are effectively in GM mode (or no-op)
+        const isCurrentlyGM = !this.currentToken;
+
+        if (isCurrentlyGM) {
+            if (token) {
+                // Switch from GM hotbar to token hotbar
+                this.overrideGMHotbar = false;
+                this.currentToken = token;
+                this.currentActor = token.actor;
+                await this.refresh();
+            } else {
+                ui.notifications.warn("Select a token to switch to Token Hotbar");
+            }
+        } else {
+            // Switch from token hotbar to GM hotbar
+            this.overrideGMHotbar = true;
+            this.currentToken = null;
+            this.currentActor = null;
+            await this.refresh();
+        }
+    }
+
+    /**
      * Toggle HUD visibility
      * @param {boolean|null} state - Force state or null to toggle
      * @returns {Promise<boolean>} New state

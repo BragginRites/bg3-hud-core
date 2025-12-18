@@ -33,6 +33,7 @@
         transform: translate(-50%, -50%) scale(0.9);
         opacity: 0;
     }
+
     to {
         transform: translate(-50%, -50%) scale(1);
         opacity: 1;
@@ -237,16 +238,22 @@
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 @keyframes dialogFadeIn {
-    from { 
+    from {
         opacity: 0;
         transform: scale(0.95);
     }
-    to { 
+
+    to {
         opacity: 1;
         transform: scale(1);
     }
@@ -771,3 +778,40 @@
     background: #6e6e6e;
 }
 
+/* ==========================================================================
+   Settings Submenu (Layout & Appearance, etc.)
+   ========================================================================== */
+
+/* Make the form content scrollable with a max height */
+.bg3-settings-submenu .standard-form {
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+.bg3-settings-submenu .standard-form::-webkit-scrollbar {
+    width: 8px;
+}
+
+.bg3-settings-submenu .standard-form::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+}
+
+.bg3-settings-submenu .standard-form::-webkit-scrollbar-thumb {
+    background: var(--bg3-background-highlight, #5a5353);
+    border-radius: 4px;
+}
+
+.bg3-settings-submenu .standard-form::-webkit-scrollbar-thumb:hover {
+    background: #6e6e6e;
+}
+
+/* Ensure the footer with save button is always visible */
+.bg3-settings-submenu .form-footer {
+    position: sticky;
+    bottom: 0;
+    background: var(--color-bg-option, #1a1a1a);
+    padding: 8px 0;
+    margin-top: 12px;
+    border-top: 1px solid var(--color-border-light-primary, #555);
+}

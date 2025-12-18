@@ -9,14 +9,13 @@ export class TargetSelectorMath {
      * Uses D&D 5e/PF2e style diagonal counting (Chebyshev distance).
      * @param {Token} sourceToken - The source token
      * @param {Token} targetToken - The target token
-     * @returns {number} Distance in scene units (ft, m, etc.)
+     * @returns {number} Distance in GRID SQUARES (not feet/meters)
      */
     static calculateTokenDistance(sourceToken, targetToken) {
         if (!canvas?.grid || !sourceToken || !targetToken) {
             return Infinity;
         }
 
-        const gridDistance = canvas.grid.distance || 5;
         const gridSize = canvas.grid.size;
 
         // Get token bounds in grid squares
@@ -49,8 +48,8 @@ export class TargetSelectorMath {
             minDistance = 0;
         }
 
-        // Convert grid squares to scene units
-        return minDistance * gridDistance;
+        // Return distance in GRID SQUARES (adapters now return range in grid squares too)
+        return minDistance;
     }
 
     /**

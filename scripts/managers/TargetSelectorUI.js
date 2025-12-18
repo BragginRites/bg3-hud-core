@@ -31,6 +31,8 @@ export class TargetSelectorUI {
      * @param {Object} requirements - Targeting requirements
      */
     activate(requirements) {
+        console.warn('BG3 HUD Core | UI: Activate called', requirements);
+
         this._createInstructionsDisplay(requirements);
         this._createMouseDisplay(requirements);
         this._setTargetingCursor();
@@ -39,7 +41,14 @@ export class TargetSelectorUI {
         this.showTargetList();
 
         if (requirements.range && this.manager.sourceToken) {
-            this._showRangeIndicator(this.manager.sourceToken, requirements.range);
+            console.warn('BG3 HUD Core | UI: Attempting to show range indicator', { range: requirements.range, token: this.manager.sourceToken.name });
+            try {
+                this._showRangeIndicator(this.manager.sourceToken, requirements.range);
+            } catch (e) {
+                console.error('BG3 HUD Core | Error showing range indicator:', e);
+            }
+        } else {
+            console.warn('BG3 HUD Core | UI: Skipping range indicator', { range: requirements.range, hasSourceToken: !!this.manager.sourceToken });
         }
 
         // Add targeting class to body
@@ -563,31 +572,82 @@ export class TargetSelectorUI {
             return;
         }
 
-        const gridSize = canvas.grid.size;
-        const gridDistance = canvas.grid.distance || 5;
+        // Check if range indicators are enabled
+        const showRangeIndicators = game.settings.get('bg3-hud-core', 'showRangeIndicators');
+        console.warn('BG3 HUD Core | Range Indicator Check:', { showRangeIndicators, range, sourceToken: sourceToken?.name });
+        if (!showRangeIndicators) {
+            console.warn('BG3 HUD Core | Range indicator disabled in settings');
+            return;
+        }
 
-        // Convert range to pixels
-        const rangeInPixels = (range / gridDistance) * gridSize;
+        // Get settings
+        const colorHex = game.settings.get('bg3-hud-core', 'rangeIndicatorColor') || '#00ff00';
+        const color = parseInt(colorHex.replace('#', ''), 16);
+        const lineWidth = game.settings.get('bg3-hud-core', 'rangeIndicatorLineWidth') || 2;
+        const shape = game.settings.get('bg3-hud-core', 'rangeIndicatorShape') || 'circle';
+        const animation = game.settings.get('bg3-hud-core', 'rangeIndicatorAnimation') || 'pulse';
+
+        const gridSize = canvas.grid.size;
+
+        // Range is now in GRID SQUARES (adapter converts feet/meters to squares)
+        // So we just multiply by gridSize to get pixels
+        const baseRangeInPixels = range * gridSize;
+
+        // Get token size (width and height are in grid units)
+        const tokenWidth = sourceToken.document.width || 1;
+        const tokenHeight = sourceToken.document.height || 1;
+
+        // Use the larger dimension, but never smaller than 1x1 (Medium creature minimum)
+        const tokenSizeMultiplier = Math.max(1, Math.max(tokenWidth, tokenHeight));
+
+        // Add half the token size to the range (since range is measured from edge, not center)
+        const tokenSizeOffset = (tokenSizeMultiplier * gridSize) / 2;
+        const rangeInPixels = baseRangeInPixels + tokenSizeOffset;
 
         // Create PIXI graphics
         this._rangeIndicator = new PIXI.Graphics();
+        const indicatorColor = color || 0x00ff00;
+        this._rangeIndicator.lineStyle(lineWidth || 2, indicatorColor, 0.8);
+        // No fill - outline only
 
-        // Draw range circle
-        this._rangeIndicator.lineStyle(2, 0x00ff00, 0.6);
-        this._rangeIndicator.drawCircle(0, 0, rangeInPixels);
+        // Draw shape based on setting (outline only)
+        if (shape === 'square') {
+            this._rangeIndicator.drawRect(-rangeInPixels, -rangeInPixels, rangeInPixels * 2, rangeInPixels * 2);
+        } else {
+            this._rangeIndicator.drawCircle(0, 0, rangeInPixels);
+        }
 
         // Position at token center
         this._rangeIndicator.position.set(sourceToken.center.x, sourceToken.center.y);
 
-        // Add to canvas
-        canvas.interface.addChild(this._rangeIndicator);
+        // Debug logging
+        console.warn('BG3 HUD Core | Creating PIXI Graphics:', {
+            radius: rangeInPixels,
+            x: sourceToken.center.x,
+            y: sourceToken.center.y,
+            parent: canvas.interface ? 'canvas.interface' : 'canvas.stage',
+            tokenSizeOffset,
+            baseRangeInPixels,
+            color: indicatorColor.toString(16)
+        });
 
-        // Start pulse animation
-        this._startRangeAnimation();
+        // Add to canvas
+        if (canvas.interface) {
+            canvas.interface.addChild(this._rangeIndicator);
+        } else {
+            canvas.app.stage.addChild(this._rangeIndicator);
+        }
+        this._rangeIndicator.zIndex = 1000;
+
+        // Start animation if enabled
+        if (animation === 'pulse') {
+            this._startRangeAnimation();
+        }
     }
 
     /**
      * Start pulse animation for range indicator.
+     * Uses subtle scaling animation like bg3-inspired-hotbar.
      * @private
      */
     _startRangeAnimation() {
@@ -595,27 +655,25 @@ export class TargetSelectorUI {
             return;
         }
 
-        let alpha = 0.6;
-        let increasing = false;
+        const minScale = 0.97;
+        const maxScale = 1.02;
+        let currentScale = 1.0;
+        let direction = 1;
 
         const animate = () => {
-            if (!this._rangeIndicator) {
-                return;
+            if (!this._rangeIndicator?.parent) {
+                return; // Stop if removed from canvas
             }
 
-            if (increasing) {
-                alpha += 0.01;
-                if (alpha >= 0.9) {
-                    increasing = false;
-                }
-            } else {
-                alpha -= 0.01;
-                if (alpha <= 0.6) {
-                    increasing = true;
-                }
+            currentScale += direction * 0.0005;
+
+            if (currentScale <= minScale) {
+                direction = 1;
+            } else if (currentScale >= maxScale) {
+                direction = -1;
             }
 
-            this._rangeIndicator.alpha = alpha;
+            this._rangeIndicator.scale.set(currentScale);
             this._animationFrame = requestAnimationFrame(animate);
         };
 

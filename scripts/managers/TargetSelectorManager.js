@@ -139,8 +139,33 @@ export class TargetSelectorManager {
 
         // Check range if enabled
         if (this._isRangeCheckingEnabled() && this.requirements.range) {
-            if (!TargetSelectorMath.isWithinRange(this.sourceToken, token, this.requirements.range)) {
-                return { valid: false, reason: game.i18n.localize('bg3-hud-core.TargetSelector.OutOfRange') };
+            const distance = TargetSelectorMath.calculateTokenDistance(this.sourceToken, token);
+
+            // Ensure range is a number (adapters might return strings like "60 feet")
+            let range = this.requirements.range;
+            if (typeof range === 'string') {
+                const numericMatch = range.match(/^(\d+)/);
+                range = numericMatch ? parseInt(numericMatch[1], 10) : Infinity;
+            }
+
+            const isInRange = distance <= range;
+
+            console.log(`BG3 HUD Core | Range Check: ${this.sourceToken?.name} → ${token?.name}`, {
+                distance,
+                range,
+                originalRange: this.requirements.range,
+                isInRange,
+                sourcePosition: { x: this.sourceToken?.x, y: this.sourceToken?.y, w: this.sourceToken?.w, h: this.sourceToken?.h },
+                targetPosition: { x: token?.x, y: token?.y, w: token?.w, h: token?.h },
+                gridSize: canvas?.grid?.size,
+                gridDistance: canvas?.grid?.distance
+            });
+
+            if (!isInRange) {
+                return {
+                    valid: false,
+                    reason: game.i18n.localize('bg3-hud-core.TargetSelector.OutOfRange') + ` (${Math.round(distance)}/${range})`
+                };
             }
         }
 
@@ -268,9 +293,15 @@ export class TargetSelectorManager {
         this._switchToTargetTool();
 
         // Activate UI
+        console.warn('BG3 HUD Core | Manager: Calling UI.activate with:', {
+            range: this.requirements.range,
+            sourceToken: this.sourceToken?.name,
+            requirements: this.requirements
+        });
         this.ui.activate(this.requirements);
 
         // Register events
+        console.warn('BG3 HUD Core | Manager: Registering events');
         this.events.registerEvents();
 
         // Notification
@@ -386,7 +417,9 @@ export class TargetSelectorManager {
      * @private
      */
     _switchToTargetTool() {
-        if (ui.controls?.activeControl !== 'token') {
+        const activeControlName = ui.controls.control?.name || ui.controls.activeControl; // Fallback for older versions
+
+        if (activeControlName !== 'token') {
             return;
         }
 
@@ -405,7 +438,9 @@ export class TargetSelectorManager {
      * @private
      */
     _restoreTokenTool() {
-        if (this._originalTool && ui.controls?.activeControl === 'token') {
+        const activeControlName = ui.controls.control?.name || ui.controls.activeControl;
+
+        if (this._originalTool && activeControlName === 'token') {
             ui.controls.activeTool = this._originalTool;
             ui.controls.render();
             this._originalTool = null;

@@ -587,9 +587,9 @@ export class InteractionCoordinator {
     }
 
     /**
-     * Get document from drag data (supports Item, Macro, and Activity)
+     * Get document from drag data (supports Item, Macro, Activity, and PF2e Action)
      * @param {DragEvent} event
-     * @returns {Promise<{document: Document, type: string}|null>}
+     * @returns {Promise<{document: Document, type: string, pf2eActionIndex?: number}|null>}
      * @private
      */
     async _getDocumentFromDragData(event) {
@@ -608,6 +608,25 @@ export class InteractionCoordinator {
                 const activity = await fromUuid(dragData.uuid);
                 if (activity) {
                     return { document: activity, type: 'Activity' };
+                }
+            }
+
+            // Handle PF2e Action type (strikes from actor.system.actions)
+            if (dragData.type === 'Action' && dragData.actorUUID !== undefined) {
+                const actor = await fromUuid(dragData.actorUUID);
+                if (actor) {
+                    const actionIndex = dragData.index;
+                    const strike = actor.system?.actions?.[actionIndex];
+                    if (strike?.item) {
+                        // Return the strike's underlying weapon/item
+                        // Pass the action index for PF2e adapter to use
+                        return {
+                            document: strike.item,
+                            type: 'Item',
+                            pf2eActionIndex: actionIndex,
+                            pf2eStrikeSlug: strike.slug
+                        };
+                    }
                 }
             }
         } catch (e) {

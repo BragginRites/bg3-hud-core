@@ -1,3 +1,18 @@
+## [0.1.5] - 2025-12-18
+### Added
+- **Filter Visibility**: Filter buttons now only appear if there are matching items on the hotbar. Filters with `alwaysShow: true` bypass this check.
+- **Centered Filter Labels**: Added `centerLabel` property to FilterButton for displaying text centered in the button (used by PF2e spell ranks).
+- **Range Indicator Settings**: Added customizable range indicator options (shape, animation, line width, color) for the target selector.
+- **GM Hotbar Keybinding**: Added configurable keybinding (default: `;`) to silently toggle between Token Hotbar and GM Hotbar.
+
+### Fixed
+- **Layout Settings Dialog**: Fixed scrollbar missing on "Layout & Appearance Settings" dialog, preventing access to all settings and the save button on smaller screens. Dialog is now resizable with scrollable content.
+- **Large Slot Counts**: Added CSS for 5-6 and 7-9 slot pips to use smaller sizes and prevent overflow.
+- **Range Calculation**: Fixed range indicator and range checking to use grid squares instead of scene units, ensuring correct display regardless of scene grid configuration.
+- **Foundry V13 Deprecation**: Fixed `SceneControls#activeControl` deprecation warning.
+- **PF2e Strike Drag-and-Drop**: Core now handles PF2e's `type: 'Action'` drag data format, enabling strikes from the PF2e character sheet Actions tab to be dropped onto the hotbar.
+
+
 ## [0.1.4] - 2025-12-17
 ### Added
 - **Activity Drag Support**: Extended drag-and-drop coordinator to support `Activity` type data, enabling adapters to handle improved activity dragging (e.g. D&D 5e v5+).

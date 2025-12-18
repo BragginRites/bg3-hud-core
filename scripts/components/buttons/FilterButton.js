@@ -22,6 +22,7 @@ export class FilterButton extends BG3Component {
             id: options.id,
             label: options.label,
             short: options.short,
+            centerLabel: options.centerLabel,
             symbol: options.symbol,
             color: options.color,
             classes: options.classes || [],
@@ -66,7 +67,7 @@ export class FilterButton extends BG3Component {
             this.element.appendChild(label);
         }
 
-        // Add slot boxes for resources with uses (spell slots, etc.)
+        // Add slot boxes for resources with uses (spell slots, focus pool, etc.)
         if (this.data.value !== undefined && this.data.max !== undefined) {
             const track = document.createElement('div');
             track.classList.add('slot-track');
@@ -82,6 +83,13 @@ export class FilterButton extends BG3Component {
             }
 
             this.element.appendChild(track);
+        }
+        // Add centered label for filters without pips (e.g., PF2e spell ranks)
+        else if (this.data.centerLabel) {
+            const centerSpan = document.createElement('span');
+            centerSpan.classList.add('filter-center-label');
+            centerSpan.textContent = String(this.data.centerLabel);
+            this.element.appendChild(centerSpan);
         }
 
         // Add tooltip

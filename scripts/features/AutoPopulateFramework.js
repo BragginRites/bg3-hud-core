@@ -122,52 +122,62 @@ export class AutoPopulateFramework {
     /**
      * Add items to container in grid order
      * Skips items that already exist in the HUD (across ALL containers)
-     * @param {Array<{uuid: string}>} items - Sorted items to add
+     * Supports both uuid-based items and adapter-specific cell data (like Strikes)
+     * @param {Array<Object>} items - Sorted items to add (uuid-based or custom cell data)
      * @param {GridContainer} container - Target container
      * @param {PersistenceManager} persistenceManager - Optional persistence manager for global UUID checking
      * @returns {Promise<number>} Number of items added
      */
     async addItemsToContainer(items, container, persistenceManager = null) {
-        // Filter out items that already exist in the HUD (global check)
-        const newItems = [];
+        // Separate uuid-based items from adapter-specific cell data
+        const uuidItems = [];
+        const customCellData = [];
 
         for (const item of items) {
-            if (!item.uuid) continue;
-
-            // If we have persistence manager, check entire HUD for duplicates
-            if (persistenceManager && typeof persistenceManager.findUuidInHud === 'function') {
-                const existingLocation = persistenceManager.findUuidInHud(item.uuid);
-                if (existingLocation) {
-                    continue;
-                }
-            } else {
-                // Fallback: only check current container
-                let existsInContainer = false;
-                for (const [key, existingItem] of Object.entries(container.items)) {
-                    if (existingItem?.uuid === item.uuid) {
-                        existsInContainer = true;
-                        break;
+            if (item.uuid) {
+                // UUID-based item - check for duplicates
+                if (persistenceManager && typeof persistenceManager.findUuidInHud === 'function') {
+                    const existingLocation = persistenceManager.findUuidInHud(item.uuid);
+                    if (existingLocation) {
+                        continue; // Skip duplicates
+                    }
+                } else {
+                    // Fallback: only check current container
+                    let existsInContainer = false;
+                    for (const [key, existingItem] of Object.entries(container.items)) {
+                        if (existingItem?.uuid === item.uuid) {
+                            existsInContainer = true;
+                            break;
+                        }
+                    }
+                    if (existsInContainer) {
+                        continue;
                     }
                 }
-                if (existsInContainer) {
-                    continue;
-                }
+                uuidItems.push(item);
+            } else if (item.type) {
+                // Adapter-specific cell data (e.g., Strike, Activity)
+                // Already enriched by adapter, pass through directly
+                customCellData.push(item);
             }
-
-            newItems.push(item);
+            // Skip items with neither uuid nor type
         }
 
-        if (newItems.length === 0) {
+        const allNewItems = [...uuidItems, ...customCellData];
+
+        if (allNewItems.length === 0) {
             ui.notifications.info('All selected items are already in the HUD');
             return 0;
         }
 
-        // Enrich items with full data (name, img, uses, quantity, etc.)
+        // Enrich uuid-based items with full data (name, img, uses, quantity, etc.)
         const enrichedItems = [];
-        for (const item of newItems) {
+
+        // Process uuid-based items
+        for (const item of uuidItems) {
             const itemData = await fromUuid(item.uuid);
             if (itemData) {
-                // Try to use adapter's transformation if available (for system-specific data like uses/quantity)
+                // Try to use adapter's transformation if available
                 let cellData;
                 const adapter = ui.BG3HOTBAR?.registry?.activeAdapter;
                 if (adapter && typeof adapter.transformItemToCellData === 'function') {
@@ -187,6 +197,9 @@ export class AutoPopulateFramework {
                 }
             }
         }
+
+        // Add custom cell data directly (already enriched by adapter)
+        enrichedItems.push(...customCellData);
 
         // Find empty slots and add items
         let addedCount = 0;
@@ -284,20 +297,26 @@ export class AutoPopulateFramework {
             // Sort items
             const sortedItems = await this.sortItems(items);
 
-            // Global duplicate filtering
-            const filteredItems = [];
-            for (const item of sortedItems) {
-                if (!item.uuid) continue;
+            // Separate uuid-based items from custom cell data
+            const uuidItems = [];
+            const customCellData = [];
 
-                const exists = persistenceManager?.findUuidInHud?.(item.uuid);
-                if (!exists) filteredItems.push(item);
+            for (const item of sortedItems) {
+                if (item.uuid) {
+                    // UUID-based item - check for duplicates
+                    const exists = persistenceManager?.findUuidInHud?.(item.uuid);
+                    if (!exists) uuidItems.push(item);
+                } else if (item.type) {
+                    // Adapter-specific cell data (e.g., Strike)
+                    customCellData.push(item);
+                }
             }
 
-            if (filteredItems.length === 0) continue;
+            if (uuidItems.length === 0 && customCellData.length === 0) continue;
 
-            // Enrich items with full data (name, img, uses, quantity, etc.)
+            // Enrich uuid-based items with full data
             const enrichedItems = [];
-            for (const item of filteredItems) {
+            for (const item of uuidItems) {
                 const itemData = await fromUuid(item.uuid);
                 if (!itemData) continue;
 
@@ -321,6 +340,9 @@ export class AutoPopulateFramework {
 
                 if (cellData) enrichedItems.push(cellData);
             }
+
+            // Add custom cell data directly (already enriched by adapter)
+            enrichedItems.push(...customCellData);
 
             // Populate this grid with items
             const cols = grid.cols || 5;

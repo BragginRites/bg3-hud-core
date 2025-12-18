@@ -63,10 +63,14 @@ export function createSettingsSubmenu({ moduleId, titleKey, sections }) {
     static DEFAULT_OPTIONS = {
       ...super.DEFAULT_OPTIONS,
       id: `${moduleId}-settings-submenu`,
+      classes: ['bg3-settings-submenu'],
       window: {
         ...super.DEFAULT_OPTIONS.window,
         title: game.i18n.localize(titleKey),
-        resizable: false
+        resizable: true
+      },
+      position: {
+        height: 'auto'
       }
     };
 

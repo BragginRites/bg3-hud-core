@@ -83,22 +83,7 @@ export class ControlContainer extends BG3Component {
             icon: 'fas fa-random',
             tooltip: 'Toggle between GM Hotbar and Token Hotbar',
             onClick: async () => {
-                const token = canvas.tokens.controlled[0];
-                const isCurrentlyGM = !this.hotbarApp.currentToken;
-
-                if (isCurrentlyGM && token) {
-                    // Switch from GM hotbar to token hotbar
-                    this.hotbarApp.overrideGMHotbar = false;
-                    this.hotbarApp.currentToken = token;
-                    this.hotbarApp.currentActor = token.actor;
-                    await this.hotbarApp.refresh();
-                } else {
-                    // Switch from token hotbar to GM hotbar
-                    this.hotbarApp.overrideGMHotbar = true;
-                    this.hotbarApp.currentToken = null;
-                    this.hotbarApp.currentActor = null;
-                    await this.hotbarApp.refresh();
-                }
+                await this.hotbarApp.toggleGMHotbarMode();
             }
         };
     }

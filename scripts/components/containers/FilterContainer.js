@@ -132,6 +132,30 @@ export class FilterContainer extends BG3Component {
     }
 
     /**
+     * Check if any cells on the hotbar match a filter definition
+     * @param {Object} filterDef - The filter definition from adapter
+     * @returns {boolean}
+     */
+    hasMatchingCells(filterDef) {
+        // Filters with alwaysShow bypass the cell matching check
+        if (filterDef.alwaysShow) return true;
+
+        const cells = document.querySelectorAll('.bg3-grid-cell.filled');
+        if (cells.length === 0) return true; // If no cells yet, show all filters
+
+        // Create a temporary filter button to use matchesFilter
+        // We need to simulate what the filter would match
+        const tempFilter = { data: { ...filterDef, ...filterDef.data } };
+
+        for (const cell of cells) {
+            if (this.matchesFilter(tempFilter, cell)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Render the filter container
      * @returns {Promise<HTMLElement>}
      */
@@ -147,8 +171,13 @@ export class FilterContainer extends BG3Component {
         // Get filter definitions from adapter
         const filterDefs = this.getFilters();
 
-        // Create filter buttons
+        // Create filter buttons only for filters that have matching cells on hotbar
         for (const filterDef of filterDefs) {
+            // Skip filters with no matching cells on hotbar
+            if (!this.hasMatchingCells(filterDef)) {
+                continue;
+            }
+
             const button = new FilterButton({
                 ...filterDef,
                 container: this

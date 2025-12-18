@@ -158,6 +158,10 @@ export function registerSettings() {
             {
                 legend: 'bg3-hud-core.Settings.TargetSelector.Legend',
                 keys: ['enableTargetSelector', 'skipSelectorWithValidTarget', 'enableRangeChecking', 'autoTargetSelf']
+            },
+            {
+                legend: 'bg3-hud-core.Settings.TargetSelector.RangeIndicatorLegend',
+                keys: ['showRangeIndicators', 'rangeIndicatorShape', 'rangeIndicatorAnimation', 'rangeIndicatorLineWidth', 'rangeIndicatorColor']
             }
         ]
     });
@@ -186,6 +190,17 @@ export function registerSettings() {
             ui.BG3HUD_APP?.toggle();
         },
         restricted: false,
+        precedence: CONST.KEYBINDING_PRECEDENCE.NORMAL
+    });
+
+    game.keybindings.register(MODULE_ID, "toggleGMHotbar", {
+        name: "Toggle GM Hotbar",
+        hint: "Switch between Token Hotbar and GM Hotbar (GM only)",
+        editable: [{ key: "Semicolon" }],
+        onDown: () => {
+            ui.BG3HUD_APP?.toggleGMHotbarMode();
+        },
+        restricted: true,
         precedence: CONST.KEYBINDING_PRECEDENCE.NORMAL
     });
 
@@ -622,6 +637,69 @@ export function registerSettings() {
         config: false,
         type: Boolean,
         default: false
+    });
+
+    // ========================================
+    // Range Indicator Settings
+    // ========================================
+
+    game.settings.register(MODULE_ID, 'showRangeIndicators', {
+        name: 'bg3-hud-core.Settings.TargetSelector.ShowRangeIndicatorsName',
+        hint: 'bg3-hud-core.Settings.TargetSelector.ShowRangeIndicatorsHint',
+        scope: 'client',
+        config: false,
+        type: Boolean,
+        default: true
+    });
+
+    game.settings.register(MODULE_ID, 'rangeIndicatorShape', {
+        name: 'bg3-hud-core.Settings.TargetSelector.RangeShapeName',
+        hint: 'bg3-hud-core.Settings.TargetSelector.RangeShapeHint',
+        scope: 'client',
+        config: false,
+        type: String,
+        choices: {
+            'circle': 'bg3-hud-core.Settings.TargetSelector.RangeShapeCircle',
+            'square': 'bg3-hud-core.Settings.TargetSelector.RangeShapeSquare'
+        },
+        default: 'square'
+    });
+
+    game.settings.register(MODULE_ID, 'rangeIndicatorAnimation', {
+        name: 'bg3-hud-core.Settings.TargetSelector.RangeAnimationName',
+        hint: 'bg3-hud-core.Settings.TargetSelector.RangeAnimationHint',
+        scope: 'client',
+        config: false,
+        type: String,
+        choices: {
+            'pulse': 'bg3-hud-core.Settings.TargetSelector.RangeAnimationPulse',
+            'static': 'bg3-hud-core.Settings.TargetSelector.RangeAnimationStatic'
+        },
+        default: 'pulse'
+    });
+
+    game.settings.register(MODULE_ID, 'rangeIndicatorLineWidth', {
+        name: 'bg3-hud-core.Settings.TargetSelector.RangeLineWidthName',
+        hint: 'bg3-hud-core.Settings.TargetSelector.RangeLineWidthHint',
+        scope: 'client',
+        config: false,
+        type: Number,
+        choices: {
+            1: 'bg3-hud-core.Settings.TargetSelector.RangeLineWidthThin',
+            2: 'bg3-hud-core.Settings.TargetSelector.RangeLineWidthNormal',
+            3: 'bg3-hud-core.Settings.TargetSelector.RangeLineWidthThick',
+            4: 'bg3-hud-core.Settings.TargetSelector.RangeLineWidthExtraThick'
+        },
+        default: 2
+    });
+
+    game.settings.register(MODULE_ID, 'rangeIndicatorColor', {
+        name: 'bg3-hud-core.Settings.TargetSelector.RangeColorName',
+        hint: 'bg3-hud-core.Settings.TargetSelector.RangeColorHint',
+        scope: 'client',
+        config: false,
+        type: String,
+        default: '#00ff00'
     });
 
     // Passives container icons per row setting

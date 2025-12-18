@@ -91,6 +91,14 @@
     pointer-events: none;
 }
 
+/* Centered label (for filters without pips, e.g., PF2e spell ranks) */
+.bg3-filter-button .filter-center-label {
+    font-size: calc(1.1em * var(--filter-scale));
+    font-weight: bold;
+    color: var(--filter-color, #ddd);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
 /* Spell slot track */
 .bg3-filter-button .slot-track {
     display: grid;
@@ -122,6 +130,34 @@
 /* 4 slots – 2×2 block */
 .bg3-filter-button .slot-track:has(.slot-box:nth-child(4):last-child) {
     grid-template-columns: repeat(2, auto);
+}
+
+/* 5-6 slots – 3 column layout with smaller pips */
+.bg3-filter-button .slot-track:has(.slot-box:nth-child(5)),
+.bg3-filter-button .slot-track:has(.slot-box:nth-child(6):last-child) {
+    grid-template-columns: repeat(3, auto);
+    gap: 2px;
+}
+
+.bg3-filter-button .slot-track:has(.slot-box:nth-child(5)) .slot-box,
+.bg3-filter-button .slot-track:has(.slot-box:nth-child(6):last-child) .slot-box {
+    width: calc(0.45em * var(--filter-scale));
+    height: calc(0.45em * var(--filter-scale));
+}
+
+/* 7-9 slots – 3 column layout with even smaller pips */
+.bg3-filter-button .slot-track:has(.slot-box:nth-child(7)),
+.bg3-filter-button .slot-track:has(.slot-box:nth-child(8)),
+.bg3-filter-button .slot-track:has(.slot-box:nth-child(9):last-child) {
+    grid-template-columns: repeat(3, auto);
+    gap: 1px;
+}
+
+.bg3-filter-button .slot-track:has(.slot-box:nth-child(7)) .slot-box,
+.bg3-filter-button .slot-track:has(.slot-box:nth-child(8)) .slot-box,
+.bg3-filter-button .slot-track:has(.slot-box:nth-child(9):last-child) .slot-box {
+    width: calc(0.35em * var(--filter-scale));
+    height: calc(0.35em * var(--filter-scale));
 }
 
 /* Slot dots */
