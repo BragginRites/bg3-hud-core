@@ -155,6 +155,13 @@ Hooks.on('createToken', async (tokenDocument, options, userId) => {
         if (typeof adapter.autoPopulatePassives === 'function') {
             await adapter.autoPopulatePassives(actor, tokenDocument);
         }
+
+        // Call adapter's token creation complete hook for any post-auto-populate work
+        // This runs AFTER all grids are populated to avoid race conditions with state saving
+        // Pass the same persistence manager so it can load/save state correctly
+        if (typeof adapter.onTokenCreationComplete === 'function') {
+            await adapter.onTokenCreationComplete(actor, tempPersistence);
+        }
     } catch (error) {
         console.error('BG3 HUD Core | Error in auto-populate on token creation:', error);
     }

@@ -1,3 +1,10 @@
+## [0.1.6] - 2025-12-19
+### Added
+- **Adapter Hook (onTokenCreationComplete)**: New adapter lifecycle hook called after all auto-populate grids are completed. Enables adapters to perform post-population work without race conditions.
+
+### Fixed
+- **Auto-Populate Race Condition**: Fixed issue where spells would not appear in Grid 1 after token creation. The CPR auto-populate was running concurrently and overwriting the spell grid state. Now all auto-populate operations are sequenced correctly.
+
 ## [0.1.5] - 2025-12-18
 ### Added
 - **Filter Visibility**: Filter buttons now only appear if there are matching items on the hotbar. Filters with `alwaysShow: true` bypass this check.

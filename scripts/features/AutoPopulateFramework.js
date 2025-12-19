@@ -265,6 +265,7 @@ export class AutoPopulateFramework {
      * @private
      */
     async _populateInitialStateByGrid(configuration, actor, persistenceManager) {
+
         // Load current state (or defaults)
         await persistenceManager.setToken(actor);
         const state = await persistenceManager.loadState();
