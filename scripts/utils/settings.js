@@ -129,8 +129,8 @@ export function registerSettings() {
                 keys: ['autoScale', 'uiScale', 'uiPosition', 'posPadding', 'posPaddingBottom']
             },
             {
-                legend: 'bg3-hud-core.Settings.LayoutAppearance.ContainerDensityLegend',
-                keys: ['passivesContainerIconsPerRow', 'activeEffectsContainerIconsPerRow']
+                legend: 'bg3-hud-core.Settings.LayoutAppearance.ContainerConfigurationLegend',
+                keys: ['passivesContainerIconsPerRow', 'activeEffectsContainerIconsPerRow', 'showPassiveActiveEffects']
             }
         ]
     });
@@ -735,6 +735,20 @@ export function registerSettings() {
         default: 8,
         onChange: () => {
             applyContainerRowSettings();
+        }
+    });
+
+    // Show passive active effects setting
+    game.settings.register(MODULE_ID, 'showPassiveActiveEffects', {
+        name: 'bg3-hud-core.Settings.ShowPassiveActiveEffects.Name',
+        hint: 'bg3-hud-core.Settings.ShowPassiveActiveEffects.Hint',
+        scope: 'client',
+        config: false,
+        type: Boolean,
+        default: false,
+        onChange: () => {
+            // Refresh active effects container if hotbar exists
+            ui.BG3HUD_APP?.components?.hotbar?.activeEffectsContainer?.render();
         }
     });
 

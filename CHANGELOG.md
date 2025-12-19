@@ -1,3 +1,10 @@
+## [0.1.7] - 2025-12-19
+### Added
+- **Passive Effects Visibility**: Added new setting "Show Passive Active Effects" (under Container Configuration) to toggle display of permanent/passive effects in the Active Effects container. Default is off (only shows temporary/combat effects).
+
+### Fixed
+- **Item-Transferred Effects**: Fixed issue where effects granted by items (e.g., racial traits, feats) were not appearing in the Active Effects container. Now uses `allApplicableEffects()` API to correctly retrieve all relevant effects.
+
 ## [0.1.6] - 2025-12-19
 ### Added
 - **Adapter Hook (onTokenCreationComplete)**: New adapter lifecycle hook called after all auto-populate grids are completed. Enables adapters to perform post-population work without race conditions.

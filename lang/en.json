@@ -78,12 +78,16 @@
         "Hint": "Padding from the bottom of the screen (pixels)"
       },
       "PassivesContainerIconsPerRow": {
-        "Name": "Passives Icons Per Row",
-        "Hint": "Number of passive effect icons displayed per row before wrapping"
+        "Name": "Passive Feature Icons Per Row",
+        "Hint": "Number of Passive Feature icons displayed per row before wrapping"
       },
       "ActiveEffectsContainerIconsPerRow": {
-        "Name": "Active Effects Icons Per Row",
-        "Hint": "Number of active effect icons displayed per row before wrapping"
+        "Name": "Active Effect Icons Per Row",
+        "Hint": "Number of Active Effect icons displayed per row before wrapping"
+      },
+      "ShowPassiveActiveEffects": {
+        "Name": "Show Passive Active Effects",
+        "Hint": "When enabled, displays permanent/passive active effects (no duration) in addition to temporary effects"
       },
       "LayoutAppearance": {
         "MenuTitle": "Layout & Appearance",
@@ -92,7 +96,7 @@
         "MenuHint": "Adjust opacity, scaling, positioning, and container density",
         "OpacityLegend": "Opacity & Fading",
         "ScalePositionLegend": "Scale & Position",
-        "ContainerDensityLegend": "Container Density"
+        "ContainerConfigurationLegend": "Container Configuration"
       },
       "Appearance": {
         "MenuTitle": "Appearance Settings",

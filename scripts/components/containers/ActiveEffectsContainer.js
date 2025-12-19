@@ -24,11 +24,35 @@ export class ActiveEffectsContainer extends BG3Component {
 
     /**
      * Get the list of active effects from the actor
+     * Uses allApplicableEffects() to include item-transferred effects
+     * Filters based on showPassiveActiveEffects setting
      * @returns {Array<ActiveEffect>} Array of active effects
      */
     getActiveEffects() {
         if (!this.actor) return [];
-        return this.actor.effects?.contents || [];
+
+        // Use allApplicableEffects() to get effects including those transferred from items
+        // This is the correct API for Foundry v11+ with CONFIG.ActiveEffect.legacyTransferral = false
+        let allEffects = [];
+        if (typeof this.actor.allApplicableEffects === 'function') {
+            // allApplicableEffects() returns a Generator, convert to array
+            allEffects = Array.from(this.actor.allApplicableEffects());
+        } else {
+            // Fallback for older Foundry versions
+            allEffects = this.actor.effects?.contents || [];
+        }
+
+        // Check if we should show passive (non-temporary) effects
+        const showPassive = game.settings.get('bg3-hud-core', 'showPassiveActiveEffects');
+
+        if (showPassive) {
+            // Show all effects
+            return allEffects;
+        }
+
+        // Default: only show temporary effects (those with combat duration)
+        // Foundry's ActiveEffect has isTemporary getter that checks if effect has duration
+        return allEffects.filter(effect => effect.isTemporary);
     }
 
     /**
@@ -67,7 +91,7 @@ export class ActiveEffectsContainer extends BG3Component {
         // Find effects to add (new in current list) or update (existing)
         for (const effect of currentEffects) {
             const existingButton = this.effectButtons.get(effect.id);
-            
+
             if (!existingButton) {
                 // New effect - create button
                 const newButton = new ActiveEffectButton({
