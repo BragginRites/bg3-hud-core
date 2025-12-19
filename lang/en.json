@@ -213,6 +213,7 @@
       "MinTargetsRequired": "Minimum {min} targets required",
       "IncreaseMax": "Increase Max Targets",
       "DecreaseMax": "Decrease Max Targets"
-    }
+    },
+    "MaxSelectionsReached": "Maximum of {max} selections reached"
   }
 }

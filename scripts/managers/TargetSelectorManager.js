@@ -268,6 +268,36 @@ export class TargetSelectorManager {
         this.ui.updateTargetCount(this.selectedTargets.length, maxTargets);
     }
 
+    /**
+     * Show range indicator for an item without activating full selector.
+     * Used for AoE templates or other range visualization needs.
+     * @param {Object} params
+     * @param {Token} params.token - The source token
+     * @param {Item} params.item - The item
+     * @param {Object} [params.activity] - Optional activity
+     */
+    showRangeIndicator({ token, item, activity = null }) {
+        if (!token || !item || !this.adapter) return;
+
+        // Calculate range using adapter rules
+        const rangeInfo = this.adapter.targetingRules.calculateRange({
+            item,
+            activity,
+            actor: token.actor
+        });
+
+        if (rangeInfo.range && rangeInfo.range > 0) {
+            this.ui.showRangeIndicator(token, rangeInfo.range);
+        }
+    }
+
+    /**
+     * Hide the range indicator.
+     */
+    hideRangeIndicator() {
+        this.ui.removeRangeIndicator();
+    }
+
     // ========== Private Methods ==========
 
     /**
@@ -486,7 +516,7 @@ export class TargetSelectorManager {
         return {
             minTargets: 1,
             maxTargets: target?.value || target?.affects?.count || 1,
-            range: TargetSelectorMath.getRangeInSceneUnits(range?.value, range?.units),
+            range: TargetSelectorMath.getRangeInGridSquares(range?.value, range?.units),
             targetType: target?.type || target?.affects?.type || 'any',
             hasTemplate: !!target?.template?.type
         };

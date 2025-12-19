@@ -1,5 +1,4 @@
 import { BG3Component } from '../BG3Component.js';
-import { ConfirmDialog } from '../ui/ConfirmDialog.js';
 
 /**
  * Active Effect Button
@@ -102,15 +101,12 @@ export class ActiveEffectButton extends BG3Component {
                 return;
             }
 
-            // Show custom confirmation dialog
+            // Show confirmation dialog using Foundry's DialogV2
             const effectName = this._getEffectName();
-            const confirmed = await ConfirmDialog.confirm({
-                title: "Delete Effect",
-                message: `Are you sure you want to delete the effect <strong>"${effectName}"</strong>?`,
-                confirmLabel: "Delete",
-                confirmIcon: "fa-trash",
-                cancelLabel: "Cancel",
-                cancelIcon: "fa-times"
+            const confirmed = await foundry.applications.api.DialogV2.confirm({
+                window: { title: 'Delete Effect' },
+                content: `<p>Are you sure you want to delete the effect <strong>"${effectName}"</strong>?</p>`,
+                rejectClose: false
             });
 
             if (confirmed) {
@@ -135,7 +131,7 @@ export class ActiveEffectButton extends BG3Component {
             if (img.src !== newSrc) {
                 img.src = newSrc;
             }
-            
+
             const newAlt = this._getEffectName();
             if (img.alt !== newAlt) {
                 img.alt = newAlt;

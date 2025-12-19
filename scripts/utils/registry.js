@@ -287,5 +287,27 @@ export const BG3HUD_API = {
             return false;
         }
         return manager.needsTargeting(item, activity);
+    },
+
+    /**
+     * Show range indicator for an item
+     * @param {Object} options
+     * @param {Token} options.token - The source token
+     * @param {Item} options.item - The item
+     * @param {Object} [options.activity] - Optional activity
+     */
+    showRangeIndicator({ token, item, activity = null }) {
+        const manager = BG3HUD_REGISTRY.targetSelectorManager;
+        if (!manager) return;
+        manager.showRangeIndicator({ token, item, activity });
+    },
+
+    /**
+     * Hide range indicator
+     */
+    hideRangeIndicator() {
+        const manager = BG3HUD_REGISTRY.targetSelectorManager;
+        if (!manager) return;
+        manager.hideRangeIndicator();
     }
 };

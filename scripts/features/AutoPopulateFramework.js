@@ -76,14 +76,16 @@ export class AutoPopulateFramework {
      * @returns {Promise<Array<string>>} Selected type values
      */
     async showSelectionDialog(choices) {
-        const { AutoPopulateDialog } = await import('../components/ui/AutoPopulateDialog.js');
+        const { showPillSelectionDialog } = await import('../utils/dialogs.js');
 
-        const dialog = new AutoPopulateDialog({
+        const result = await showPillSelectionDialog({
             title: 'Auto-Populate Container',
-            choices: choices
+            description: 'Select item types to populate this container with.',
+            choices
         });
 
-        return await dialog.render();
+        // Return empty array if cancelled (null) or undefined
+        return result || [];
     }
 
     /**
@@ -375,10 +377,10 @@ export class AutoPopulateFramework {
 
     /**
      * Show configuration dialog for auto-populate settings
-     * @returns {Promise<Array<string>|null>} Selected types or null if cancelled
+     * @returns {Promise<Object|null>} Configuration object or null if cancelled
      */
     async showConfigDialog() {
-        const { AutoPopulateConfigDialog } = await import('../components/ui/AutoPopulateConfigDialog.js');
+        const { showAutoPopulateConfigDialog } = await import('../utils/dialogs.js');
 
         const choices = await this.getItemTypeChoices();
         if (!choices || choices.length === 0) {
@@ -387,14 +389,15 @@ export class AutoPopulateFramework {
         }
 
         // Get current settings (adapter should provide this)
-        const currentSettings = this.getAutoPopulateSettings ? await this.getAutoPopulateSettings() : [];
+        const currentSettings = this.getAutoPopulateSettings ? await this.getAutoPopulateSettings() : {
+            grid0: [], grid1: [], grid2: [], options: {}
+        };
 
-        const dialog = new AutoPopulateConfigDialog({
-            choices: choices,
-            selected: currentSettings
+        return await showAutoPopulateConfigDialog({
+            title: 'Auto-Populate Configuration',
+            choices,
+            configuration: currentSettings
         });
-
-        return await dialog.render();
     }
 }
 

@@ -1,3 +1,10 @@
+## [0.1.8] - 2025-12-19
+### Changed
+- **DialogV2 Migration**: Migrated all selection dialogs to use Foundry V13's `DialogV2` API for consistent styling:
+  - Replaced `SelectionDialog`, `AutoPopulateDialog`, `AutoPopulateConfigDialog`, and `CreateViewDialog` components with utility functions in `dialogs.js`.
+  - New `showSelectionDialog()`, `showPillSelectionDialog()`, `showAutoPopulateConfigDialog()`, `showViewDialog()` utilities provide consistent, reusable dialog patterns.
+  - All dialogs now integrate visually with Foundry V13's native dialog styling.
+
 ## [0.1.7] - 2025-12-19
 ### Added
 - **Passive Effects Visibility**: Added new setting "Show Passive Active Effects" (under Container Configuration) to toggle display of permanent/passive effects in the Active Effects container. Default is off (only shows temporary/combat effects).

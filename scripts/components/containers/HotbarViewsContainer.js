@@ -1,7 +1,6 @@
 import { BG3Component } from '../BG3Component.js';
 import { ViewButton, NewViewButton } from '../buttons/ViewButton.js';
-import { ConfirmDialog } from '../ui/ConfirmDialog.js';
-import { CreateViewDialog } from '../ui/CreateViewDialog.js';
+import { showCreateViewDialog, showEditViewDialog } from '../../utils/dialogs.js';
 
 /**
  * Hotbar Views Container
@@ -190,11 +189,10 @@ export class HotbarViewsContainer extends BG3Component {
             return;
         }
 
-        const result = await CreateViewDialog.show({
-            onCreate: async (name, icon) => {
-                await this._createView(name, icon);
-            }
-        });
+        const result = await showCreateViewDialog();
+        if (result) {
+            await this._createView(result.name, result.icon);
+        }
     }
 
     /**
@@ -274,61 +272,15 @@ export class HotbarViewsContainer extends BG3Component {
 
 
     /**
-     * Show rename view dialog
+     * Show rename view dialog (uses unified view dialog)
      * @param {Object} view - View to rename
      * @private
      */
     async _showRenameViewDialog(view) {
-        const dialogHtml = `
-            <div class="bg3-dialog-content">
-                <p>Enter a new name for the view:</p>
-                <input type="text" id="view-name-input" value="${view.name}" style="width: 100%; padding: 4px;">
-                <p style="margin-top: 8px; font-size: 0.9em; color: #999;">
-                    Icon (Font Awesome class):
-                </p>
-                <input type="text" id="view-icon-input" value="${view.icon || ''}" placeholder="fa-sword" style="width: 100%; padding: 4px;">
-            </div>
-        `;
-
-        new Dialog({
-            title: 'Rename View',
-            content: dialogHtml,
-            buttons: {
-                rename: {
-                    icon: '<i class="fas fa-check"></i>',
-                    label: 'Rename',
-                    callback: async (html) => {
-                        const name = html.find('#view-name-input').val()?.trim();
-                        const icon = html.find('#view-icon-input').val()?.trim() || null;
-
-                        if (!name) {
-                            ui.notifications.warn('View name cannot be empty');
-                            return;
-                        }
-
-                        await this._renameView(view.id, name, icon);
-                    }
-                },
-                cancel: {
-                    icon: '<i class="fas fa-times"></i>',
-                    label: 'Cancel'
-                }
-            },
-            default: 'rename',
-            render: (html) => {
-                // Focus and select the input
-                const input = html.find('#view-name-input');
-                input.focus();
-                input[0].select();
-
-                // Submit on Enter key
-                input.on('keydown', (e) => {
-                    if (e.key === 'Enter') {
-                        html.closest('.dialog').find('button[data-button="rename"]').click();
-                    }
-                });
-            }
-        }).render(true);
+        const result = await showEditViewDialog(view);
+        if (result) {
+            await this._renameView(view.id, result.name, result.icon);
+        }
     }
 
     /**
@@ -384,14 +336,11 @@ export class HotbarViewsContainer extends BG3Component {
 
         const view = this.persistenceManager.getView(viewId);
 
-        // Confirm deletion using custom dialog
-        const confirmed = await ConfirmDialog.confirm({
-            title: 'Delete View',
-            message: `Are you sure you want to delete the view <strong>"${view?.name}"</strong>?<br><br>This action cannot be undone.`,
-            confirmLabel: 'Delete',
-            confirmIcon: 'fa-trash',
-            cancelLabel: 'Cancel',
-            cancelIcon: 'fa-times'
+        // Confirm deletion using Foundry's DialogV2
+        const confirmed = await foundry.applications.api.DialogV2.confirm({
+            window: { title: 'Delete View' },
+            content: `<p>Are you sure you want to delete the view <strong>"${view?.name}"</strong>?</p><p>This action cannot be undone.</p>`,
+            rejectClose: false
         });
 
         if (!confirmed) return;

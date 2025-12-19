@@ -187,6 +187,24 @@ export class TargetSelectorMath {
     }
 
     /**
+     * Convert a range value and unit to grid squares.
+     * @param {number} value - The range value
+     * @param {string} units - The range units (e.g. 'ft', 'm')
+     * @returns {number} Range in grid squares
+     */
+    static getRangeInGridSquares(value, units) {
+        if (!value) return 0;
+
+        const sceneDistance = canvas?.scene?.grid?.distance || 5;
+        // The getRangeInSceneUnits method handles unit conversion to scene units (e.g. ft)
+        const sceneValue = this.getRangeInSceneUnits(value, units);
+
+        if (!sceneValue) return 0;
+
+        return sceneValue / sceneDistance;
+    }
+
+    /**
      * Get the range in scene units, handling unit conversion.
      * @param {number} rangeValue - The numeric range value
      * @param {string} rangeUnits - The range units from the item

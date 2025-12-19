@@ -43,7 +43,7 @@ export class TargetSelectorUI {
         if (requirements.range && this.manager.sourceToken) {
             console.warn('BG3 HUD Core | UI: Attempting to show range indicator', { range: requirements.range, token: this.manager.sourceToken.name });
             try {
-                this._showRangeIndicator(this.manager.sourceToken, requirements.range);
+                this.showRangeIndicator(this.manager.sourceToken, requirements.range);
             } catch (e) {
                 console.error('BG3 HUD Core | Error showing range indicator:', e);
             }
@@ -62,7 +62,7 @@ export class TargetSelectorUI {
         this._removeInstructionsDisplay();
         this._removeMouseDisplay();
         this._removeTargetListDisplay();
-        this._removeRangeIndicator();
+        this.removeRangeIndicator();
         this._restoreOriginalCursor();
 
         // Remove targeting class from body
@@ -515,9 +515,20 @@ export class TargetSelectorUI {
      * @private
      */
     _renderTargetItem(token, info) {
-        const distanceText = info.distance !== null
-            ? `${Math.round(info.distance)} ${canvas?.scene?.grid?.units || 'ft'}`
-            : '';
+        const gridDistance = canvas?.scene?.grid?.distance || 5;
+        const gridUnits = canvas?.scene?.grid?.units || 'ft';
+
+        // info.distance is in Grid Squares
+        let distanceText = '';
+        if (info.distance !== null) {
+            // For now, default to Scene Units (e.g. 5 ft, 10 ft) unless specified otherwise
+            // Could add a setting: game.settings.get('bg3-hud-core', 'showDistanceInSquares')
+            const distanceInUnits = Math.round(info.distance * gridDistance);
+            distanceText = `${distanceInUnits} ${gridUnits}`;
+
+            // Debug: Show squares as well if needed, or if units are weird
+            // distanceText += ` (${Math.round(info.distance)} sq)`; 
+        }
 
         const rangeClass = info.inRange ? 'in-range' : 'out-of-range';
         const detailsText = info.details.length > 0 ? info.details.join(' | ') : '';
@@ -561,12 +572,12 @@ export class TargetSelectorUI {
 
     /**
      * Show range indicator on canvas.
+     * Public method to allow external usage (e.g. for AoE templates).
      * @param {Token} sourceToken - The source token
      * @param {number} range - Range in scene units
-     * @private
      */
-    _showRangeIndicator(sourceToken, range) {
-        this._removeRangeIndicator();
+    showRangeIndicator(sourceToken, range) {
+        this.removeRangeIndicator();
 
         if (!canvas?.grid || !range || range <= 0) {
             return;
@@ -574,9 +585,9 @@ export class TargetSelectorUI {
 
         // Check if range indicators are enabled
         const showRangeIndicators = game.settings.get('bg3-hud-core', 'showRangeIndicators');
-        console.warn('BG3 HUD Core | Range Indicator Check:', { showRangeIndicators, range, sourceToken: sourceToken?.name });
+        // console.warn('BG3 HUD Core | Range Indicator Check:', { showRangeIndicators, range, sourceToken: sourceToken?.name });
         if (!showRangeIndicators) {
-            console.warn('BG3 HUD Core | Range indicator disabled in settings');
+            // console.warn('BG3 HUD Core | Range indicator disabled in settings');
             return;
         }
 
@@ -682,9 +693,9 @@ export class TargetSelectorUI {
 
     /**
      * Remove range indicator from canvas.
-     * @private
+     * Public method to allow external usage.
      */
-    _removeRangeIndicator() {
+    removeRangeIndicator() {
         if (this._rangeIndicator) {
             if (this._rangeIndicator.parent) {
                 this._rangeIndicator.parent.removeChild(this._rangeIndicator);
