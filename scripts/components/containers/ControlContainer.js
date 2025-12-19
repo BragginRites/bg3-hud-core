@@ -187,12 +187,8 @@ export class ControlContainer extends BG3Component {
             await gridContainer.render();
         }
 
-        // Save to persistence - update each grid's config
-        for (let i = 0; i < hotbarContainer.grids.length; i++) {
-            await this.hotbarApp.persistenceManager.updateGridConfig(i, {
-                rows: hotbarContainer.grids[i].rows
-            });
-        }
+        // Save to persistence - update all grids at once
+        await this.hotbarApp.persistenceManager.updateAllGridsRows(1);
     }
 
     /**
@@ -224,12 +220,8 @@ export class ControlContainer extends BG3Component {
             await gridContainer.render();
         }
 
-        // Save to persistence - update each grid's config
-        for (let i = 0; i < hotbarContainer.grids.length; i++) {
-            await this.hotbarApp.persistenceManager.updateGridConfig(i, {
-                rows: hotbarContainer.grids[i].rows
-            });
-        }
+        // Save to persistence - update all grids at once
+        await this.hotbarApp.persistenceManager.updateAllGridsRows(-1);
     }
 
     /**

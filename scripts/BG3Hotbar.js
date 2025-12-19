@@ -4,7 +4,6 @@ import { PersistenceManager } from './managers/PersistenceManager.js';
 import { InteractionCoordinator } from './managers/InteractionCoordinator.js';
 import { UpdateCoordinator } from './managers/UpdateCoordinator.js';
 import { ComponentFactory } from './managers/ComponentFactory.js';
-import { SocketManager } from './managers/SocketManager.js';
 import { ItemUpdateManager } from './managers/ItemUpdateManager.js';
 import { HotbarViewsContainer } from './components/containers/HotbarViewsContainer.js';
 import { ControlsManager } from './managers/ControlsManager.js';
@@ -57,7 +56,6 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
         // Initialize managers
         this.persistenceManager = new PersistenceManager();
         this.componentFactory = new ComponentFactory(this);
-        this.socketManager = new SocketManager(this);
         this.interactionCoordinator = new InteractionCoordinator({
             hotbarApp: this,
             persistenceManager: this.persistenceManager,
@@ -74,12 +72,6 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
 
         // Register Foundry hooks via coordinator
         this.updateCoordinator.registerHooks();
-
-        // Initialize socket connection (if socketlib available)
-        this.socketManager.initialize();
-
-        // Link socket manager to persistence manager
-        this.persistenceManager.setSocketManager(this.socketManager);
 
         // Re-apply display settings when adapter registration completes
         // This handles the case where HUD renders before adapter is fully ready

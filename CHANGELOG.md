@@ -1,9 +1,15 @@
-## [0.1.8] - 2025-12-19
+## [0.1.8] - 2025-12-20
 ### Changed
 - **DialogV2 Migration**: Migrated all selection dialogs to use Foundry V13's `DialogV2` API for consistent styling:
   - Replaced `SelectionDialog`, `AutoPopulateDialog`, `AutoPopulateConfigDialog`, and `CreateViewDialog` components with utility functions in `dialogs.js`.
   - New `showSelectionDialog()`, `showPillSelectionDialog()`, `showAutoPopulateConfigDialog()`, `showViewDialog()` utilities provide consistent, reusable dialog patterns.
   - All dialogs now integrate visually with Foundry V13's native dialog styling.
+
+### Removed
+- **Socketlib Dependency**: Removed `socketlib` as a dependency. The previous socket implementation was over-engineered. Foundry's native actor flag sync (via `updateActor` hook) handles multi-user synchronization perfectly well. This significantly improves performance during rapid hotbar operations.
+
+### Fixed
+- **Grid Synchronization**: Fixed a race condition where adding/removing rows would cause grid desynchronization between clients (some grids having different row counts). Row updates are now batched into a single atomic transaction.
 
 ## [0.1.7] - 2025-12-19
 ### Added

@@ -2,9 +2,8 @@
   "id": "bg3-hud-core",
   "title": "BG3 Inspired HUD - Core",
   "description": "Core UI framework for BG3 Inspired HUD. Requires a system-specific adapter module (bg3-hud-dnd5e, bg3-hud-pf2e, etc.) to function.",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "library": true,
-  "socket": true,
   "authors": [
     {
       "name": "BragginRites",
@@ -16,16 +15,7 @@
     "minimum": "13",
     "verified": "13"
   },
-  "relationships": {
-    "requires": [
-      {
-        "id": "socketlib",
-        "type": "module",
-        "manifest": "https://raw.githubusercontent.com/manuelVo/foundryvtt-socketlib/master/module.json",
-        "compatibility": {}
-      }
-    ]
-  },
+  "relationships": {},
   "esmodules": [
     "scripts/module.js"
   ],
@@ -40,8 +30,8 @@
     }
   ],
   "url": "https://github.com/BragginRites/bg3-hud-core",
-  "manifest": "https://github.com/BragginRites/bg3-hud-core/releases/download/0.1.7/module.json",
-  "download": "https://github.com/BragginRites/bg3-hud-core/releases/download/0.1.7/bg3-hud-core.zip",
+  "manifest": "https://github.com/BragginRites/bg3-hud-core/releases/download/0.1.8/module.json",
+  "download": "https://github.com/BragginRites/bg3-hud-core/releases/download/0.1.8/bg3-hud-core.zip",
   "readme": "README.md",
   "bugs": "https://github.com/BragginRites/bg3-hud-core/issues"
 }

@@ -2,7 +2,7 @@
  * Update Coordinator
  * Handles Foundry hooks and coordinates targeted updates
  * Monitors single hudState flag for simplified state management
- * Note: HUD state updates are now handled via socketlib for real-time sync
+ * Multi-user sync: updateActor hook triggers _reconcileWithServerState for remote clients
  */
 import { BG3HUD_REGISTRY } from '../utils/registry.js';
 import { ControlsManager } from './ControlsManager.js';
@@ -576,7 +576,8 @@ export class UpdateCoordinator {
     /**
      * Reconcile local UI state with authoritative server state
      * Called when hudState flag changes from another user's save
-     * This ensures eventual consistency even if socket updates were missed or conflicted
+     * This is the core multi-user sync mechanism: Foundry broadcasts flag changes
+     * to all clients via updateActor hook, and we update the UI to match.
      * @param {Actor} actor - The actor whose state changed
      * @private
      */
