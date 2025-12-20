@@ -8,17 +8,13 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background: var(--bg3-background, #111111f2);
-    border: var(--primary-border-width, 2px) solid var(--primary-border-color, #000);
-    border-radius: 8px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
-    min-width: 400px;
-    max-width: 600px;
+    max-width: 30vw;
     max-height: 80vh;
     display: flex;
     flex-direction: column;
     z-index: 9999;
-    animation: slideIn 0.3s ease-out;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 @keyframes slideIn {
@@ -36,8 +32,6 @@
 /* Dialog header */
 .bg3-selection-dialog .dialog-header {
     padding: 16px 20px;
-    border-bottom: var(--bg3-border-width, 1px) solid var(--bg3-border, #2f2f2f);
-    background: var(--bg3-background-highlight, #5a5353);
 }
 
 .bg3-selection-dialog .dialog-title {
@@ -52,9 +46,8 @@
 .bg3-selection-dialog .dialog-content {
     padding: 12px;
     overflow-y: auto;
+    overflow-x: hidden;
     flex: 1;
-    min-height: 200px;
-    max-height: 60vh;
 }
 
 /* Custom scrollbar */
@@ -124,11 +117,9 @@
 /* Dialog footer */
 .bg3-selection-dialog .dialog-footer {
     padding: 16px 20px;
-    border-top: var(--bg3-border-width, 1px) solid var(--bg3-border, #2f2f2f);
     display: flex;
     justify-content: flex-end;
     gap: 12px;
-    background: var(--bg3-background-highlight, #5a5353);
 }
 
 /* Dialog buttons */
@@ -217,17 +208,10 @@
 }
 
 .bg3-dialog {
-    background: var(--bg3-background, #111111f2);
-    border: var(--primary-border-width, 2px) solid var(--primary-border-color, #000);
-    border-radius: 8px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8);
-    min-width: 400px;
-    max-width: 600px;
+    width: fit-content;
+    height: fit-content;
+    max-width: 30vw;
     max-height: 80vh;
-    display: flex;
-    flex-direction: column;
-    animation: dialogFadeIn 0.2s ease-out;
-    pointer-events: auto;
 }
 
 .bg3-dialog-title {
@@ -235,10 +219,6 @@
     padding: 16px 20px;
     font-size: 1.3em;
     font-weight: bold;
-    color: var(--bg3-text, #ddd);
-    text-shadow: var(--shadow-text-stroke);
-    border-bottom: var(--bg3-border-width, 1px) solid var(--bg3-border, #2f2f2f);
-    background: var(--bg3-background-highlight, #5a5353);
 }
 
 .bg3-dialog-content {
@@ -325,11 +305,9 @@
 /* Dialog buttons */
 .bg3-dialog-buttons {
     padding: 16px 20px;
-    border-top: var(--bg3-border-width, 1px) solid var(--bg3-border, #2f2f2f);
     display: flex;
     justify-content: flex-end;
     gap: 12px;
-    background: var(--bg3-background-highlight, #5a5353);
 }
 
 .bg3-dialog-buttons .bg3-button {
@@ -381,24 +359,19 @@
    ========================================================================== */
 
 .auto-populate-config-dialog {
-    min-width: 700px;
-    max-width: 900px;
-    min-height: 600px;
-    max-height: 90vh;
+    max-width: 50vw;
+    max-height: 85vh;
 }
 
 .auto-populate-config-dialog .bg3-dialog-content {
-    max-height: 75vh;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .bg3-dialog-description {
-    color: var(--bg3-text, #ddd);
     font-size: 0.9em;
     margin: 0;
     padding: 12px 20px;
-    border-bottom: var(--bg3-border-width, 1px) solid var(--bg3-border, #2f2f2f);
-    background: rgba(255, 255, 255, 0.03);
-    opacity: 0.85;
     text-align: center;
 }
 
@@ -410,16 +383,9 @@
 }
 
 .grid-section {
-    border: 2px solid var(--bg3-border, #2f2f2f);
+    border: 1px solid var(--color-border-light-primary);
     border-radius: 8px;
-    background: rgba(0, 0, 0, 0.3);
     padding: 16px;
-    transition: all 0.2s ease;
-}
-
-.grid-section:hover {
-    border-color: rgba(46, 204, 113, 0.4);
-    background: rgba(0, 0, 0, 0.4);
 }
 
 .grid-section-header {
@@ -456,9 +422,8 @@
 
 /* Options section (toggle checkboxes) */
 .options-section {
-    border: 2px solid var(--bg3-border, #2f2f2f);
+    border: 1px solid var(--color-border-light-primary);
     border-radius: 8px;
-    background: rgba(0, 0, 0, 0.3);
     padding: 16px;
     margin-bottom: 8px;
 }
@@ -709,66 +674,45 @@
     opacity: 0.8;
 }
 
-/* Custom scrollbar for theme settings dialog */
-#bg3-hud-core-theme-settings .standard-form {
-    overflow-y: auto;
-    max-height: 70vh;
-}
-
-#bg3-hud-core-theme-settings .standard-form::-webkit-scrollbar {
-    width: 8px;
-}
-
-#bg3-hud-core-theme-settings .standard-form::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 4px;
-}
-
-#bg3-hud-core-theme-settings .standard-form::-webkit-scrollbar-thumb {
-    background: var(--bg3-background-highlight, #5a5353);
-    border-radius: 4px;
-}
-
-#bg3-hud-core-theme-settings .standard-form::-webkit-scrollbar-thumb:hover {
-    background: #6e6e6e;
-}
-
 /* ==========================================================================
    Settings Submenu (Layout & Appearance, etc.)
    ========================================================================== */
 
-/* Make the form content scrollable with a max height */
-.bg3-settings-submenu .standard-form {
-    max-height: 70vh;
+/* ==========================================================================
+   BG3Dialog Base Class
+   Controlled scrollable body with fixed footer
+   ========================================================================== */
+
+/* Wrapper - flex container for body/footer layout */
+.bg3-dialog .bg3-dialog-wrapper {
+    display: flex;
+    flex-direction: column;
+    max-height: inherit;
+}
+
+/* Body - content area */
+.bg3-dialog .bg3-dialog-body {
+    flex: 1 1 auto;
+    padding: 0.75rem;
+}
+
+/* Footer - fixed at bottom */
+.bg3-dialog .bg3-dialog-footer {
+    flex: 0 0 auto;
+    padding: 0.75rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+
+
+/* Ensure window content sizes to content */
+.bg3-dialog .window-content {
+    height: fit-content;
+    max-height: inherit;
     overflow-y: auto;
-}
-
-.bg3-settings-submenu .standard-form::-webkit-scrollbar {
-    width: 8px;
-}
-
-.bg3-settings-submenu .standard-form::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 4px;
-}
-
-.bg3-settings-submenu .standard-form::-webkit-scrollbar-thumb {
-    background: var(--bg3-background-highlight, #5a5353);
-    border-radius: 4px;
-}
-
-.bg3-settings-submenu .standard-form::-webkit-scrollbar-thumb:hover {
-    background: #6e6e6e;
-}
-
-/* Ensure the footer with save button is always visible */
-.bg3-settings-submenu .form-footer {
-    position: sticky;
-    bottom: 0;
-    background: var(--color-bg-option, #1a1a1a);
-    padding: 8px 0;
-    margin-top: 12px;
-    border-top: 1px solid var(--color-border-light-primary, #555);
+    overflow-x: hidden;
 }
 
 /* ==========================================================================
@@ -780,7 +724,6 @@
     margin: 0 0 12px 0;
     padding: 0;
     font-size: 0.9em;
-    color: var(--bg3-text-secondary, #aaa);
     line-height: 1.4;
 }
 
@@ -789,43 +732,23 @@
     text-align: center;
     padding: 8px 12px;
     margin-bottom: 8px;
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--color-border-light-primary);
     border-radius: 4px;
     font-size: 0.9em;
-    color: var(--bg3-text, #ddd);
 }
 
 .passive-selection-counter .counter-current {
     font-weight: bold;
-    color: var(--bg3-action, #2ecc71);
 }
 
 .passive-selection-container {
     display: flex;
     flex-direction: column;
     gap: 4px;
-    max-height: 400px;
+    max-height: 60vh;
     overflow-y: auto;
+    overflow-x: hidden;
     padding: 8px;
-}
-
-.passive-selection-container::-webkit-scrollbar {
-    width: 8px;
-}
-
-.passive-selection-container::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 4px;
-}
-
-.passive-selection-container::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.3);
-    border-radius: 4px;
-}
-
-.passive-selection-container::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.5);
 }
 
 .passive-selection-row {
@@ -835,11 +758,10 @@
     padding: 4px 6px;
     border-radius: 4px;
     cursor: pointer;
-    transition: background-color 0.15s ease;
 }
 
 .passive-selection-row:hover {
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.05);
 }
 
 .passive-selection-row input[type="checkbox"] {
@@ -856,7 +778,6 @@
     height: 24px !important;
     max-width: 24px !important;
     border-radius: 3px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
     object-fit: cover;
     flex-shrink: 0;
     margin: 0;
@@ -875,7 +796,6 @@
     margin: 0 0 12px 0;
     padding: 0;
     font-size: 0.9em;
-    color: var(--bg3-text-secondary, #aaa);
     line-height: 1.4;
 }
 
@@ -895,7 +815,7 @@
     letter-spacing: 0.5px;
     margin-top: 8px;
     padding-bottom: 4px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    border-bottom: 1px solid var(--color-border-light-secondary);
 }
 
 .pill-group-header:first-child {
@@ -910,31 +830,23 @@
 
 .pill-button {
     padding: 6px 12px;
-    border: 1px solid var(--bg3-border, rgba(255, 255, 255, 0.2));
+    border: 1px solid var(--color-border-light-primary);
     border-radius: 16px;
-    background: rgba(0, 0, 0, 0.3);
-    color: var(--bg3-text, #ddd);
     font-size: 0.85em;
     cursor: pointer;
-    transition: all 0.15s ease;
     white-space: nowrap;
+    background: rgba(0, 0, 0, 0.2);
 }
 
 .pill-button:hover {
     background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.4);
 }
 
 .pill-button.active {
-    background: var(--bg3-action, #2ecc71);
-    border-color: var(--bg3-action, #2ecc71);
+    background: #1f7293;
+    border-color: #1f7293;
     color: #fff;
     font-weight: 500;
-}
-
-.pill-button.active:hover {
-    background: #27ae60;
-    border-color: #27ae60;
 }
 
 .pill-button.disabled,
@@ -950,14 +862,13 @@
 .config-description {
     margin: 0 0 12px 0;
     font-size: 0.9em;
-    color: var(--bg3-text-secondary, #aaa);
     line-height: 1.4;
 }
 
 .config-options-section {
     margin-bottom: 16px;
     padding: 12px;
-    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--color-border-light-primary);
     border-radius: 6px;
 }
 
@@ -968,7 +879,7 @@
     letter-spacing: 0.5px;
     margin-bottom: 10px;
     padding-bottom: 6px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    border-bottom: 1px solid var(--color-border-light-secondary);
 }
 
 .config-option-row {
@@ -992,7 +903,7 @@
 .config-option-hint {
     display: block;
     font-size: 0.8em;
-    color: var(--bg3-text-secondary, #888);
+    color: var(--color-text-light-heading);
     margin-top: 2px;
 }
 

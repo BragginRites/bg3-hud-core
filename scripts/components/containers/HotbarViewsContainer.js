@@ -237,7 +237,7 @@ export class HotbarViewsContainer extends BG3Component {
 
         const menuItems = [
             {
-                label: 'Rename View',
+                label: 'Edit View',
                 icon: 'fas fa-edit',
                 onClick: async () => {
                     await this._showRenameViewDialog(view);

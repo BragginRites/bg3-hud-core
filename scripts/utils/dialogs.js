@@ -4,6 +4,39 @@
  */
 
 /**
+ * Show a button choice dialog with multiple action buttons
+ * @param {Object} options - Dialog options
+ * @param {string} options.title - Window title
+ * @param {string} [options.content] - Optional HTML content to display
+ * @param {Array<{action: string, label: string, icon?: string}>} options.buttons - Button definitions
+ * @returns {Promise<string|null>} The action string of clicked button, or null if closed
+ */
+export async function showButtonChoiceDialog({ title, content = '', buttons }) {
+    const contentHtml = content ? `<div class="bg3-dialog-body">${content}</div>` : '';
+
+    const buttonConfigs = buttons.map(btn => ({
+        action: btn.action,
+        label: btn.label,
+        icon: btn.icon || '',
+        callback: () => btn.action
+    }));
+
+    try {
+        const result = await foundry.applications.api.DialogV2.wait({
+            window: { title },
+            classes: ['bg3-dialog'],
+            content: contentHtml,
+            buttons: buttonConfigs,
+            close: () => null,
+            rejectClose: false
+        });
+
+        return result;
+    } catch {
+        return null;
+    }
+}
+/**
  * Show a selection dialog with checkboxes, icons, and labels
  * @param {Object} options - Dialog options
  * @param {string} options.title - Dialog title
@@ -52,18 +85,22 @@ export async function showSelectionDialog({ title, description, items, maxSelect
     ` : '';
 
     const content = `
-        ${descriptionHtml}
-        ${counterHtml}
-        <div class="passive-selection-container">
-            ${itemsHtml}
+        <div class="bg3-dialog-body">
+            ${descriptionHtml}
+            ${counterHtml}
+            <div class="passive-selection-container">
+                ${itemsHtml}
+            </div>
         </div>
     `;
 
     try {
         const result = await foundry.applications.api.DialogV2.prompt({
             window: { title },
+            classes: ['bg3-dialog'],
             content,
             ok: {
+                type: 'submit',
                 label: game.i18n.localize('Save'),
                 icon: 'fas fa-save',
                 callback: (event, button, dialog) => {
@@ -174,9 +211,11 @@ export async function showPillSelectionDialog({ title, description, choices }) {
     const descriptionHtml = description ? `<p class="pill-selection-description">${description}</p>` : '';
 
     const content = `
-        ${descriptionHtml}
-        <div class="pill-selection-container">
-            ${pillsHtml}
+        <div class="bg3-dialog-body">
+            ${descriptionHtml}
+            <div class="pill-selection-container">
+                ${pillsHtml}
+            </div>
         </div>
     `;
 
@@ -186,8 +225,10 @@ export async function showPillSelectionDialog({ title, description, choices }) {
     try {
         const result = await foundry.applications.api.DialogV2.prompt({
             window: { title },
+            classes: ['bg3-dialog'],
             content,
             ok: {
+                type: 'submit',
                 label: game.i18n.localize('Confirm'),
                 icon: 'fas fa-check',
                 callback: () => {
@@ -322,20 +363,24 @@ export async function showAutoPopulateConfigDialog({
     const descHtml = description ? `<p class="config-description">${description}</p>` : '';
 
     const content = `
-        ${descHtml}
-        ${togglesHtml}
-        <div class="config-grids-container">
-            ${buildGridSection(0)}
-            ${buildGridSection(1)}
-            ${buildGridSection(2)}
+        <div class="bg3-dialog-body">
+            ${descHtml}
+            ${togglesHtml}
+            <div class="config-grids-container">
+                ${buildGridSection(0)}
+                ${buildGridSection(1)}
+                ${buildGridSection(2)}
+            </div>
         </div>
     `;
 
     try {
         const result = await foundry.applications.api.DialogV2.prompt({
             window: { title },
+            classes: ['bg3-dialog'],
             content,
             ok: {
+                type: 'submit',
                 label: game.i18n.localize('Save'),
                 icon: 'fas fa-save',
                 callback: () => config
@@ -443,25 +488,27 @@ export async function showViewDialog(options = {}) {
 
     // Build HTML content string (DialogV2 requires content elements to have no attributes)
     const contentHtml = `
-        <div class="bg3-create-view-dialog">
-            <div class="dialog-content">
-                <div class="dialog-section">
-                    <label class="dialog-label">View Name</label>
-                    <input type="text" class="dialog-input" name="viewName" value="${initialName}" placeholder="Enter view name..." autocomplete="off">
-                </div>
-                
-                <div class="dialog-section">
-                    <label class="dialog-label">Select Icon</label>
-                    <div class="icon-grid">
-                        ${PRESET_ICONS.map(icon => `
-                            <button type="button" class="icon-button ${icon === initialIcon ? 'selected' : ''}" data-icon="${icon}">
-                                <i class="fas ${icon}"></i>
-                            </button>
-                        `).join('')}
+        <div class="bg3-dialog-body">
+            <div class="bg3-create-view-dialog">
+                <div class="dialog-content">
+                    <div class="dialog-section">
+                        <label class="dialog-label">View Name</label>
+                        <input type="text" class="dialog-input" name="viewName" value="${initialName}" placeholder="Enter view name..." autocomplete="off">
                     </div>
                     
-                    <label class="dialog-label dialog-label-small" style="margin-top: 12px;">Or enter custom Font Awesome class:</label>
-                    <input type="text" class="dialog-input dialog-input-small" name="customIcon" value="${!isPresetIcon ? initialIcon : ''}" placeholder="e.g., fa-sparkles" autocomplete="off">
+                    <div class="dialog-section">
+                        <label class="dialog-label">Select Icon</label>
+                        <div class="icon-grid">
+                            ${PRESET_ICONS.map(icon => `
+                                <button type="button" class="icon-button ${icon === initialIcon ? 'selected' : ''}" data-icon="${icon}">
+                                    <i class="fas ${icon}"></i>
+                                </button>
+                            `).join('')}
+                        </div>
+                        
+                        <label class="dialog-label dialog-label-small" style="margin-top: 12px;">Or enter custom Font Awesome class:</label>
+                        <input type="text" class="dialog-input dialog-input-small" name="customIcon" value="${!isPresetIcon ? initialIcon : ''}" placeholder="e.g., fa-sparkles" autocomplete="off">
+                    </div>
                 </div>
             </div>
         </div>
@@ -473,10 +520,12 @@ export async function showViewDialog(options = {}) {
     try {
         const result = await foundry.applications.api.DialogV2.prompt({
             window: { title },
+            classes: ['bg3-dialog'],
             content: contentHtml,
             ok: {
+                type: 'submit',
                 label: buttonLabel,
-                icon: 'fas fa-check',
+                icon: 'fas fa-save',
                 callback: (event, button, dialog) => {
                     const dialogEl = dialog.element;
                     const nameInput = dialogEl.querySelector('input[name="viewName"]');

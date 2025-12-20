@@ -1,29 +1,19 @@
 /**
  * Portrait Data Configuration Dialog
- * ApplicationV2-based dialog for configuring portrait data badges
+ * BG3Dialog-based dialog with Handlebars template for body content
  */
 
-const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
+import { BG3Dialog } from '../../api/BG3Dialog.js';
 
-export class PortraitDataConfigDialog extends HandlebarsApplicationMixin(ApplicationV2) {
+export class PortraitDataConfigDialog extends BG3Dialog {
     static DEFAULT_OPTIONS = {
+        ...super.DEFAULT_OPTIONS,
         id: 'bg3-portrait-data-config',
-        classes: ['bg3-hud-dialog', 'portrait-data-config'],
+        classes: [...(super.DEFAULT_OPTIONS.classes || []), 'portrait-data-config'],
         window: {
+            ...super.DEFAULT_OPTIONS.window,
             title: 'bg3-hud-core.Settings.PortraitData.Title',
-            icon: 'fas fa-id-card',
-            resizable: true,
-            minimizable: false
-        },
-        position: {
-            width: 600,
-            height: 'auto'
-        }
-    };
-
-    static PARTS = {
-        form: {
-            template: 'modules/bg3-hud-core/templates/dialogs/portrait-data-config.hbs'
+            icon: 'fas fa-id-card'
         }
     };
 
@@ -32,7 +22,10 @@ export class PortraitDataConfigDialog extends HandlebarsApplicationMixin(Applica
         return game.i18n.localize('bg3-hud-core.Settings.PortraitData.Title');
     }
 
-    /** @override */
+    /**
+     * Prepare template context data
+     * @returns {Promise<object>}
+     */
     async _prepareContext() {
         const MODULE_ID = 'bg3-hud-core';
         const config = game.settings.get(MODULE_ID, 'portraitDataConfig') || [];
@@ -68,23 +61,69 @@ export class PortraitDataConfigDialog extends HandlebarsApplicationMixin(Applica
         };
     }
 
-    /** @override */
-    _onRender(context, options) {
-        super._onRender(context, options);
+    /**
+     * Build body content using Handlebars template
+     * @returns {Promise<string>} HTML string
+     * @override
+     */
+    async _buildBody() {
+        const context = await this._prepareContext();
+        const templatePath = 'modules/bg3-hud-core/templates/dialogs/portrait-data-config.hbs';
+        return await renderTemplate(templatePath, context);
+    }
 
-        // Handle form submission manually
-        const form = this.element?.querySelector('form');
-        if (form) {
-            form.addEventListener('submit', event => {
-                event.preventDefault();
-                void this._saveSettings();
-            });
-        }
+    /**
+     * Build footer with Save button
+     * @returns {string} HTML string
+     * @override
+     */
+    _buildFooter() {
+        return `
+            <button type="submit">
+                <i class="fas fa-save"></i> ${game.i18n.localize('Save')}
+            </button>
+        `;
+    }
 
+    /**
+     * Override _renderHTML to handle async _buildBody
+     * @returns {Promise<HTMLElement>}
+     * @override
+     */
+    async _renderHTML() {
+        const body = await this._buildBody();
+        const footer = this._buildFooter();
+
+        const container = document.createElement('form');
+        container.className = 'bg3-dialog-wrapper standard-form';
+        container.autocomplete = 'off';
+
+        // Body section (scrollable)
+        const bodySection = document.createElement('div');
+        bodySection.className = 'bg3-dialog-body';
+        bodySection.innerHTML = body;
+        container.appendChild(bodySection);
+
+        // Footer section (fixed at bottom)
+        const footerSection = document.createElement('footer');
+        footerSection.className = 'bg3-dialog-footer form-footer';
+        footerSection.innerHTML = footer;
+        container.appendChild(footerSection);
+
+        return container;
+    }
+
+    /**
+     * Hook for subclass render setup - bind event handlers
+     * @param {object} context - Render context
+     * @param {object} options - Render options
+     * @override
+     */
+    _onRenderDialog(context, options) {
         // Attribute dropdown syncs to path input
         this.element.querySelectorAll('.attr-select').forEach(select => {
             select.addEventListener('change', (event) => {
-                const input = event.target.closest('.slot-config').querySelector('.path-input');
+                const input = event.target.closest('fieldset').querySelector('.path-input');
                 if (input && event.target.value) {
                     input.value = event.target.value;
                 }
@@ -112,10 +151,12 @@ export class PortraitDataConfigDialog extends HandlebarsApplicationMixin(Applica
     }
 
     /**
-     * Save settings from the form
-     * @private
+     * Handle form submission - save settings
+     * @param {SubmitEvent} event - Form submit event
+     * @returns {Promise<void>}
+     * @override
      */
-    async _saveSettings() {
+    async _onSubmit(event) {
         const MODULE_ID = 'bg3-hud-core';
         const form = this.element?.querySelector('form');
         if (!form) return;
@@ -188,8 +229,7 @@ export class PortraitDataConfigDialog extends HandlebarsApplicationMixin(Applica
                 },
                 {
                     action: 'close',
-                    label: 'Close',
-                    icon: 'fas fa-check'
+                    label: 'Close'
                 }
             ],
             default: 'close'
@@ -208,5 +248,3 @@ export class PortraitDataConfigDialog extends HandlebarsApplicationMixin(Applica
         }, 100);
     }
 }
-
-

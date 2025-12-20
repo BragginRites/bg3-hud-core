@@ -1,3 +1,8 @@
+## [0.1.9] - 2025-12-21
+### Changed
+- **Dialog Synchronization**: All dialogs are now synchronized to use consistent `DialogV2` styling and behavior (Issue #11).
+- **Manifest Updates**: Updated manifest URL to point to `latest` release for easier updates (Issue #10).
+
 ## [0.1.8] - 2025-12-20
 ### Changed
 - **DialogV2 Migration**: Migrated all selection dialogs to use Foundry V13's `DialogV2` API for consistent styling:
