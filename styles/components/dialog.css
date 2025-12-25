@@ -788,6 +788,52 @@
     font-size: 0.9em;
 }
 
+/* Footer toggles for selection dialog */
+.selection-footer-toggles {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--color-border-light-secondary);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.selection-footer-toggle {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    background: rgba(0, 0, 0, 0.15);
+    border: 1px solid var(--color-border-light-primary);
+}
+
+.selection-footer-toggle:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.selection-footer-toggle input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    margin: 0;
+    margin-top: 2px;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+
+.selection-footer-toggle .toggle-label {
+    font-size: 0.9em;
+    font-weight: 500;
+}
+
+.selection-footer-toggle .toggle-hint {
+    display: block;
+    font-size: 0.8em;
+    opacity: 0.7;
+    margin-top: 2px;
+}
+
 /* ==========================================================================
    Pill Selection Dialog (DialogV2 Helper)
    ========================================================================== */

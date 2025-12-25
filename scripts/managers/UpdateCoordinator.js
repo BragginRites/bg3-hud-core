@@ -149,6 +149,10 @@ export class UpdateCoordinator {
         // Check for adapter flags (system-specific)
         // Get adapter module ID dynamically
         const adapter = BG3HUD_REGISTRY.activeAdapter;
+
+        // NOTE: Depletion states are now updated AFTER all handlers complete
+        // to avoid race conditions with grid re-renders. See end of method.
+
         if (adapter && adapter.MODULE_ID) {
             const adapterFlags = changes?.flags?.[adapter.MODULE_ID];
             if (adapterFlags) {
@@ -179,6 +183,8 @@ export class UpdateCoordinator {
         const spellsChanged = changes?.system?.spells;
         if (spellsChanged) {
             if (await this._handleResourceChange()) {
+                // LATE: Update depletion states after resource change handling
+                this._updateDepletionStatesDeferred(actor, changes);
                 return;
             }
         }
@@ -201,6 +207,8 @@ export class UpdateCoordinator {
             await this._handleResourceChange();
             // Also update portrait data in case it displays resources
             await this._handleAttributeChange();
+            // LATE: Update depletion states after resource change handling
+            this._updateDepletionStatesDeferred(actor, changes);
             return;
         }
 
@@ -211,6 +219,9 @@ export class UpdateCoordinator {
                 return;
             }
         }
+
+        // LATE: Always call depletion update at the end if no early return occurred
+        this._updateDepletionStatesDeferred(actor, changes);
 
         // No full refresh fallback - only update elements that have explicit handlers
         // Unhandled changes are logged for debugging but don't trigger expensive re-renders
@@ -483,6 +494,24 @@ export class UpdateCoordinator {
     }
 
     /**
+     * Update cell depletion states after a deferred microtask
+     * This ensures depletion visual updates happen AFTER grid renders complete,
+     * preventing flash effects where cells momentarily appear available
+     * @param {Actor} actor - The actor that changed
+     * @param {Object} changes - The changes object from updateActor hook
+     * @private
+     */
+    _updateDepletionStatesDeferred(actor, changes) {
+        const adapter = BG3HUD_REGISTRY.activeAdapter;
+        if (!adapter?.updateCellDepletionStates) return;
+
+        // Use queueMicrotask to defer until after current render cycle completes
+        queueMicrotask(() => {
+            adapter.updateCellDepletionStates(actor, changes);
+        });
+    }
+
+    /**
      * React to embedded Item changes (uses, quantity, etc.)
      * Focused on UI refresh for items already in the hotbar
      * Item creation/deletion and hotbar data updates are handled by ItemUpdateManager
@@ -550,6 +579,10 @@ export class UpdateCoordinator {
                     await gridContainer.render();
                 }
             }
+
+            // AFTER all renders complete, update depletion states
+            // This ensures visual depletion is applied after cells have fresh data
+            this._updateDepletionStatesDeferred(item.parent, changes);
         } catch (e) {
             console.error('BG3 HUD Core | UpdateCoordinator: Failed to handle embedded item change', e);
             await this.hotbarApp.refresh();

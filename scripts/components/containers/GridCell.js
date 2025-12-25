@@ -46,7 +46,7 @@ export class GridCell extends BG3Component {
         return `${this.col}-${this.row}`;
     }
 
-    
+
 
     /**
      * Render the grid cell
@@ -66,7 +66,7 @@ export class GridCell extends BG3Component {
         } else {
             this.element.classList.add('filled');
             await this._renderContent();
-            
+
             // Allow adapter to decorate the cell element with system-specific attributes
             if (this.options?.decorateCellElement && typeof this.options.decorateCellElement === 'function') {
                 try {
@@ -119,7 +119,14 @@ export class GridCell extends BG3Component {
             img.src = this.data.img;
             img.alt = this.data.name || '';
             img.draggable = false;
-            
+
+            // Apply depleted class based on:
+            // 1. Explicit depleted flag (set by adapter for spells/focus/etc.)
+            // 2. No uses remaining (simple items with uses)
+            if (this.data.depleted || (this.data.uses?.max > 0 && this.data.uses?.value === 0)) {
+                img.classList.add('depleted');
+            }
+
             this.element.appendChild(img);
         }
 
@@ -135,12 +142,12 @@ export class GridCell extends BG3Component {
             const usesDiv = this.createElement('div', ['hotbar-item-uses']);
             // Show only the current remaining value (not value/max)
             usesDiv.textContent = `${this.data.uses.value}`;
-            
+
             // Optional: add depleted class for styling (but don't desaturate image)
             if (this.data.uses.value === 0) {
                 usesDiv.classList.add('depleted');
             }
-            
+
             this.element.appendChild(usesDiv);
         }
 
@@ -152,7 +159,7 @@ export class GridCell extends BG3Component {
         }
     }
 
-    
+
 
     /**
      * Add interaction handlers
@@ -182,16 +189,16 @@ export class GridCell extends BG3Component {
                     event.preventDefault();
                     return;
                 }
-                
+
                 // Only allow drag if cell has data (check at drag time, not handler setup time)
                 if (!this.data) {
                     event.preventDefault();
                     return;
                 }
-                
+
                 this.element.classList.add('dragging');
                 document.body.classList.add('dragging-active');
-                
+
                 // Set drag data (system-agnostic structure) - read this.data dynamically
                 const dragData = {
                     uuid: this.data.uuid,
@@ -199,10 +206,10 @@ export class GridCell extends BG3Component {
                     sourceSlot: `${this.col}-${this.row}`,
                     sourceIndex: this.index
                 };
-                
+
                 event.dataTransfer.setData('text/plain', JSON.stringify(dragData));
                 event.dataTransfer.effectAllowed = 'move';
-                
+
                 if (this.options.onDragStart) {
                     this.options.onDragStart(this, event);
                 }
@@ -247,22 +254,22 @@ export class GridCell extends BG3Component {
                 if (ControlsManager.isSettingLocked('dragDrop')) {
                     return;
                 }
-                
+
                 event.preventDefault();
                 this.element.classList.remove('drag-over');
                 document.body.classList.remove('dragging-active');
-                
+
                 // Get drag data
                 const dragDataStr = event.dataTransfer.getData('text/plain');
                 let dragData = null;
-                
+
                 try {
                     dragData = JSON.parse(dragDataStr);
                 } catch (e) {
                     // Might be external drag (from character sheet, etc.)
                     // Let the adapter handle it
                 }
-                
+
                 this.options.onDrop(this, event, dragData);
             });
         }
@@ -288,15 +295,31 @@ export class GridCell extends BG3Component {
      * @param {boolean} options.skipSave - If true, only update visual state (don't persist)
      */
     async setData(newData, options = {}) {
+        // Preserve transient state from old data that isn't in new data
+        // These flags are calculated externally (from actor resources) and
+        // may not be present in persistence data, causing flash effects
+        const preservedState = {};
+        if (this.data?.depleted !== undefined && newData && !('depleted' in newData)) {
+            preservedState.depleted = this.data.depleted;
+        }
+        if (this.data?.expended !== undefined && newData && !('expended' in newData)) {
+            preservedState.expended = this.data.expended;
+        }
+
         this.data = newData;
         this.isEmpty = !newData;
-        
+
+        // Apply preserved state to new data
+        if (Object.keys(preservedState).length > 0 && this.data) {
+            Object.assign(this.data, preservedState);
+        }
+
         if (this.element) {
             // Clear current content
             this.element.innerHTML = '';
             this.element.classList.toggle('empty', this.isEmpty);
             this.element.classList.toggle('filled', !this.isEmpty);
-            
+
             // Update draggable attribute based on whether we have data
             this.element.draggable = !this.isEmpty;
 
@@ -315,7 +338,7 @@ export class GridCell extends BG3Component {
                 }
             }
         }
-        
+
         // Note: GridCell never saves directly - orchestrators like InteractionCoordinator
         // handle persistence. The skipSave flag is here for clarity and future-proofing.
     }

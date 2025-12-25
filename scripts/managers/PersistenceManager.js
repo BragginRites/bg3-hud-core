@@ -1224,4 +1224,53 @@ export class PersistenceManager {
         return null;
     }
 
+    /**
+     * Check if a specific PreparedSpell slot already exists in the HUD
+     * Uses entryId + groupId + slotId to identify unique slots
+     * @param {string} entryId - Spellcasting entry ID
+     * @param {number} groupId - Spell rank (0-10)
+     * @param {number} slotId - Slot index within the rank
+     * @returns {Object|null} Location where slot exists {container, containerIndex, slotKey}, or null if not found
+     */
+    findPreparedSpellSlot(entryId, groupId, slotId) {
+        if (!entryId || !this.state) return null;
+
+        // Helper to check a container's items
+        const checkContainer = (items, containerType, containerIndex) => {
+            for (const [slotKey, item] of Object.entries(items || {})) {
+                if (item?.type === 'PreparedSpell' &&
+                    item.entryId === entryId &&
+                    item.groupId === groupId &&
+                    item.slotId === slotId) {
+                    return { container: containerType, containerIndex, slotKey };
+                }
+            }
+            return null;
+        };
+
+        // Check hotbar grids
+        for (let i = 0; i < this.state.hotbar.grids.length; i++) {
+            const result = checkContainer(this.state.hotbar.grids[i].items, 'hotbar', i);
+            if (result) return result;
+        }
+
+        // Check weapon sets
+        if (this.state.weaponSets?.sets) {
+            for (let i = 0; i < this.state.weaponSets.sets.length; i++) {
+                const result = checkContainer(this.state.weaponSets.sets[i].items, 'weaponSet', i);
+                if (result) return result;
+            }
+        }
+
+        // Check quick access
+        if (this.state.quickAccess?.grids) {
+            for (let i = 0; i < this.state.quickAccess.grids.length; i++) {
+                const result = checkContainer(this.state.quickAccess.grids[i]?.items, 'quickAccess', i);
+                if (result) return result;
+            }
+        }
+
+        return null;
+    }
+
 }

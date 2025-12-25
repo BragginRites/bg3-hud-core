@@ -1,5 +1,6 @@
 import { BG3Component } from '../BG3Component.js';
 import { FilterButton } from '../buttons/FilterButton.js';
+import { FilterGroupButton } from '../buttons/FilterGroupButton.js';
 
 /**
  * Filter Container
@@ -90,8 +91,11 @@ export class FilterContainer extends BG3Component {
      * Update visual state of filters and cells based on highlight/used state
      */
     updateCellFilterState() {
+        // Get all filter buttons including children from groups
+        const allFilters = this.getAllFilterButtons();
+
         // Update filter button states
-        for (const filter of this.filterButtons) {
+        for (const filter of allFilters) {
             const isUsed = this._used.includes(filter);
             const isHighlighted = this._highlighted === filter;
 
@@ -101,6 +105,13 @@ export class FilterContainer extends BG3Component {
 
             // Update used class
             filter.element.classList.toggle('used', isUsed);
+        }
+
+        // Update group button active states
+        for (const button of this.filterButtons) {
+            if (button instanceof FilterGroupButton) {
+                button.updateActiveState();
+            }
         }
 
         // Set the active filter color as a CSS variable for cell borders
@@ -132,6 +143,22 @@ export class FilterContainer extends BG3Component {
     }
 
     /**
+     * Get all filter buttons including children from groups
+     * @returns {Array<FilterButton>}
+     */
+    getAllFilterButtons() {
+        const all = [];
+        for (const button of this.filterButtons) {
+            if (button instanceof FilterGroupButton) {
+                all.push(...button.childButtons);
+            } else {
+                all.push(button);
+            }
+        }
+        return all;
+    }
+
+    /**
      * Check if any cells on the hotbar match a filter definition
      * @param {Object} filterDef - The filter definition from adapter
      * @returns {boolean}
@@ -156,6 +183,17 @@ export class FilterContainer extends BG3Component {
     }
 
     /**
+     * Check if a group filter has any children with matching cells
+     * @param {Object} groupDef - The group filter definition
+     * @returns {boolean}
+     */
+    hasMatchingGroupChildren(groupDef) {
+        if (!groupDef.children || groupDef.children.length === 0) return false;
+
+        return groupDef.children.some(childDef => this.hasMatchingCells(childDef));
+    }
+
+    /**
      * Render the filter container
      * @returns {Promise<HTMLElement>}
      */
@@ -171,21 +209,39 @@ export class FilterContainer extends BG3Component {
         // Get filter definitions from adapter
         const filterDefs = this.getFilters();
 
-        // Create filter buttons only for filters that have matching cells on hotbar
+        // Create filter buttons
         for (const filterDef of filterDefs) {
-            // Skip filters with no matching cells on hotbar
-            if (!this.hasMatchingCells(filterDef)) {
-                continue;
+            // Handle group filters
+            if (filterDef.type === 'group') {
+                // Skip groups with no matching children
+                if (!this.hasMatchingGroupChildren(filterDef)) {
+                    continue;
+                }
+
+                const groupButton = new FilterGroupButton({
+                    ...filterDef,
+                    container: this
+                });
+
+                await groupButton.render();
+                this.filterButtons.push(groupButton);
+                this.element.appendChild(groupButton.element);
+            } else {
+                // Regular filter button
+                // Skip filters with no matching cells on hotbar
+                if (!this.hasMatchingCells(filterDef)) {
+                    continue;
+                }
+
+                const button = new FilterButton({
+                    ...filterDef,
+                    container: this
+                });
+
+                await button.render();
+                this.filterButtons.push(button);
+                this.element.appendChild(button.element);
             }
-
-            const button = new FilterButton({
-                ...filterDef,
-                container: this
-            });
-
-            await button.render();
-            this.filterButtons.push(button);
-            this.element.appendChild(button.element);
         }
 
         return this.element;

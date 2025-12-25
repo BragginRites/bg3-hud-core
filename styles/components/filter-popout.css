@@ -1,0 +1,72 @@
+/**
+ * Filter Group Popout Styles
+ * Styles for expandable filter groups that show child filters in a popout panel
+ */
+
+/* Group button styling */
+.bg3-filter-button.bg3-filter-group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    min-width: auto;
+}
+
+.bg3-filter-button.bg3-filter-group .filter-group-label {
+    font-size: 10px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+.bg3-filter-button.bg3-filter-group .filter-group-arrow {
+    font-size: 8px;
+    transition: transform 0.2s ease;
+    opacity: 0.7;
+}
+
+.bg3-filter-button.bg3-filter-group.expanded .filter-group-arrow {
+    transform: rotate(180deg);
+}
+
+/* Active child indicator */
+.bg3-filter-button.bg3-filter-group.has-active-child {
+    border-color: var(--filter-color, #ffffff) !important;
+    box-shadow: 0 0 4px var(--filter-color, #ffffff);
+}
+
+/* Filter popout panel - appears ABOVE the button */
+.bg3-filter-popout {
+    position: absolute;
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 4px;
+    padding: 4px;
+    background: transparent;
+    border: none;
+    z-index: 1000;
+    justify-content: center;
+}
+
+/* Child filter buttons in popout */
+.bg3-filter-popout .bg3-filter-button {
+    flex: 0 0 auto;
+}
+
+/* Animation for popout */
+@keyframes popoutFadeIn {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+.bg3-filter-popout[style*="display: flex"] {
+    animation: popoutFadeIn 0.15s ease-out;
+}

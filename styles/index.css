@@ -20,6 +20,7 @@
 @import './components/dialog.css';
 @import './components/action-buttons.css';
 @import './components/filters.css';
+@import './components/filter-popout.css';
 @import './components/views.css';
 @import './components/info-container.css';
 @import './components/tooltip.css';

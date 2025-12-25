@@ -47,9 +47,17 @@ export async function showButtonChoiceDialog({ title, content = '', buttons }) {
  * @param {string} options.items[].img - Icon image URL (optional)
  * @param {boolean} options.items[].selected - Whether item is initially selected
  * @param {number} [options.maxSelections] - Maximum number of selections allowed (optional)
- * @returns {Promise<Array<string>|null>} Array of selected IDs, or null if cancelled
+ * @param {Array<Object>} [options.footerToggles] - Optional toggles to show at bottom
+ * @param {string} options.footerToggles[].key - Toggle identifier
+ * @param {string} options.footerToggles[].label - Toggle label
+ * @param {string} [options.footerToggles[].hint] - Optional hint text
+ * @param {boolean} [options.footerToggles[].checked] - Initial checked state
+ * @returns {Promise<{selectedIds: Array<string>, toggles: Object}|Array<string>|null>} 
+ *          If footerToggles provided: {selectedIds, toggles} object
+ *          If no footerToggles: Array of selected IDs
+ *          If cancelled: null
  */
-export async function showSelectionDialog({ title, description, items, maxSelections }) {
+export async function showSelectionDialog({ title, description, items, maxSelections, footerToggles }) {
     // Sort items alphabetically by label
     const sortedItems = [...items].sort((a, b) =>
         a.label.localeCompare(b.label)
@@ -84,6 +92,23 @@ export async function showSelectionDialog({ title, description, items, maxSelect
         </div>
     ` : '';
 
+    // Build footer toggles HTML if provided
+    let footerTogglesHtml = '';
+    if (footerToggles && footerToggles.length > 0) {
+        footerTogglesHtml = '<div class="selection-footer-toggles">';
+        for (const toggle of footerToggles) {
+            const checkedAttr = toggle.checked ? 'checked' : '';
+            footerTogglesHtml += `
+                <label class="selection-footer-toggle">
+                    <input type="checkbox" data-toggle-key="${toggle.key}" ${checkedAttr}>
+                    <span class="toggle-label">${toggle.label}</span>
+                    ${toggle.hint ? `<span class="toggle-hint">${toggle.hint}</span>` : ''}
+                </label>
+            `;
+        }
+        footerTogglesHtml += '</div>';
+    }
+
     const content = `
         <div class="bg3-dialog-body">
             ${descriptionHtml}
@@ -91,6 +116,7 @@ export async function showSelectionDialog({ title, description, items, maxSelect
             <div class="passive-selection-container">
                 ${itemsHtml}
             </div>
+            ${footerTogglesHtml}
         </div>
     `;
 
@@ -113,6 +139,17 @@ export async function showSelectionDialog({ title, description, items, maxSelect
                         if (checkbox?.checked) {
                             selectedIds.push(item.id);
                         }
+                    }
+
+                    // If footer toggles were provided, extract their values too
+                    if (footerToggles && footerToggles.length > 0) {
+                        const toggleValues = {};
+                        const dialogEl = dialog.element;
+                        for (const toggle of footerToggles) {
+                            const toggleCheckbox = dialogEl.querySelector(`[data-toggle-key="${toggle.key}"]`);
+                            toggleValues[toggle.key] = toggleCheckbox?.checked ?? false;
+                        }
+                        return { selectedIds, toggles: toggleValues };
                     }
 
                     return selectedIds;

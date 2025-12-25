@@ -545,7 +545,10 @@ export class InteractionCoordinator {
                 };
             }
         } else {
+            console.log('BG3 HUD Core | Calling _transformItemToCellData for:', document.name, 'type:', document.type);
+            console.log('BG3 HUD Core | Adapter available:', !!this.adapter, 'has transformItemToCellData:', typeof this.adapter?.transformItemToCellData);
             cellData = await this._transformItemToCellData(document);
+            console.log('BG3 HUD Core | _transformItemToCellData returned:', cellData);
         }
 
         if (!cellData) {
@@ -553,13 +556,29 @@ export class InteractionCoordinator {
             return;
         }
 
-        // STEP 5: Check for UUID duplicates (only if UUID exists)
+        // STEP 5: Check for duplicates
+        // For PreparedSpell cells: allow same UUID in different slots
+        // For other cells: block duplicate UUIDs
         if (cellData.uuid && !ContainerTypeDetector.isWeaponSet(targetCell)) {
-            const existingLocation = this.persistenceManager.findUuidInHud(cellData.uuid);
-            if (existingLocation) {
-                const label = isMacro ? 'macro' : isActivity ? 'activity' : 'item';
-                ui.notifications.warn(`This ${label} is already in the HUD`);
-                return;
+            if (cellData.type === 'PreparedSpell') {
+                // For PreparedSpell, check for exact slot match
+                const existingLocation = this.persistenceManager.findPreparedSpellSlot(
+                    cellData.entryId,
+                    cellData.groupId,
+                    cellData.slotId
+                );
+                if (existingLocation) {
+                    ui.notifications.warn('This spell slot is already in the HUD');
+                    return;
+                }
+            } else {
+                // For other types, block duplicate UUIDs
+                const existingLocation = this.persistenceManager.findUuidInHud(cellData.uuid);
+                if (existingLocation) {
+                    const label = isMacro ? 'macro' : isActivity ? 'activity' : 'item';
+                    ui.notifications.warn(`This ${label} is already in the HUD`);
+                    return;
+                }
             }
         }
 

@@ -21,8 +21,9 @@ export class ItemUpdateManager {
         // Item creation
         Hooks.on('createItem', this._handleItemCreate.bind(this));
 
-        // Item updates
-        Hooks.on('updateItem', this._handleItemUpdate.bind(this));
+        // Item updates are handled by UpdateCoordinator._onEmbeddedItemChange
+        // to avoid race conditions with depletion state updates.
+        // Removed: Hooks.on('updateItem', this._handleItemUpdate.bind(this));
 
         // Item deletion
         Hooks.on('deleteItem', this._handleItemDelete.bind(this));

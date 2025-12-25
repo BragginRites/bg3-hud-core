@@ -216,3 +216,12 @@
     opacity: 1;
     filter: none;
 }
+
+/* Expended spells (PF2e) - higher priority than .used */
+.bg3-grid-cell.expended,
+.bg3-grid-cell.expended.used,
+.bg3-grid-cell.expended[data-highlight] {
+    opacity: 0.35;
+    filter: grayscale(100%);
+    /* Note: pointer-events remain enabled for tooltips */
+}

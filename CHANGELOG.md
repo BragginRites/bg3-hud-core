@@ -1,3 +1,16 @@
+## [0.1.10] - 2025-12-25
+
+> 🎄 **Merry Christmas and Happy Holidays!** 🎄
+
+### Changed
+- **Discord Link Updated**: Updated community Discord invite link.
+
+### Added
+- **Filter Popout Groups**: New expandable filter groups to prevent filter bar overflow. Group filters show child filters in a popout panel below the filter bar. Group buttons show an active indicator when any child filter is active.
+  - New `FilterGroupButton` component with expand/collapse behavior
+  - Filters can now specify `type: 'group'` with `children` array
+  - New CSS styles for popout panels with animations
+
 ## [0.1.9] - 2025-12-21
 ### Changed
 - **Dialog Synchronization**: All dialogs are now synchronized to use consistent `DialogV2` styling and behavior (Issue #11).
@@ -57,13 +70,6 @@
 
 ### Fixed
 - **GM Hotbar Macros**: Fixed error when dragging macros onto GM hotbar (missing null check for weapon sets in GM mode).
-
-## [0.1.2] - 2025-12-16
-### Added
-- **Global HUD Toggle**: Added ability to show/hide the entire HUD via a keybinding (default: `H`) or by clicking the gamepad icon in the Token Controls sidebar. State persists per-client.
-
-### Fixed
-- **Tooltip Persistence**: Fixed issue where tooltips would fail to hide when the user moved the mouse while holding modifier keys (Shift, Ctrl, Alt).
 
 ## [0.1.1] - 2025-12-15
 ### Added
