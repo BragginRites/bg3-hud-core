@@ -57,11 +57,9 @@ export class PortraitContainer extends BG3Component {
 
         // Get token image
         const imageSrc = this.token.document.texture.src;
-        const img = this.createElement('img', ['portrait-image']);
-        img.src = imageSrc;
-        img.alt = this.actor?.name || 'Portrait';
+        const mediaElement = this._createMediaElement(imageSrc, this.actor?.name || 'Portrait');
 
-        imageSubContainer.appendChild(img);
+        imageSubContainer.appendChild(mediaElement);
         imageContainer.appendChild(imageSubContainer);
 
         // Add portrait data badges if enabled
@@ -76,6 +74,36 @@ export class PortraitContainer extends BG3Component {
         this._registerPortraitMenu(imageContainer);
 
         return this.element;
+    }
+
+    /**
+     * Create appropriate media element for portrait (img or video)
+     * Supports animated tokens in webm, mp4, ogg, ogv formats
+     * @param {string} src - Media source URL
+     * @param {string} alt - Alt text for accessibility
+     * @returns {HTMLElement} img or video element
+     * @protected
+     */
+    _createMediaElement(src, alt = 'Portrait') {
+        const videoExtensions = ['webm', 'mp4', 'ogg', 'ogv'];
+        const extension = src?.split('.').pop()?.toLowerCase() || '';
+        const isVideo = videoExtensions.includes(extension);
+
+        if (isVideo) {
+            const video = this.createElement('video', ['portrait-image', 'portrait-video']);
+            video.src = src;
+            video.autoplay = true;
+            video.loop = true;
+            video.muted = true;
+            video.playsInline = true;
+            video.alt = alt;
+            return video;
+        } else {
+            const img = this.createElement('img', ['portrait-image']);
+            img.src = src;
+            img.alt = alt;
+            return img;
+        }
     }
 
     /**
