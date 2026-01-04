@@ -1,3 +1,17 @@
+## [Unreleased]
+
+### Added
+- **Portrait Click Handler**: Clicking the portrait now opens the actor's character sheet (#15).
+- **Portrait Scaling Support**: New `getPortraitScale()` method allows adapters to scale portrait based on token size. Container resizes and expands upward/leftward when scaled.
+- **Settings Submenu Buttons**: `createSettingsSubmenu()` now supports action buttons within sections, enabling nested menus (e.g., CPR Actions selector inside Third Party submenu).
+
+### Changed
+- **Tooltip Isolation**: Tooltip class filtering now uses adapter-provided `tooltipClassBlacklist` instead of hardcoded system classes, keeping core system-agnostic.
+- **Target Selector Fallbacks Removed**: Removed system-specific fallback methods (`_fallbackNeedsTargeting`, `_fallbackGetRequirements`). Adapters must provide targeting rules; core returns safe defaults otherwise.
+
+### Fixed
+- **Info Container Z-Index**: Raised z-index of `.bg3-info-container-wrapper` from 300 to 9999 to ensure it appears above Foundry application windows (#16).
+
 ## [0.1.10] - 2025-12-25
 
 > 🎄 **Merry Christmas and Happy Holidays!** 🎄
