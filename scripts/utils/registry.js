@@ -125,8 +125,10 @@ export const BG3HUD_API = {
      * @param {string} adapter.MODULE_ID - Required: The module ID (e.g., 'bg3-hud-dnd5e')
      * @param {string} adapter.systemId - Required: The Foundry system ID (e.g., 'dnd5e')
      * @param {string} [adapter.name] - Optional: Display name for the adapter
+     * @param {Object} [config] - Optional: Adapter configuration
+     * @param {string[]} [config.tooltipClassBlacklist] - CSS classes to filter from UI tooltips
      */
-    registerAdapter(adapter) {
+    registerAdapter(adapter, config = {}) {
         // Validate required properties
         if (!adapter.MODULE_ID) {
             console.error('BG3 HUD Core | Adapter missing required MODULE_ID property:', adapter);
@@ -136,6 +138,12 @@ export const BG3HUD_API = {
             console.error('BG3 HUD Core | Adapter missing required systemId property:', adapter);
             return;
         }
+
+        // Store config on adapter for later access
+        adapter._bg3Config = {
+            tooltipClassBlacklist: config.tooltipClassBlacklist || [],
+            ...config
+        };
 
         console.log('BG3 HUD Core | Registering adapter:', adapter.constructor.name);
         BG3HUD_REGISTRY.adapters.push(adapter);

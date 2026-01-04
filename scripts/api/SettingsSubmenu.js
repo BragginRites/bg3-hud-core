@@ -8,7 +8,7 @@ const { FormDataExtended } = foundry.applications.ux;
  * @param {object} options
  * @param {string} options.moduleId - Settings namespace.
  * @param {string} options.titleKey - i18n key for window title.
- * @param {Array<{ legend: string, keys: string[] }>} options.sections - Section legend + setting keys.
+ * @param {Array<{ legend: string, keys: string[], buttons?: Array<{id: string, label: string, icon: string, hint?: string, onClick: Function}> }>} options.sections - Section legend + setting keys + optional action buttons.
  * @returns {typeof BG3Dialog}
  */
 export function createSettingsSubmenu({ moduleId, titleKey, sections }) {
@@ -51,6 +51,31 @@ export function createSettingsSubmenu({ moduleId, titleKey, sections }) {
     `;
     };
 
+    /**
+     * Render an action button within a section
+     * @param {Object} button - Button configuration
+     * @param {string} button.id - Unique button identifier
+     * @param {string} button.name - i18n key for field name/label (left side)
+     * @param {string} button.label - i18n key for button text
+     * @param {string} button.icon - FontAwesome icon class
+     * @param {string} [button.hint] - Optional i18n key for hint text
+     * @returns {string} HTML string
+     */
+    const renderButton = (button) => {
+        const name = button.name ? game.i18n.localize(button.name) : '';
+        const label = game.i18n.localize(button.label);
+        const hint = button.hint ? game.i18n.localize(button.hint) : '';
+        return `
+      <div class="form-group">
+        <label>${name}</label>
+        <button type="button" class="submenu-action-btn" data-action="${button.id}">
+          <i class="${button.icon}"></i> ${label}
+        </button>
+        ${hint ? `<p class="hint">${hint}</p>` : ''}
+      </div>
+    `;
+    };
+
     const buildSection = section => {
         const fields = section.keys.map(key => {
             const setting = game.settings.settings.get(`${moduleId}.${key}`);
@@ -58,7 +83,11 @@ export function createSettingsSubmenu({ moduleId, titleKey, sections }) {
             const value = game.settings.get(moduleId, key);
             return renderField({ key, setting, value });
         }).join('');
-        return `<fieldset>${legendTemplate(section.legend)}${fields}</fieldset>`;
+
+        // Render action buttons if present
+        const buttons = (section.buttons || []).map(renderButton).join('');
+
+        return `<fieldset>${legendTemplate(section.legend)}${fields}${buttons}</fieldset>`;
     };
 
     return class SettingsSubmenu extends BG3Dialog {
@@ -79,6 +108,32 @@ export function createSettingsSubmenu({ moduleId, titleKey, sections }) {
          */
         _buildBody() {
             return sections.map(buildSection).join('');
+        }
+
+        /**
+         * Handle render lifecycle - wire up button click handlers
+         * @override
+         */
+        _onRender(context, options) {
+            super._onRender?.(context, options);
+
+            // Build callback map from all sections' buttons
+            const callbacks = new Map();
+            for (const section of sections) {
+                for (const btn of section.buttons || []) {
+                    if (btn.onClick) callbacks.set(btn.id, btn.onClick);
+                }
+            }
+
+            // Wire up action button clicks
+            this.element?.querySelectorAll('.submenu-action-btn').forEach(btn => {
+                btn.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    const actionId = btn.dataset.action;
+                    const callback = callbacks.get(actionId);
+                    if (callback) callback();
+                });
+            });
         }
 
         /**

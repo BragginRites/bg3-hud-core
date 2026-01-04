@@ -10,6 +10,8 @@
  * - Tooltip lifecycle (show/hide/dismiss)
  */
 
+import { BG3HUD_REGISTRY } from '../utils/registry.js';
+
 export class TooltipManager {
     /**
      * Create a new TooltipManager
@@ -619,15 +621,15 @@ export class TooltipManager {
             const direction = target.dataset.tooltipDirection || 'UP';
             let tooltipClass = target.dataset.tooltipClass || '';
 
-            // Only allow dnd5e classes (dnd5e2, dnd5e-tooltip) if element has data-uuid
-            // UI elements (filters, buttons, controls) should not use dnd5e tooltip classes
+            // Filter out system-specific tooltip classes for UI elements (no uuid)
+            // Blacklist comes from adapter config, keeping core system-agnostic
             if (tooltipClass && !uuid) {
-                const classes = tooltipClass.split(' ').filter(Boolean);
-                // Filter out dnd5e classes for non-game items
-                const filteredClasses = classes.filter(cls =>
-                    cls !== 'dnd5e2' && cls !== 'dnd5e-tooltip' && cls !== 'item-tooltip'
-                );
-                tooltipClass = filteredClasses.join(' ');
+                const blacklist = BG3HUD_REGISTRY.activeAdapter?._bg3Config?.tooltipClassBlacklist || [];
+                if (blacklist.length > 0) {
+                    const classes = tooltipClass.split(' ').filter(Boolean);
+                    const filteredClasses = classes.filter(cls => !blacklist.includes(cls));
+                    tooltipClass = filteredClasses.join(' ');
+                }
             }
 
             this.hoverTimeout = setTimeout(() => {

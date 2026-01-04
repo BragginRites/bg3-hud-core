@@ -9,8 +9,8 @@
     top: 0;
     left: 50%;
     transform: translateX(-50%);
-    /* Must sit above portrait image; portrait container uses z-index:200 */
-    z-index: 300;
+    /* Must sit above portrait AND Foundry app windows (sheets, settings, etc.) */
+    z-index: 9999;
     pointer-events: none;
 }
 

@@ -69,6 +69,9 @@ export class PortraitContainer extends BG3Component {
 
         this.element.appendChild(imageContainer);
 
+        // Apply portrait scale if enabled (adapters can override getPortraitScale)
+        this._applyPortraitScale(imageSubContainer);
+
         // Register context menu for portrait image
         this._registerPortraitMenu(imageContainer);
 
@@ -206,11 +209,25 @@ export class PortraitContainer extends BG3Component {
      * @private
      */
     _registerPortraitMenu(imageContainer) {
+        // Left-click opens the character sheet
+        imageContainer.addEventListener('click', (event) => {
+            if (event.button !== 0) return; // Only left-click
+            event.preventDefault();
+            event.stopPropagation();
+            if (this.actor?.sheet) {
+                this.actor.sheet.render(true);
+            }
+        });
+
+        // Right-click shows context menu
         imageContainer.addEventListener('contextmenu', async (event) => {
             event.preventDefault();
             event.stopPropagation();
             await this._showPortraitMenu(event);
         });
+
+        // Add cursor pointer to indicate clickability
+        imageContainer.style.cursor = 'pointer';
     }
 
     /**
@@ -308,6 +325,47 @@ export class PortraitContainer extends BG3Component {
             percent: 0,
             damage: 100
         };
+    }
+
+    /**
+     * Get portrait scale configuration
+     * Override in subclass to enable token-based scaling
+     * 
+     * @abstract
+     * @returns {{enabled: boolean, scale: number}}
+     */
+    getPortraitScale() {
+        return {
+            enabled: false,
+            scale: 1
+        };
+    }
+
+    /**
+     * Apply portrait scale with position offset
+     * When scaled, portrait grows from center - offset prevents overlap with weapon sets
+     * @param {HTMLElement} subContainer - The portrait image subcontainer
+     * @private
+     */
+    _applyPortraitScale(subContainer) {
+        if (!this.element) return;
+
+        const { enabled, scale } = this.getPortraitScale();
+
+        if (enabled && scale !== 1) {
+            // Get base portrait size from CSS variable (defaults to 175px)
+            const computedStyle = getComputedStyle(this.element);
+            const baseSize = parseInt(computedStyle.getPropertyValue('--bg3-portrait-size')) || 175;
+            const scaledSize = baseSize * scale;
+
+            // Resize container - CSS bottom positioning keeps it anchored (expands upward)
+            // CSS right:100% positioning keeps right edge anchored (expands leftward)
+            this.element.style.setProperty('width', `${scaledSize}px`);
+            this.element.style.setProperty('height', `${scaledSize}px`);
+        } else {
+            this.element.style.removeProperty('width');
+            this.element.style.removeProperty('height');
+        }
     }
 }
 

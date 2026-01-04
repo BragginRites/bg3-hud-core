@@ -85,9 +85,9 @@ export class TargetSelectorManager {
      * @returns {boolean} True if targeting is required
      */
     needsTargeting(item, activity = null) {
+        // Adapter must provide targeting rules - no fallback guessing
         if (!this.adapter?.targetingRules?.needsTargeting) {
-            // Fallback: items with range and target settings need targeting
-            return this._fallbackNeedsTargeting(item, activity);
+            return false;
         }
 
         return this.adapter.targetingRules.needsTargeting({ item, activity });
@@ -375,8 +375,16 @@ export class TargetSelectorManager {
      * @private
      */
     _getTargetRequirements() {
+        // Adapter must provide targeting rules - return defaults if not
         if (!this.adapter?.targetingRules?.getTargetRequirements) {
-            return this._fallbackGetRequirements();
+            console.warn('BG3 HUD Core | No targeting rules available, using defaults');
+            return {
+                minTargets: 1,
+                maxTargets: 1,
+                range: null,
+                targetType: 'any',
+                hasTemplate: false
+            };
         }
 
         return this.adapter.targetingRules.getTargetRequirements({
@@ -477,50 +485,7 @@ export class TargetSelectorManager {
         }
     }
 
-    /**
-     * Fallback needs targeting check when adapter doesn't provide one.
-     * @param {Item} item
-     * @param {Object} activity
-     * @returns {boolean}
-     * @private
-     */
-    _fallbackNeedsTargeting(item, activity) {
-        if (!item) {
-            return false;
-        }
 
-        // Check for target configuration
-        const target = activity?.target || item.system?.target;
-        if (target?.type && !['self', 'none'].includes(target.type)) {
-            return true;
-        }
-
-        // Check for range
-        const range = activity?.range || item.system?.range;
-        if (range?.value && range.value > 0 && range.units !== 'self') {
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * Fallback get requirements when adapter doesn't provide one.
-     * @returns {Object}
-     * @private
-     */
-    _fallbackGetRequirements() {
-        const target = this.activity?.target || this.item?.system?.target;
-        const range = this.activity?.range || this.item?.system?.range;
-
-        return {
-            minTargets: 1,
-            maxTargets: target?.value || target?.affects?.count || 1,
-            range: TargetSelectorMath.getRangeInGridSquares(range?.value, range?.units),
-            targetType: target?.type || target?.affects?.type || 'any',
-            hasTemplate: !!target?.template?.type
-        };
-    }
 
     /**
      * Clean up resources.
