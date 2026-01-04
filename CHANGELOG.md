@@ -1,9 +1,10 @@
-## [Unreleased]
+## [0.1.11] - 2026-01-04
 
 ### Added
 - **Portrait Click Handler**: Clicking the portrait now opens the actor's character sheet (#15).
 - **Portrait Scaling Support**: New `getPortraitScale()` method allows adapters to scale portrait based on token size. Container resizes and expands upward/leftward when scaled.
 - **Settings Submenu Buttons**: `createSettingsSubmenu()` now supports action buttons within sections, enabling nested menus (e.g., CPR Actions selector inside Third Party submenu).
+- **Animated Portrait Support**: Portraits now support WEBM, MP4, OGG, OGV video formats for animated tokens (#14). Videos autoplay, loop, and are muted.
 
 ### Changed
 - **Tooltip Isolation**: Tooltip class filtering now uses adapter-provided `tooltipClassBlacklist` instead of hardcoded system classes, keeping core system-agnostic.
