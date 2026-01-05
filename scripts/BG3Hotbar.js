@@ -93,11 +93,17 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
     }
 
     /**
-     * Check if the HUD is currently visible
-     * @returns {boolean} True if the HUD is visible
+     * Check if the HUD is currently visible (showing content)
+     * Returns true only if uiEnabled AND (token selected OR GM hotbar active)
+     * @returns {boolean} True if the HUD is visible and showing content
      */
     get isVisible() {
-        return game.settings.get('bg3-hud-core', 'uiEnabled');
+        const uiEnabled = game.settings.get('bg3-hud-core', 'uiEnabled');
+        if (!uiEnabled) return false;
+
+        // Check if we have a token or are in GM hotbar mode
+        const isGMHotbarMode = this.canGMHotbar() || this.overrideGMHotbar;
+        return !!(this.currentToken || isGMHotbarMode);
     }
 
     /**

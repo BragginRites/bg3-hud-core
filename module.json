@@ -2,7 +2,7 @@
   "id": "bg3-hud-core",
   "title": "BG3 Inspired HUD - Core",
   "description": "Core UI framework for BG3 Inspired HUD. Requires a system-specific adapter module (bg3-hud-dnd5e, bg3-hud-pf2e, etc.) to function.",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "library": true,
   "authors": [
     {

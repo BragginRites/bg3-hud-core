@@ -10,7 +10,7 @@
     left: 50%;
     transform: translateX(-50%);
     /* Must sit above portrait AND Foundry app windows (sheets, settings, etc.) */
-    z-index: 9999;
+    z-index: 999999;
     pointer-events: none;
 }
 
@@ -60,12 +60,9 @@
         inset 0 1px 2px rgba(255, 255, 255, 0.2);
 }
 
-/* Sliding panel */
+/* Sliding panel - appended to document.body when open */
 .bg3-info-panel {
-    position: absolute;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%) translateY(0);
+    position: fixed;
     min-width: 400px;
     max-width: 600px;
     background: var(--bg3-hotbar-sub-background-color);
@@ -78,11 +75,13 @@
     box-shadow:
         0 -4px 12px rgba(0, 0, 0, 0.7),
         inset 0 1px 2px rgba(255, 255, 255, 0.05);
-    margin-bottom: 8px;
+    /* High z-index since panel is now on document.body */
+    z-index: 9999;
+    transform: translateY(0);
 }
 
 .bg3-info-panel.closed {
-    transform: translateX(-50%) translateY(calc(100% + 50px));
+    transform: translateY(20px);
     opacity: 0;
     pointer-events: none;
 }
@@ -102,7 +101,8 @@
     display: flex;
     flex-direction: column;
     gap: 6px;
-    min-width: 0; /* Allow flexbox to shrink below content size */
+    min-width: 0;
+    /* Allow flexbox to shrink below content size */
 }
 
 .bg3-info-ability {
@@ -155,7 +155,8 @@
     gap: 4px;
     border-right: var(--bg3-hotbar-border-size) solid var(--bg3-hotbar-border-color);
     padding-right: 12px;
-    min-width: 0; /* Allow flexbox to shrink below content size */
+    min-width: 0;
+    /* Allow flexbox to shrink below content size */
     transition: transform 0.3s ease, opacity 0.3s ease, width 0.3s ease, margin 0.3s ease;
     transform: translateX(0);
     opacity: 1;
@@ -214,7 +215,8 @@
     gap: 4px;
     border-left: var(--bg3-hotbar-border-size) solid var(--bg3-hotbar-border-color);
     padding-left: 12px;
-    min-width: 0; /* Allow flexbox to shrink below content size */
+    min-width: 0;
+    /* Allow flexbox to shrink below content size */
     transition: transform 0.3s ease, opacity 0.3s ease, width 0.3s ease, margin 0.3s ease;
     transform: translateX(0);
     opacity: 1;
@@ -312,4 +314,3 @@
     border-bottom: var(--bg3-hotbar-border-size) solid var(--bg3-hotbar-border-color);
     letter-spacing: 0.5px;
 }
-

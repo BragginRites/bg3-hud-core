@@ -1,3 +1,10 @@
+## [0.1.12] - 2026-01-05
+### Fixed
+- **HUD Page Load**: Fixed bug where HUD would not render automatically when reloading the page with a token already selected (#17).
+- **Scene Switching**: Improved responsiveness and reliability of HUD detection when switching scenes with selected tokens.
+- **Info Panel Z-Index**: Completely resolved z-index stacking issues by moving the Info Panel to `document.body` when opened. It now correctly renders above all character sheets and windows (#16).
+- **Macro Bar Visibility**: Fixed "Hide When BG3 HUD Visible" option not working correctly - macro bar would stay hidden even when no token was selected (#8).
+
 ## [0.1.11] - 2026-01-04
 
 ### Added

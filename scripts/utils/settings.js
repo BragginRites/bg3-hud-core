@@ -478,7 +478,7 @@ export function registerSettings() {
             'whenHudVisible': 'Hide When BG3 HUD Visible',
             'full': 'Fully Hidden (display:none)'
         },
-        default: 'always',
+        default: 'whenHudVisible',
         onChange: () => {
             applyMacrobarCollapseSetting();
         }

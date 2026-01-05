@@ -66,13 +66,23 @@ Hooks.once('ready', async () => {
     ui.BG3HUD_APP = new BG3Hotbar();
     ui.BG3HUD_APP.render(true);
 
+    // Check for pre-selected tokens immediately (like original module did)
+    // This runs after the HUD is created but the canvas is already ready
+    const token = canvas.tokens?.controlled?.[0];
+    if (token) {
+        console.log('BG3 HUD Core | Found pre-selected token on load:', token.name);
+        ui.BG3HUD_APP.currentToken = token;
+        ui.BG3HUD_APP.currentActor = token.actor;
+        // Slight delay to ensure HUD is fully rendered before refresh
+        setTimeout(() => ui.BG3HUD_APP.refresh(), 100);
+    }
+
     // Apply macrobar collapse setting
     applyMacrobarCollapseSetting();
 
     // Apply container row settings
     applyContainerRowSettings();
 
-    console.log('BG3 HUD Core | Initialization complete');
     console.log('BG3 HUD Core | Initialization complete');
 });
 

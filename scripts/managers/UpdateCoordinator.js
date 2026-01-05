@@ -28,6 +28,9 @@ export class UpdateCoordinator {
         Hooks.on('combatTurn', this._onCombatStateChange.bind(this));
         Hooks.on('deleteCombat', this._onCombatStateChange.bind(this));
 
+        // Canvas ready hook - check for pre-selected tokens on page load
+        Hooks.on('canvasReady', this._onCanvasReady.bind(this));
+
         // Active effects hooks
         Hooks.on('createActiveEffect', this._onActiveEffectChange.bind(this));
         Hooks.on('updateActiveEffect', this._onActiveEffectChange.bind(this));
@@ -95,6 +98,38 @@ export class UpdateCoordinator {
 
             // DON'T clear _lastSaveWasLocal here - let the updateActor hook handle it
             // This ensures that if an actor update is pending, it will be properly skipped
+        }
+    }
+
+    /**
+     * Handle canvas ready - check for pre-selected tokens
+     * Called when the canvas is first rendered or when switching scenes
+     * Fixes issue where HUD doesn't render when player reloads with token already selected
+     * @private
+     */
+    async _onCanvasReady() {
+        // Slight delay to ensure canvas.tokens.controlled is fully populated
+        // This is necessary because token control state may not be immediately available
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        const controlledTokens = canvas.tokens?.controlled || [];
+
+        if (controlledTokens.length === 1) {
+            // Single token selected - show HUD for it
+            const token = controlledTokens[0];
+            this.hotbarApp.currentToken = token;
+            this.hotbarApp.currentActor = token.actor;
+            await this.hotbarApp.refresh();
+        } else if (controlledTokens.length === 0) {
+            // No tokens - show GM hotbar if enabled, otherwise clear
+            this.hotbarApp.currentToken = null;
+            this.hotbarApp.currentActor = null;
+            await this.hotbarApp.refresh();
+        } else {
+            // Multiple tokens - clear HUD (consistent with multi-select behavior)
+            this.hotbarApp.currentToken = null;
+            this.hotbarApp.currentActor = null;
+            await this.hotbarApp.refresh();
         }
     }
 
