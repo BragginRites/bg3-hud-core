@@ -54,6 +54,7 @@ body.bg3-targeting * {
     align-items: center;
     gap: 4px;
     pointer-events: none;
+    z-index: calc(var(--bg3-z-target-selector, 10000) + 100);
 }
 
 .bg3-mouse-target-display .target-icon {

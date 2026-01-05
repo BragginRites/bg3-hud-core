@@ -325,7 +325,7 @@ export class TargetSelectorUI {
         this._mouseDisplayElement.style.cssText = `
             position: fixed;
             pointer-events: none;
-            z-index: var(--bg3-z-target-selector, 10000);
+            z-index: 10100;
             left: 0;
             top: 0;
         `;
@@ -450,6 +450,47 @@ export class TargetSelectorUI {
             });
         });
 
+        // Target item interaction handlers (hover, click, right-click)
+        this._targetListElement.querySelectorAll('.bg3-target-item').forEach(item => {
+            const tokenId = item.dataset.tokenId;
+
+            // Hover to highlight token on canvas
+            item.addEventListener('mouseover', () => {
+                const token = canvas?.tokens?.get(tokenId);
+                if (token) {
+                    token.hover = true;
+                    token.refresh();
+                }
+            });
+
+            item.addEventListener('mouseout', () => {
+                const token = canvas?.tokens?.get(tokenId);
+                if (token) {
+                    token.hover = false;
+                    token.refresh();
+                }
+            });
+
+            // Click to ping token location
+            item.addEventListener('click', async (e) => {
+                // Don't ping if clicking the remove button
+                if (e.target.closest('.target-remove')) return;
+                const token = canvas?.tokens?.get(tokenId);
+                if (token && canvas?.ping) {
+                    await canvas.ping(token.center);
+                }
+            });
+
+            // Right-click to remove target
+            item.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                const token = canvas?.tokens?.get(tokenId);
+                if (token) {
+                    this.manager.toggleTarget(token);
+                }
+            });
+        });
+
         // Re-enable dragging since DOM was replaced
         this._enableDragging();
     }
@@ -462,9 +503,20 @@ export class TargetSelectorUI {
      * @private
      */
     async _getTargetDisplayInfo(token, adapter) {
+        let img = token.document.texture.src;
+
+        // Generate static thumbnail for video portraits
+        if (foundry.helpers.media.VideoHelper.hasVideoExtension(img)) {
+            try {
+                img = await game.video?.createThumbnail(img, { width: 50, height: 50 }) ?? img;
+            } catch (err) {
+                console.warn('BG3 HUD Core | Failed to create video thumbnail:', err);
+            }
+        }
+
         const info = {
             name: token.name,
-            img: token.document.texture.src,
+            img,
             distance: null,
             inRange: true,
             details: []

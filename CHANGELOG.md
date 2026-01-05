@@ -1,3 +1,16 @@
+## [0.2.0] - 2026-01-05
+
+### Added
+- **Target Selector Hover Highlighting**: Hovering a target in the selection list now highlights the token on canvas.
+- **Target Selector Click to Ping**: Clicking a target in the list pings its location on the canvas.
+- **Target Selector Right-Click Remove**: Right-click a target in the list to remove it (alternative to X button).
+- **Real-time Target Sync**: Target selector now listens to `targetToken` hook for immediate UI updates when targets change externally.
+- **Video Portrait Thumbnails**: Animated token portraits (WEBM/MP4) now display as static thumbnails in the target list.
+
+### Fixed
+- **Target Selector Range**: Fixed touch range returning feet instead of grid squares in DnD5e adapter.
+- **Mouse Tooltip Z-Index**: Fixed crosshair tooltip appearing behind target list dialog.
+
 ## [0.1.12] - 2026-01-05
 ### Fixed
 - **HUD Page Load**: Fixed bug where HUD would not render automatically when reloading the page with a token already selected (#17).
