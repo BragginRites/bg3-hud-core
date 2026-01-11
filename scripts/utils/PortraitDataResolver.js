@@ -17,12 +17,20 @@ export class PortraitDataResolver {
      * @param {Object} config - Configuration object
      * @param {string} config.path - The path expression to resolve
      * @param {string} [config.icon] - Font Awesome icon class
-     * @param {string} [config.color] - CSS color value
-     * @returns {Promise<{value: string|null, icon: string, color: string}>}
+     * @param {string} [config.iconColor] - CSS color for icon
+     * @param {string} [config.textColor] - CSS color for text
+     * @param {string} [config.color] - Legacy CSS color (fallback for both)
+     * @returns {Promise<{value: string|null, icon: string, iconColor: string, textColor: string, color: string}>}
      */
     static async resolve(actor, config) {
         if (!actor || !config?.path) {
-            return { value: null, icon: config?.icon || '', color: config?.color || '' };
+            return {
+                value: null,
+                icon: config?.icon || '',
+                iconColor: config?.iconColor || config?.color || '',
+                textColor: config?.textColor || config?.color || '',
+                color: config?.color || ''
+            };
         }
 
         const path = config.path.trim();
@@ -53,6 +61,8 @@ export class PortraitDataResolver {
         return {
             value: displayValue,
             icon: config.icon || '',
+            iconColor: config.iconColor || config.color || '',
+            textColor: config.textColor || config.color || '',
             color: config.color || ''
         };
     }

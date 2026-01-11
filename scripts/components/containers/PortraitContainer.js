@@ -114,13 +114,30 @@ export class PortraitContainer extends BG3Component {
     async _renderPortraitData(container) {
         const MODULE_ID = 'bg3-hud-core';
 
-        // Check if feature is enabled
-        if (!game.settings.get(MODULE_ID, 'showPortraitData')) {
+        // Determine which config to use (layered hierarchy):
+        // 1. Player opt-out (ignoreWorldPortraitData) → use client config
+        // 2. World override active → use world config
+        // 3. Otherwise → use client config
+        const useWorldConfig = game.settings.get(MODULE_ID, 'useWorldPortraitData');
+        const ignoreWorldConfig = game.settings.get(MODULE_ID, 'ignoreWorldPortraitData');
+
+        // Effective mode: use world config only if active AND player hasn't opted out
+        const effectivelyUsingWorld = useWorldConfig && !ignoreWorldConfig;
+
+        // Check if feature is enabled:
+        // - World config active (and not ignored) → always show
+        // - Otherwise → respect client's showPortraitData setting
+        if (!effectivelyUsingWorld && !game.settings.get(MODULE_ID, 'showPortraitData')) {
             return;
         }
 
-        // Get config, fall back to adapter defaults if empty
-        let config = game.settings.get(MODULE_ID, 'portraitDataConfig') || [];
+        // Get config based on effective mode
+        let config;
+        if (effectivelyUsingWorld) {
+            config = game.settings.get(MODULE_ID, 'portraitDataWorldConfig') || [];
+        } else {
+            config = game.settings.get(MODULE_ID, 'portraitDataConfig') || [];
+        }
 
         // If user hasn't configured anything, try to get adapter defaults
         if (!config.length || !config.some(c => c?.path)) {
@@ -145,15 +162,20 @@ export class PortraitContainer extends BG3Component {
             if (!result.value) continue;
 
             const badge = this.createElement('div', ['portrait-data-badge', `position-${i}`]);
-            badge.style.color = result.color || '#ffffff';
+
+            // Apply separate colors for icon and text
+            const iconColor = result.iconColor || result.color || '#ffffff';
+            const textColor = result.textColor || result.color || '#ffffff';
 
             if (result.icon) {
                 const icon = this.createElement('i', result.icon.split(' '));
+                icon.style.color = iconColor;
                 badge.appendChild(icon);
             }
 
             const valueSpan = this.createElement('span', ['badge-value']);
             valueSpan.textContent = result.value;
+            valueSpan.style.color = textColor;
             badge.appendChild(valueSpan);
 
             badgesContainer.appendChild(badge);

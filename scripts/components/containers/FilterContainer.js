@@ -255,21 +255,36 @@ export class FilterContainer extends BG3Component {
         // Get fresh filter definitions from adapter
         const filterDefs = this.getFilters();
 
-        // Update existing filter buttons in-place
-        for (let i = 0; i < filterDefs.length && i < this.filterButtons.length; i++) {
-            const filterDef = filterDefs[i];
-            const button = this.filterButtons[i];
+        // Build a map of filter definitions by id for quick lookup
+        // This includes both top-level filters and children of groups
+        const defMap = new Map();
+        for (const def of filterDefs) {
+            defMap.set(def.id, def);
+            // Also map children for groups
+            if (def.type === 'group' && def.children) {
+                for (const child of def.children) {
+                    defMap.set(child.id, child);
+                }
+            }
+        }
 
-            // Check if value or max has changed
-            const valueChanged = filterDef.value !== undefined && button.data.value !== filterDef.value;
-            const maxChanged = filterDef.max !== undefined && button.data.max !== filterDef.max;
+        // Update all filter buttons (including group children)
+        const allButtons = this.getAllFilterButtons();
+        for (const button of allButtons) {
+            const def = defMap.get(button.data.id);
+            if (!def) continue;
+
+            const valueChanged = def.value !== undefined && button.data.value !== def.value;
+            const maxChanged = def.max !== undefined && button.data.max !== def.max;
 
             if (valueChanged || maxChanged) {
-                button.data.value = filterDef.value;
-                button.data.max = filterDef.max;
+                button.data.value = def.value;
+                button.data.max = def.max;
 
                 // Update the visual representation without full re-render
-                await button.updateSlots(filterDef.value, filterDef.max);
+                if (typeof button.updateSlots === 'function') {
+                    await button.updateSlots(def.value, def.max);
+                }
             }
         }
 

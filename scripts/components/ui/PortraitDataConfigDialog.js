@@ -28,7 +28,18 @@ export class PortraitDataConfigDialog extends BG3Dialog {
      */
     async _prepareContext() {
         const MODULE_ID = 'bg3-hud-core';
-        const config = game.settings.get(MODULE_ID, 'portraitDataConfig') || [];
+
+        // Check world and client override states
+        const useWorldConfig = game.settings.get(MODULE_ID, 'useWorldPortraitData');
+        const ignoreWorldConfig = game.settings.get(MODULE_ID, 'ignoreWorldPortraitData');
+        const worldConfig = game.settings.get(MODULE_ID, 'portraitDataWorldConfig') || [];
+        const clientConfig = game.settings.get(MODULE_ID, 'portraitDataConfig') || [];
+
+        // Determine effective mode: world config only if active AND player hasn't opted out
+        const effectivelyUsingWorld = useWorldConfig && !ignoreWorldConfig;
+
+        // Use the effective config for display
+        const config = effectivelyUsingWorld ? worldConfig : clientConfig;
         const showPortraitData = game.settings.get(MODULE_ID, 'showPortraitData');
 
         // Get tracked attributes for dropdown
@@ -51,13 +62,18 @@ export class PortraitDataConfigDialog extends BG3Dialog {
             ...slot,
             path: config[index]?.path || '',
             icon: config[index]?.icon || '',
-            color: config[index]?.color || '#ffffff'
+            iconColor: config[index]?.iconColor || config[index]?.color || '#ffffff',
+            textColor: config[index]?.textColor || config[index]?.color || '#ffffff'
         }));
 
         return {
             showPortraitData,
             slots: slotConfigs,
-            attrChoices
+            attrChoices,
+            isGM: game.user.isGM,
+            useWorldConfig,
+            ignoreWorldConfig,
+            effectivelyUsingWorld
         };
     }
 
@@ -73,12 +89,47 @@ export class PortraitDataConfigDialog extends BG3Dialog {
     }
 
     /**
-     * Build footer with Save button
-     * @returns {string} HTML string
+     * Build footer with Save button and GM/player controls
+     * @returns {Promise<string>} HTML string
      * @override
      */
-    _buildFooter() {
+    async _buildFooter() {
+        const MODULE_ID = 'bg3-hud-core';
+        const useWorldConfig = game.settings.get(MODULE_ID, 'useWorldPortraitData');
+        const ignoreWorldConfig = game.settings.get(MODULE_ID, 'ignoreWorldPortraitData');
+
+        let controls = '';
+
+        if (game.user.isGM) {
+            // GM controls: sync to world and enable world override
+            controls = `
+                <div class="gm-controls" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                    <label class="checkbox" style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
+                        <input type="checkbox" name="useWorldConfig" ${useWorldConfig ? 'checked' : ''}>
+                        <span>${game.i18n.localize('bg3-hud-core.Settings.PortraitData.WorldOverride')}</span>
+                    </label>
+                    <button type="button" class="sync-to-world-btn">
+                        <i class="fas fa-globe"></i> ${game.i18n.localize('bg3-hud-core.Settings.PortraitData.SyncToWorld')}
+                    </button>
+                </div>
+            `;
+        } else if (useWorldConfig) {
+            // Non-GM when world config is active: show opt-out toggle
+            controls = `
+                <div class="player-controls" style="display: flex; gap: 8px; align-items: center;">
+                    <span class="hint" style="font-size: 0.9em; color: var(--color-text-dark-inactive);">
+                        <i class="fas fa-info-circle"></i> ${game.i18n.localize('bg3-hud-core.Settings.PortraitData.WorldConfigActive')}
+                    </span>
+                    <label class="checkbox" style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
+                        <input type="checkbox" name="ignoreWorldConfig" ${ignoreWorldConfig ? 'checked' : ''}>
+                        <span>${game.i18n.localize('bg3-hud-core.Settings.PortraitData.UseMyOwnConfig')}</span>
+                    </label>
+                </div>
+            `;
+        }
+
         return `
+            ${controls}
             <button type="submit">
                 <i class="fas fa-save"></i> ${game.i18n.localize('Save')}
             </button>
@@ -92,7 +143,7 @@ export class PortraitDataConfigDialog extends BG3Dialog {
      */
     async _renderHTML() {
         const body = await this._buildBody();
-        const footer = this._buildFooter();
+        const footer = await this._buildFooter();
 
         const container = document.createElement('form');
         container.className = 'bg3-dialog-wrapper standard-form';
@@ -148,6 +199,15 @@ export class PortraitDataConfigDialog extends BG3Dialog {
                 this._openIconPicker(input);
             });
         });
+
+        // GM Sync to World button
+        const syncBtn = this.element.querySelector('.sync-to-world-btn');
+        if (syncBtn) {
+            syncBtn.addEventListener('click', async (event) => {
+                event.preventDefault();
+                await this._syncToWorld();
+            });
+        }
     }
 
     /**
@@ -173,13 +233,68 @@ export class PortraitDataConfigDialog extends BG3Dialog {
             config.push({
                 path: data[`path-${key}`] || '',
                 icon: data[`icon-${key}`] || '',
-                color: data[`color-${key}`] || '#ffffff'
+                iconColor: data[`iconColor-${key}`] || '#ffffff',
+                textColor: data[`textColor-${key}`] || '#ffffff'
             });
         }
 
+        // GM: Save world override toggle if present
+        if (game.user.isGM && data.useWorldConfig !== undefined) {
+            await game.settings.set(MODULE_ID, 'useWorldPortraitData', !!data.useWorldConfig);
+
+            // If world override is enabled, also save to world config
+            if (data.useWorldConfig) {
+                await game.settings.set(MODULE_ID, 'portraitDataWorldConfig', config);
+            }
+        }
+
+        // Player: Save opt-out toggle if present
+        if (data.ignoreWorldConfig !== undefined) {
+            await game.settings.set(MODULE_ID, 'ignoreWorldPortraitData', !!data.ignoreWorldConfig);
+        }
+
+        // Save to client config (always, so user has their own backup)
         await game.settings.set(MODULE_ID, 'portraitDataConfig', config);
         ui.notifications.info(game.i18n.localize('bg3-hud-core.Settings.PortraitData.Saved'));
         this.close();
+    }
+
+    /**
+     * Sync current form config to world settings (GM only)
+     * @private
+     */
+    async _syncToWorld() {
+        if (!game.user.isGM) return;
+
+        const MODULE_ID = 'bg3-hud-core';
+        const form = this.element?.querySelector('form');
+        if (!form) return;
+
+        const formData = new foundry.applications.ux.FormDataExtended(form, {});
+        const data = formData.object;
+        const config = [];
+
+        // Parse form data into slot configs
+        for (const key of ['0', '1', '2', '3', '4', '5']) {
+            config.push({
+                path: data[`path-${key}`] || '',
+                icon: data[`icon-${key}`] || '',
+                iconColor: data[`iconColor-${key}`] || '#ffffff',
+                textColor: data[`textColor-${key}`] || '#ffffff'
+            });
+        }
+
+        // Save to world config
+        await game.settings.set(MODULE_ID, 'portraitDataWorldConfig', config);
+
+        // Enable world override
+        await game.settings.set(MODULE_ID, 'useWorldPortraitData', true);
+
+        // Update the checkbox in the form
+        const checkbox = this.element.querySelector('input[name="useWorldConfig"]');
+        if (checkbox) checkbox.checked = true;
+
+        ui.notifications.info(game.i18n.localize('bg3-hud-core.Settings.PortraitData.SyncedToWorld'));
     }
 
     /**

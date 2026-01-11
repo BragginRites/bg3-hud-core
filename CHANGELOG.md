@@ -1,3 +1,15 @@
+## [0.2.1] - 2026-01-10
+
+### Added
+- **Show/Hide Filter Icons**: New setting in Layout & Appearance → Container Configuration to toggle visibility of the spell slot and action type filter icons.
+- **GM Portrait Data Override**: GMs can configure portrait data badges once and sync them to all players via "Sync to World" button. Uses layered config hierarchy: players can toggle "Use my own config instead" to opt-out of the world config and use their own settings.
+- **Improved Portrait Data Styling**: Added separate color controls for icons and text in the Portrait Data configuration, allowing for more flexible styling (e.g., gold icon with white text).
+
+### Fixed
+- **Script Macro Error**: Fixed `DataModelValidationError` when clicking script macros in the hotbar after switching tokens. Macros are now correctly skipped during state hydration.
+- **Spell Slot Filter Updates**: Fixed spell slot counters not updating immediately after casting. The filter update logic now correctly traverses grouped filter children.
+- **Portrait Alignment**: Fixed portrait container alignment to properly anchor to the bottom of the hotbar region.
+
 ## [0.2.0] - 2026-01-05
 
 ### Added

@@ -47,10 +47,18 @@
     </div>
 
     <div class="form-group">
-        <label>Color</label>
+        <label>Icon Color</label>
         <div class="form-fields">
-            <input type="text" name="color-{{key}}" class="color-input" value="{{color}}">
-            <input type="color" value="{{color}}">
+            <input type="text" name="iconColor-{{key}}" class="color-input" value="{{iconColor}}">
+            <input type="color" value="{{iconColor}}" data-target="iconColor-{{key}}">
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>Text Color</label>
+        <div class="form-fields">
+            <input type="text" name="textColor-{{key}}" class="color-input" value="{{textColor}}">
+            <input type="color" value="{{textColor}}" data-target="textColor-{{key}}">
         </div>
     </div>
 </fieldset>

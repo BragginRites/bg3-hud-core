@@ -196,6 +196,13 @@ export class PersistenceManager {
             const cellData = items[slotKey];
             total++;
 
+            // Skip Macro cells - they are world-level documents that don't need hydration
+            // and passing them to adapter.transformItemToCellData() causes validation errors
+            // because "script" is not a valid Item type
+            if (cellData?.type === 'Macro') {
+                continue;
+            }
+
             if (cellData?.uuid) {
                 try {
                     const item = await fromUuid(cellData.uuid);

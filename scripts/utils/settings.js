@@ -130,7 +130,7 @@ export function registerSettings() {
             },
             {
                 legend: 'bg3-hud-core.Settings.LayoutAppearance.ContainerConfigurationLegend',
-                keys: ['passivesContainerIconsPerRow', 'activeEffectsContainerIconsPerRow', 'showPassiveActiveEffects']
+                keys: ['showFilters', 'passivesContainerIconsPerRow', 'activeEffectsContainerIconsPerRow', 'showPassiveActiveEffects']
             }
         ]
     });
@@ -552,9 +552,15 @@ export function registerSettings() {
         config: false,
         type: Boolean,
         default: false,
-        onChange: () => {
-            // Refresh portrait if it exists
-            ui.BG3HOTBAR?.components?.portrait?.render?.();
+        onChange: async () => {
+            // Refresh portrait by re-rendering and replacing in DOM
+            const portrait = ui.BG3HUD_APP?.components?.portrait;
+            if (portrait?.element?.parentElement) {
+                const parent = portrait.element.parentElement;
+                const oldElement = portrait.element;
+                const newElement = await portrait.render();
+                parent.replaceChild(newElement, oldElement);
+            }
         }
     });
 
@@ -565,9 +571,78 @@ export function registerSettings() {
         config: false,
         type: Array,
         default: [],
-        onChange: () => {
-            // Refresh portrait if it exists
-            ui.BG3HOTBAR?.components?.portrait?.render?.();
+        onChange: async () => {
+            // Refresh portrait by re-rendering and replacing in DOM
+            const portrait = ui.BG3HUD_APP?.components?.portrait;
+            if (portrait?.element?.parentElement) {
+                const parent = portrait.element.parentElement;
+                const oldElement = portrait.element;
+                const newElement = await portrait.render();
+                parent.replaceChild(newElement, oldElement);
+            }
+        }
+    });
+
+    // Client override to ignore world config (power users who want their own setup)
+    game.settings.register(MODULE_ID, 'ignoreWorldPortraitData', {
+        name: 'Use My Own Config',
+        hint: 'When enabled, ignore the GM world config and use your own portrait data settings',
+        scope: 'client',
+        config: false,
+        type: Boolean,
+        default: false,
+        onChange: async () => {
+            // Refresh portrait when toggle changes
+            const portrait = ui.BG3HUD_APP?.components?.portrait;
+            if (portrait?.element?.parentElement) {
+                const parent = portrait.element.parentElement;
+                const oldElement = portrait.element;
+                const newElement = await portrait.render();
+                parent.replaceChild(newElement, oldElement);
+            }
+        }
+    });
+
+    // World-scope portrait data settings (GM override)
+    game.settings.register(MODULE_ID, 'useWorldPortraitData', {
+        name: 'Use World Portrait Data',
+        hint: 'When enabled, all players use the GM-configured portrait data instead of their own settings',
+        scope: 'world',
+        config: false,
+        type: Boolean,
+        default: false,
+        restricted: true,
+        onChange: async () => {
+            // Refresh all clients' portraits by re-rendering the whole portrait component
+            const portrait = ui.BG3HUD_APP?.components?.portrait;
+            if (portrait?.element?.parentElement) {
+                const parent = portrait.element.parentElement;
+                const oldElement = portrait.element;
+                const newElement = await portrait.render();
+                parent.replaceChild(newElement, oldElement);
+            }
+        }
+    });
+
+    game.settings.register(MODULE_ID, 'portraitDataWorldConfig', {
+        name: 'World Portrait Data Configuration',
+        hint: 'GM-configured portrait data badges for all players',
+        scope: 'world',
+        config: false,
+        type: Array,
+        default: [],
+        restricted: true,
+        onChange: async () => {
+            // Refresh portrait if world config is active
+            if (game.settings.get(MODULE_ID, 'useWorldPortraitData')) {
+                const portrait = ui.BG3HUD_APP?.components?.portrait;
+                if (portrait?.element?.parentElement) {
+                    const parent = portrait.element.parentElement;
+                    const oldElement = portrait.element;
+                    const newElement = await portrait.render();
+                    parent.replaceChild(newElement, oldElement);
+                }
+            }
         }
     });
 
@@ -749,6 +824,22 @@ export function registerSettings() {
         onChange: () => {
             // Refresh active effects container if hotbar exists
             ui.BG3HUD_APP?.components?.hotbar?.activeEffectsContainer?.render();
+        }
+    });
+
+    // Show filter icons setting
+    game.settings.register(MODULE_ID, 'showFilters', {
+        name: 'bg3-hud-core.Settings.ShowFilters.Name',
+        hint: 'bg3-hud-core.Settings.ShowFilters.Hint',
+        scope: 'client',
+        config: false,
+        type: Boolean,
+        default: true,
+        onChange: () => {
+            // Refresh the HUD to show/hide filter container
+            if (ui.BG3HUD_APP?.rendered) {
+                ui.BG3HUD_APP.refresh();
+            }
         }
     });
 

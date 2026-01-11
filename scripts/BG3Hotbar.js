@@ -331,6 +331,22 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
             return;
         }
 
+        // Create regions
+        const leftRegion = document.createElement('div');
+        leftRegion.className = 'bg3-hud-region bg3-hud-region-left';
+
+        const centerRegion = document.createElement('div');
+        centerRegion.className = 'bg3-hud-region bg3-hud-region-center';
+
+        const rightRegion = document.createElement('div');
+        rightRegion.className = 'bg3-hud-region bg3-hud-region-right';
+
+        // Clear container and append regions
+        container.innerHTML = ''; // Ensure container is empty
+        container.appendChild(leftRegion);
+        container.appendChild(centerRegion);
+        container.appendChild(rightRegion);
+
         // Set the current token in persistence manager and load state
         if (isGMHotbarMode) {
             // GM hotbar mode: set token to null to trigger GM mode in persistence manager
@@ -360,7 +376,7 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
         if (isGMHotbarMode) {
             // Create hotbar container from GM hotbar state
             this.components.hotbar = await this.componentFactory.createHotbarContainer(state.hotbar.grids, handlers);
-            container.appendChild(await this.components.hotbar.render());
+            centerRegion.appendChild(await this.components.hotbar.render()); // Append to CENTER
 
             // Create control container
             this.components.controls = await this.componentFactory.createControlContainer();
@@ -369,6 +385,8 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
             // Normal token mode: create all components
             // Create info container (if adapter provides one)
             this.components.info = await this.componentFactory.createInfoContainer();
+            // Info container is usually attached to portrait, but if standalone, where does it go?
+            // Assuming portrait integration for now based on previous code.
 
             // Create portrait container (uses adapter if available)
             // Pass info container to portrait so it can be positioned above it
@@ -376,12 +394,13 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
             if (this.components.info) {
                 this.components.portrait.infoContainer = this.components.info;
             }
-            container.appendChild(await this.components.portrait.render());
+            leftRegion.appendChild(await this.components.portrait.render()); // Append to LEFT
 
             // Create wrapper for weapon sets and quick access
+            // This wrapper was previously direct child, now goes into LEFT region after portrait
             const weaponQuickWrapper = document.createElement('div');
             weaponQuickWrapper.className = 'bg3-weapon-quick-wrapper';
-            container.appendChild(weaponQuickWrapper);
+            leftRegion.appendChild(weaponQuickWrapper); // Append to LEFT
 
             // Create weapon sets container from UNIFIED state
             this.components.weaponSets = await this.componentFactory.createWeaponSetsContainer(state.weaponSets.sets, handlers);
@@ -393,29 +412,31 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
             weaponQuickWrapper.appendChild(await this.components.quickAccess.render());
 
             // Create situational bonuses container (if adapter provides one) - positioned between weapon sets and hotbar
-            // Always create and append (container handles its own visibility)
+            // Currently hanging on the left, so append to LEFT region
             this.components.situationalBonuses = await this.componentFactory.createSituationalBonusesContainer();
             if (this.components.situationalBonuses) {
                 const situationalBonusesElement = await this.components.situationalBonuses.render();
-                container.appendChild(situationalBonusesElement);
+                leftRegion.appendChild(situationalBonusesElement); // Append to LEFT
             }
 
             // Create CPR Generic Actions container (if adapter provides one) - positioned next to situational bonuses
-            // Always create and append (container handles its own visibility)
+            // Appending to LEFT region
             this.components.cprGenericActions = await this.componentFactory.createCPRGenericActionsContainer();
             if (this.components.cprGenericActions) {
                 const cprGenericActionsElement = await this.components.cprGenericActions.render();
-                container.appendChild(cprGenericActionsElement);
+                leftRegion.appendChild(cprGenericActionsElement); // Append to LEFT
             }
 
             // Create hotbar container from UNIFIED state
             this.components.hotbar = await this.componentFactory.createHotbarContainer(state.hotbar.grids, handlers);
-            container.appendChild(await this.components.hotbar.render());
+            centerRegion.appendChild(await this.components.hotbar.render()); // Append to CENTER
 
-            // Create filter container (if adapter provides one) - positioned over hotbar, centered at top
-            this.components.filters = await this.componentFactory.createFilterContainer();
-            if (this.components.filters) {
-                this.components.hotbar.element.appendChild(await this.components.filters.render());
+            // Create filter container (if adapter provides one and setting is enabled)
+            if (game.settings.get('bg3-hud-core', 'showFilters')) {
+                this.components.filters = await this.componentFactory.createFilterContainer();
+                if (this.components.filters) {
+                    this.components.hotbar.element.appendChild(await this.components.filters.render());
+                }
             }
 
             // Create views container - positioned at bottom center of hotbar
@@ -431,7 +452,7 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
             // Create action buttons container (rest/turn buttons if adapter provides them)
             this.components.actionButtons = await this.componentFactory.createActionButtonsContainer();
             if (this.components.actionButtons) {
-                container.appendChild(await this.components.actionButtons.render());
+                rightRegion.appendChild(await this.components.actionButtons.render()); // Append to RIGHT
             }
 
             // Create control container

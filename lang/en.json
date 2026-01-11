@@ -89,6 +89,10 @@
         "Name": "Show Passive Active Effects",
         "Hint": "When enabled, displays permanent/passive active effects (no duration) in addition to temporary effects"
       },
+      "ShowFilters": {
+        "Name": "Show Filter Icons",
+        "Hint": "Display the spell slot and action type filter icons above the hotbar"
+      },
       "LayoutAppearance": {
         "MenuTitle": "Layout & Appearance",
         "MenuName": "Layout & Appearance",
@@ -173,7 +177,12 @@
         "MiddleRight": "Middle Right",
         "BottomLeft": "Bottom Left",
         "BottomRight": "Bottom Right",
-        "Saved": "Portrait data configuration saved"
+        "Saved": "Portrait data configuration saved",
+        "WorldOverride": "Use World Config (All Players)",
+        "SyncToWorld": "Sync to World",
+        "SyncedToWorld": "Portrait data synced to world - all players will now use this configuration",
+        "WorldConfigActive": "Your GM has set a world config",
+        "UseMyOwnConfig": "Use my own config instead"
       }
     },
     "Controls": {
