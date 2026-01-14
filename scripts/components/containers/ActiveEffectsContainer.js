@@ -19,13 +19,33 @@ export class ActiveEffectsContainer extends BG3Component {
         super(options);
         this.actor = options.actor;
         this.token = options.token;
-        this.effectButtons = new Map(); // Map of effect.id -> ActiveEffectButton
+        this.effectButtons = new Map(); // Map of compositeKey -> ActiveEffectButton
+    }
+
+    /**
+     * Generate a composite key for an effect
+     * Uses origin + name for transferred effects (auras), otherwise uses effect.id
+     * This ensures aura effects don't duplicate when modules create new IDs on each entry
+     * @param {ActiveEffect} effect - The effect
+     * @returns {string} Composite key
+     * @private
+     */
+    _getEffectKey(effect) {
+        // For effects with an origin (transferred from items or auras), use origin + name
+        // This handles aura modules that create new effect IDs on each aura entry
+        if (effect.origin) {
+            const name = effect.name || effect.label || 'unnamed';
+            return `${effect.origin}|${name}`;
+        }
+        // For native effects (no origin), use the effect ID
+        return effect.id;
     }
 
     /**
      * Get the list of active effects from the actor
      * Uses allApplicableEffects() to include item-transferred effects
      * Filters based on showPassiveActiveEffects setting
+     * Deduplicates effects by composite key to prevent aura icon multiplication
      * @returns {Array<ActiveEffect>} Array of active effects
      */
     getActiveEffects() {
@@ -45,14 +65,26 @@ export class ActiveEffectsContainer extends BG3Component {
         // Check if we should show passive (non-temporary) effects
         const showPassive = game.settings.get('bg3-hud-core', 'showPassiveActiveEffects');
 
-        if (showPassive) {
-            // Show all effects
-            return allEffects;
+        let filteredEffects = allEffects;
+        if (!showPassive) {
+            // Default: only show temporary effects (those with combat duration)
+            // Foundry's ActiveEffect has isTemporary getter that checks if effect has duration
+            filteredEffects = allEffects.filter(effect => effect.isTemporary);
         }
 
-        // Default: only show temporary effects (those with combat duration)
-        // Foundry's ActiveEffect has isTemporary getter that checks if effect has duration
-        return allEffects.filter(effect => effect.isTemporary);
+        // Deduplicate effects by composite key
+        // This prevents multiple icons for the same aura when modules create new effect instances
+        const seenKeys = new Set();
+        const uniqueEffects = [];
+        for (const effect of filteredEffects) {
+            const key = this._getEffectKey(effect);
+            if (!seenKeys.has(key)) {
+                seenKeys.add(key);
+                uniqueEffects.push(effect);
+            }
+        }
+
+        return uniqueEffects;
     }
 
     /**
@@ -67,8 +99,8 @@ export class ActiveEffectsContainer extends BG3Component {
         }
 
         const currentEffects = this.getActiveEffects();
-        const currentEffectIds = new Set(currentEffects.map(e => e.id));
-        const existingEffectIds = new Set(this.effectButtons.keys());
+        const currentEffectKeys = new Set(currentEffects.map(e => this._getEffectKey(e)));
+        const existingEffectKeys = new Set(this.effectButtons.keys());
 
         // Hide container if no effects
         if (currentEffects.length === 0) {
@@ -78,19 +110,20 @@ export class ActiveEffectsContainer extends BG3Component {
         }
 
         // Find effects to remove (no longer in current list)
-        for (const effectId of existingEffectIds) {
-            if (!currentEffectIds.has(effectId)) {
-                const button = this.effectButtons.get(effectId);
+        for (const effectKey of existingEffectKeys) {
+            if (!currentEffectKeys.has(effectKey)) {
+                const button = this.effectButtons.get(effectKey);
                 if (button) {
                     button.destroy();
-                    this.effectButtons.delete(effectId);
+                    this.effectButtons.delete(effectKey);
                 }
             }
         }
 
         // Find effects to add (new in current list) or update (existing)
         for (const effect of currentEffects) {
-            const existingButton = this.effectButtons.get(effect.id);
+            const effectKey = this._getEffectKey(effect);
+            const existingButton = this.effectButtons.get(effectKey);
 
             if (!existingButton) {
                 // New effect - create button
@@ -100,7 +133,7 @@ export class ActiveEffectsContainer extends BG3Component {
                 });
                 const buttonElement = await newButton.render();
                 this.element.appendChild(buttonElement);
-                this.effectButtons.set(effect.id, newButton);
+                this.effectButtons.set(effectKey, newButton);
             } else {
                 // Existing effect - check if it needs update
                 existingButton.effect = effect; // Update reference
@@ -108,10 +141,25 @@ export class ActiveEffectsContainer extends BG3Component {
             }
         }
 
+        // DOM cleanup: Remove any orphaned children not tracked in the Map
+        // This catches edge cases where DOM elements persist but aren't in our tracking
+        const trackedElements = new Set();
+        for (const button of this.effectButtons.values()) {
+            if (button.element) {
+                trackedElements.add(button.element);
+            }
+        }
+        const children = Array.from(this.element.children);
+        for (const child of children) {
+            if (!trackedElements.has(child)) {
+                this.element.removeChild(child);
+            }
+        }
+
         // Ensure DOM order matches effect order (for new additions)
-        const orderedIds = currentEffects.map(e => e.id);
-        for (let i = 0; i < orderedIds.length; i++) {
-            const button = this.effectButtons.get(orderedIds[i]);
+        const orderedKeys = currentEffects.map(e => this._getEffectKey(e));
+        for (let i = 0; i < orderedKeys.length; i++) {
+            const button = this.effectButtons.get(orderedKeys[i]);
             if (button && button.element) {
                 // Move to correct position if needed
                 const currentIndex = Array.from(this.element.children).indexOf(button.element);

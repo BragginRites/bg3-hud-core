@@ -1,3 +1,11 @@
+## [0.2.2] - 2026-01-14
+
+### Changed
+- **Show/Hide Portrait HP Controls**: Removed setting from Layout & Appearance → Container Configuration. Now handled by system adapters.
+
+### Fixed
+- **Portrait Data Colors Reset**: Fixed portrait data badge colors resetting to white when HP changes. The `updatePortraitData()` method now correctly uses the layered config hierarchy and applies separate icon/text colors (#22).
+
 ## [0.2.1] - 2026-01-10
 
 ### Added

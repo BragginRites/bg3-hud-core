@@ -589,6 +589,13 @@ export class TooltipManager {
                     // Only show if we're still on the same target
                     if (this.pendingTarget === target) {
                         try {
+                            // Verify the target still has the UUID (cell may have been cleared)
+                            const currentUuid = target.dataset?.uuid;
+                            if (!currentUuid || currentUuid !== uuid) {
+                                // Cell was cleared or changed - don't show stale tooltip
+                                return;
+                            }
+
                             const item = await fromUuid(uuid);
                             if (item) {
                                 await this.showRichTooltip(target, item, systemId, {}, uuid);

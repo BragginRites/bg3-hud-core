@@ -91,6 +91,13 @@ export class GridCell extends BG3Component {
      * @private
      */
     _renderEmptyState() {
+        // Clear tooltip-related data attributes to prevent ghost tooltips
+        // These could remain from a previously filled cell
+        this.element.removeAttribute('data-uuid');
+        this.element.removeAttribute('data-slot');
+        this.element.removeAttribute('data-tooltip');
+        this.element.removeAttribute('draggable');
+
         const placeholder = this.createElement('div', ['bg3-cell-placeholder']);
         this.element.appendChild(placeholder);
     }

@@ -175,6 +175,10 @@ export class ControlContainer extends BG3Component {
 
         const hotbarContainer = this.hotbarApp.components.hotbar;
 
+        // Load fresh state from persistence to ensure items are current
+        // This prevents stale data when items were moved via drag-drop
+        const state = await this.hotbarApp.persistenceManager.loadState();
+
         // Add row to each grid data
         for (let i = 0; i < hotbarContainer.grids.length; i++) {
             hotbarContainer.grids[i].rows++;
@@ -184,6 +188,8 @@ export class ControlContainer extends BG3Component {
         for (let i = 0; i < hotbarContainer.gridContainers.length; i++) {
             const gridContainer = hotbarContainer.gridContainers[i];
             gridContainer.rows = hotbarContainer.grids[i].rows;
+            // Sync items from persistence state to ensure current data
+            gridContainer.items = state.hotbar?.grids?.[i]?.items || {};
             await gridContainer.render();
         }
 
@@ -208,6 +214,10 @@ export class ControlContainer extends BG3Component {
             return;
         }
 
+        // Load fresh state from persistence to ensure items are current
+        // This prevents stale data when items were moved via drag-drop
+        const state = await this.hotbarApp.persistenceManager.loadState();
+
         // Remove row from each grid data
         for (let i = 0; i < hotbarContainer.grids.length; i++) {
             hotbarContainer.grids[i].rows--;
@@ -217,6 +227,8 @@ export class ControlContainer extends BG3Component {
         for (let i = 0; i < hotbarContainer.gridContainers.length; i++) {
             const gridContainer = hotbarContainer.gridContainers[i];
             gridContainer.rows = hotbarContainer.grids[i].rows;
+            // Sync items from persistence state to ensure current data
+            gridContainer.items = state.hotbar?.grids?.[i]?.items || {};
             await gridContainer.render();
         }
 
