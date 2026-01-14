@@ -5,6 +5,7 @@
 
 ### Fixed
 - **Portrait Data Colors Reset**: Fixed portrait data badge colors resetting to white when HP changes. The `updatePortraitData()` method now correctly uses the layered config hierarchy and applies separate icon/text colors (#22).
+- **Aura Effect Icon Duplication**: Fixed aura effects (e.g., Paladin Aura of Protection) creating duplicate icons when tokens enter/exit the aura. Active effects are now deduplicated by origin + name to handle modules that recreate effect IDs on each aura entry.
 
 ## [0.2.1] - 2026-01-10
 
