@@ -1,3 +1,12 @@
+## [0.2.3] - 2026-01-28
+
+### Fixed
+- **Target Selector Min Targets**: Fixed issue where adjusting the max targets down didn't update the min targets, preventing confirmation with fewer than the original minimum (Issue #23).
+- **Macro Bar Visibility**: Fixed "Hide When BG3 HUD Visible" setting not working correctly - macro bar now properly shows when no token is selected (Issue #8).
+
+### Changed
+- **Discord Link Updated**: Updated community Discord invite link.
+
 ## [0.2.2] - 2026-01-14
 
 ### Changed

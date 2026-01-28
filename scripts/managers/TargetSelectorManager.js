@@ -196,6 +196,12 @@ export class TargetSelectorManager {
         const newMax = Math.max(1, (this.requirements.maxTargets || 1) + delta);
         this.requirements.maxTargets = newMax;
 
+        // Cap minTargets to the new maxTargets (ensures min <= max)
+        // This fixes Issue #23: users can now confirm with fewer than original min targets
+        if (this.requirements.minTargets > newMax) {
+            this.requirements.minTargets = newMax;
+        }
+
         // Remove excess targets if new max is lower
         while (this.selectedTargets.length > newMax) {
             const removedTarget = this.selectedTargets.pop();

@@ -310,12 +310,20 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
         // Check if in GM hotbar mode
         const isGMHotbarMode = this.canGMHotbar() || this.overrideGMHotbar;
 
+        // Ensure interaction coordinator has the active adapter early
+        // This is important for proper initialization even when no token is selected (Issue #8)
+        if (BG3HUD_REGISTRY?.activeAdapter && this.interactionCoordinator?.setAdapter) {
+            this.interactionCoordinator.setAdapter(BG3HUD_REGISTRY.activeAdapter);
+        }
+
         // Only initialize if we have a token OR we're in GM hotbar mode
         if (!this.currentToken && !isGMHotbarMode) {
             // Hide the UI when no token is selected and not in GM mode
             if (this.element) {
                 this.element.classList.add('bg3-hud-hidden');
             }
+            // Apply macrobar setting since HUD is now hidden (Issue #8)
+            applyMacrobarCollapseSetting(false);
             return;
         }
 
@@ -458,11 +466,6 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
             // Create control container
             this.components.controls = await this.componentFactory.createControlContainer();
             this.components.hotbar.element.appendChild(await this.components.controls.render());
-        }
-
-        // Ensure interaction coordinator has the active adapter
-        if (BG3HUD_REGISTRY?.activeAdapter && this.interactionCoordinator?.setAdapter) {
-            this.interactionCoordinator.setAdapter(BG3HUD_REGISTRY.activeAdapter);
         }
 
     }

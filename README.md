@@ -3,7 +3,7 @@
 ![Foundry Version](https://img.shields.io/badge/Foundry-v13-orange)
 [![Patreon](https://img.shields.io/badge/Patreon-Support-red?logo=patreon)](https://www.patreon.com/BragginRites)
 [![Ko-fi](https://img.shields.io/badge/Ko--fi-Buy%20Coffee-blue?logo=ko-fi)](https://ko-fi.com/bragginrites)
-[![Discord](https://img.shields.io/badge/Discord-Join%20Server-7289da?logo=discord)](https://discord.gg/8XEqK2fv2g)
+[![Discord](https://img.shields.io/badge/Discord-Join%20Server-7289da?logo=discord)](https://discord.gg/bnVCtQuyMr)
 
 The core UI framework for the BG3 Inspired HUD system. This module provides the foundational components and infrastructure that system-specific adapter modules build upon to deliver a Baldur's Gate 3-inspired interface for Foundry VTT.
 
@@ -67,4 +67,4 @@ This module is an independent fan creation, drawing inspiration from the excelle
 
 Found a bug? Have a feature request?
 * Submit issues via [GitHub Issues](https://github.com/BragginRites/bg3-hud-core/issues).
-* Join the discussion on [Discord](https://discord.gg/8XEqK2fv2g).
+* Join the discussion on [Discord](https://discord.gg/bnVCtQuyMr).
