@@ -28,47 +28,46 @@ export class InfoContainer extends BG3Component {
      * @returns {Promise<HTMLElement>}
      */
     async render() {
-        // Create wrapper (only contains button)
-        this.element = this.createElement('div', ['bg3-info-container-wrapper']);
+        if (!this.element) {
+            // Create wrapper (only contains button)
+            this.element = this.createElement('div', ['bg3-info-container-wrapper']);
 
-        // Create toggle button (positioned above portrait)
-        const button = this.createElement('button', ['bg3-info-button']);
-        // Mark as UI element to prevent system tooltips (dnd5e2, etc.) from showing
-        button.dataset.bg3Ui = 'true';
-        button.innerHTML = '<i class="fas fa-user-circle"></i>';
-        const infoTooltip = game.i18n.localize('bg3-hud-core.Tooltips.InfoButton');
-        button.setAttribute('data-tooltip', infoTooltip);
-        button.setAttribute('data-tooltip-direction', 'UP');
+            // Create toggle button (positioned above portrait)
+            const button = this.createElement('button', ['bg3-info-button']);
+            // Mark as UI element to prevent system tooltips (dnd5e2, etc.) from showing
+            button.dataset.bg3Ui = 'true';
+            button.innerHTML = '<i class="fas fa-user-circle"></i>';
+            const infoTooltip = game.i18n.localize('bg3-hud-core.Tooltips.InfoButton');
+            button.setAttribute('data-tooltip', infoTooltip);
+            button.setAttribute('data-tooltip-direction', 'UP');
 
-        this.addEventListener(button, 'click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            this.toggle();
-        });
+            this.addEventListener(button, 'click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                this.toggle();
+            });
 
-        // Right-click for initiative roll (system adapters can override)
-        this.addEventListener(button, 'contextmenu', async (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            await this.onButtonRightClick(e);
-        });
+            // Right-click for initiative roll (system adapters can override)
+            this.addEventListener(button, 'contextmenu', async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                await this.onButtonRightClick(e);
+            });
 
-        // Create sliding panel - will be appended to body when opened
-        // This breaks out of the parent's stacking context so it can appear above character sheets
-        const panel = this.createElement('div', ['bg3-info-panel', 'closed']);
-        panel.style.display = 'none'; // Hidden until opened
+            // Create sliding panel - will be appended to body when opened
+            // This breaks out of the parent's stacking context so it can appear above character sheets
+            const panel = this.createElement('div', ['bg3-info-panel', 'closed']);
+            panel.style.display = 'none'; // Hidden until opened
 
-        // Render panel content (to be overridden by adapters)
-        const content = await this.renderContent();
-        if (content) {
-            panel.appendChild(content);
+            // Only button goes in wrapper - panel goes to body
+            this.element.appendChild(button);
+
+            this.button = button;
+            this.panel = panel;
         }
 
-        // Only button goes in wrapper - panel goes to body
-        this.element.appendChild(button);
-
-        this.button = button;
-        this.panel = panel;
+        // Always update content (to be overridden by adapters)
+        await this.update();
 
         return this.element;
     }
@@ -193,7 +192,7 @@ export class InfoContainer extends BG3Component {
 
         // Close when clicking outside the container
         this._clickOutsideHandler = (event) => {
-            if (!this.element.contains(event.target)) {
+            if (!this.element.contains(event.target) && !this.panel?.contains(event.target)) {
                 this.close();
             }
         };

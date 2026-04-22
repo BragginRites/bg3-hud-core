@@ -1,3 +1,10 @@
+## [0.2.4] - 2026-04-22
+
+### Fixed
+- **Info Panel Stability**: Fixed critical bug where the info panel would disappear when interacting with its internal content (skills, abilities) due to incorrect event propagation and containment checks.
+- **Info Panel Lifecycle**: Refactored `render()` to be idempotent, preventing "zombie panels" and duplicate event listeners from being created during HUD re-renders (e.g. on token selection or attribute changes).
+- **Proficiency Borders**: Implemented border-based proficiency indicators (blue/gold/silver) for a cleaner UX.
+
 ## [0.2.3] - 2026-01-28
 
 ### Fixed

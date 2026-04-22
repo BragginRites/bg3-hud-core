@@ -314,3 +314,42 @@
     border-bottom: var(--bg3-hotbar-border-size) solid var(--bg3-hotbar-border-color);
     letter-spacing: 0.5px;
 }
+
+/* New elements for scores and proficiency */
+.bg3-info-ability-score {
+    font-size: 0.9em;
+    color: var(--bg3-text-secondary-color);
+    margin: 0 8px;
+    opacity: 0.7;
+}
+
+/* Proficiency border colors */
+.bg3-info-skill.proficient,
+.bg3-info-save.proficient {
+    border-color: rgba(52, 151, 217, 0.8);
+    box-shadow: inset 2px 0 0 rgba(52, 151, 217, 0.5);
+}
+
+.bg3-info-skill.expertise,
+.bg3-info-save.expertise {
+    border-color: rgba(230, 176, 30, 0.8);
+    box-shadow: inset 2px 0 0 rgba(230, 176, 30, 0.5);
+}
+
+.bg3-info-skill.half-proficient,
+.bg3-info-save.half-proficient {
+    border-color: rgba(160, 160, 160, 0.6);
+    box-shadow: inset 2px 0 0 rgba(160, 160, 160, 0.3);
+}
+
+.bg3-info-skill.master,
+.bg3-info-save.master {
+    border-color: rgba(155, 89, 182, 0.8);
+    box-shadow: inset 2px 0 0 rgba(155, 89, 182, 0.5);
+}
+
+.bg3-info-skill.legendary,
+.bg3-info-save.legendary {
+    border-color: rgba(231, 76, 60, 0.9);
+    box-shadow: inset 2px 0 0 rgba(231, 76, 60, 0.6);
+}
