@@ -187,6 +187,10 @@
         "SyncedToWorld": "Dados de retrato sincronizados com o mundo. Agora, todos os jogadores irão usar esta configuração",
         "WorldConfigActive": "Seu mestre definiu uma configuração global",
         "UseMyOwnConfig": "Usar minha própria configuração"
+      },
+      "AutoPopulate": {
+        "Options": "Opções",
+        "HotbarGrid": "Grade {number} da Hotbar"
       }
     },
     "Controls": {
@@ -196,11 +200,52 @@
         "DeselectToken": "Desselecionar Token",
         "Opacity": "Opacidade",
         "DragDrop": "Arrastar & Soltar"
+      },
+      "GMToggle": {
+        "Tooltip": "Alternar entre Hotbar do Mestre e Hotbar de Token"
+      },
+      "Row": {
+        "Add": "Adicionar Linha",
+        "Remove": "Remover Linha"
+      },
+      "Settings": {
+        "Tooltip": "Configurações<br>(Clique direito para ações rápidas)",
+        "ResetLayout": "Redefinir Layout",
+        "ClearAllItems": "Limpar Todos os Itens",
+        "SaveLayout": "Salvar Layout como Padrão do Ator",
+        "ExportLayout": "Exportar Layout",
+        "ImportLayout": "Importar Layout"
       }
+    },
+    "ContextMenu": {
+      "EditItem": "Editar Item",
+      "RemoveItem": "Remover Item",
+      "SortContainer": "Ordenar Contêiner",
+      "ClearContainer": "Limpar Contêiner",
+      "AutoPopulateContainer": "Auto-Preencher Contêiner",
+      "AutoPopulateHint": "Preencha este contêiner manualmente com itens do ator. Observação: os NPCs são preenchidos automaticamente na criação do token, mas os personagens dos jogadores devem usar esta opção."
+    },
+    "Filters": {
+      "LeftClick": "Clique Esquerdo: Destacar itens correspondentes",
+      "RightClick": "Clique Direito: Marcar como usado"
     },
     "Tooltips": {
       "InfoButton": "Informações do Personagem<br><small>Clique direito para Iniciativa</small>",
       "SwitchWeaponSet": "Clique: Alternar para conjunto de armas {number}"
+    },
+    "Views": {
+      "CreateTitle": "Criar Nova Visualização",
+      "EditTitle": "Editar Visualização",
+      "CreateButton": "Criar",
+      "SaveButton": "Salvar",
+      "DefaultNewName": "Nova Visualização",
+      "DefaultEditName": "Visualizar",
+      "NameLabel": "Nome da Visualização",
+      "NamePlaceholder": "Insira o nome da visualização...",
+      "IconLabel": "Selecionar Ícone",
+      "CustomIconLabel": "Ou insira uma classe personalizada do Font Awesome:",
+      "CustomIconPlaceholder": "ex: fa-sparkles",
+      "ErrorEmptyName": "O nome da visualização não pode estar vazio"
     },
     "TargetSelector": {
       "Instructions": "Selecione {min}-{max} alvos. Pressione {confirm} para confirmar ou {cancel} para cancelar.",
