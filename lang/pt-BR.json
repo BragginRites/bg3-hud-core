@@ -1,0 +1,277 @@
+{
+  "bg3-hud-core": {
+    "Settings": {
+      "Theme": {
+        "Name": "Configurações de Tema",
+        "Label": "Configurar Tema",
+        "Hint": "Personalize cores, tamanhos e aparência do BG3 HUD",
+        "Title": "Configurações de Tema",
+        "General": "Geral",
+        "GeneralHint": "Parâmetros aplicados a todos os componentes abaixo, caso não especificado.",
+        "UseGeneralEverywhere": "Usar Cores Gerais em Tudo",
+        "UseGeneralEverywhereHint": "Quando ativado, apenas a seção Geral será usada. Desative para personalizar cada seção.",
+        "Normal": "Normal",
+        "Hover": "Ao Passar o Mouse",
+        "BorderColor": "Cor da Borda",
+        "ContainerBackgroundColor": "Fundo do Contêiner",
+        "TertiaryBackgroundColor": "Fundo Terciário",
+        "TextColor": "Cor do Texto",
+        "TextSecondaryColor": "Texto Secundário",
+        "ContainerBorderSize": "Tamanho da Borda do Contêiner",
+        "ContainerBorderRadius": "Raio da Borda do Contêiner",
+        "TertiaryBorderSize": "Tamanho da Borda Terciária",
+        "TertiaryBorderRadius": "Raio da Borda Terciária",
+        "PortraitSize": "Tamanho do Retrato",
+        "CellSize": "Tamanho da Célula",
+        "Portrait": "Retrato",
+        "Hotbar": "Hotbar",
+        "SubContainer": "Subcontêiner",
+        "SubBackgroundColor": "Fundo do Subcontêiner",
+        "Cell": "Célula",
+        "DragbarColor": "Separador do Contêiner",
+        "WeaponSets": "Conjuntos de Armas",
+        "SmallContainers": "Contêiners Pequenos",
+        "SmallContainersHint": "Estilo compartilhado para controles, visualizações, filtros, passivas e efeitos ativos de contêiners.",
+        "Tooltip": "Dica",
+        "ComponentColor": "Cor do Componente",
+        "GridCells": "Células da Grade",
+        "CellBorderWidth": "Largura da Borda da Célula",
+        "CellBorderRadius": "Raio da Borda da Célula",
+        "GridGap": "Espaçamento da Grade",
+        "Save": "Salvar",
+        "Reset": "Restaurar Padrões",
+        "ResetSuccess": "Tema restaurado para o padrão"
+      },
+      "NormalOpacity": {
+        "Name": "Opacidade Normal",
+        "Hint": "Opacidade da HUD quando visível (0.1 a 1.0)"
+      },
+      "FadedOpacity": {
+        "Name": "Opacidade Esmaecida",
+        "Hint": "Opacidade quando a HUD desaparece após inatividade (defina como 1.0 para desativar)"
+      },
+      "FadeOutDelay": {
+        "Name": "Atraso para Desaparecer (segundos)",
+        "Hint": "Tempo de espera antes da HUD desaparecer (1 a 30 segundos)"
+      },
+      "AutoScale": {
+        "Name": "Escala Automática",
+        "Hint": "Ajusta automaticamente a interface com base na altura da tela"
+      },
+      "UIScale": {
+        "Name": "Escala da Interface",
+        "Hint": "Escala manual da interface (50% a 300%). Usado apenas quando Escala Automática estiver desativada."
+      },
+      "UIPosition": {
+        "Name": "Posição da Interface",
+        "Hint": "Onde posicionar a HUD na tela",
+        "Center": "Centro",
+        "Left": "Esquerda",
+        "Right": "Direita"
+      },
+      "PosPadding": {
+        "Name": "Espaçamento Horizontal",
+        "Hint": "Distância horizontal da borda da tela (pixels)"
+      },
+      "PosPaddingBottom": {
+        "Name": "Espaçamento Inferior",
+        "Hint": "Distância da parte inferior da tela (pixels)"
+      },
+      "PassivesContainerIconsPerRow": {
+        "Name": "Ícones de Características Passivas por Linha",
+        "Hint": "Quantidade de ícones de Características Passivas exibidos por linha antes da quebra de linha"
+      },
+      "ActiveEffectsContainerIconsPerRow": {
+        "Name": "Ícones de Efeitos Ativos por Linha",
+        "Hint": "Quantidade de ícones de Efeitos Ativos exibidos por linha antes da quebra de linha"
+      },
+      "ShowPassiveActiveEffects": {
+        "Name": "Mostrar Efeitos Ativos Passivos",
+        "Hint": "Quando ativado, exibe efeitos ativos permanentes/passivos (sem duração), além dos efeitos temporários"
+      },
+      "ShowFilters": {
+        "Name": "Mostrar Ícones de Filtros",
+        "Hint": "Exibe os ícones de filtro de espaço de magia e tipo de ação acima da hotbar"
+      },
+      "ShowPortraitHPControls": {
+        "Name": "Mostrar Controles de PV no Retrato",
+        "Hint": "Exibe os botões para definir PV para mínimo (caveira), máximo (coração) e o campo de entrada de PV na interface do retrato"
+      },
+      "LayoutAppearance": {
+        "MenuTitle": "Layout & Aparência",
+        "MenuName": "Layout & Aparência",
+        "MenuLabel": "Configurações de Layout & Aparência",
+        "MenuHint": "Ajuste opacidade, escala, posicionamento e a densidade do contêiner",
+        "OpacityLegend": "Opacidade & Fade",
+        "ScalePositionLegend": "Escala & Posição",
+        "ContainerConfigurationLegend": "Configuração do Contêiner"
+      },
+      "Appearance": {
+        "MenuTitle": "Configurações de Aparência",
+        "MenuName": "Configurações de Aparência",
+        "MenuLabel": "Configurações de Aparência",
+        "MenuHint": "Ajuste opacidade e tempo de fade da HUD",
+        "Legend": "Aparência"
+      },
+      "Layout": {
+        "MenuTitle": "Layout & Posição",
+        "MenuName": "Layout & Posição",
+        "MenuLabel": "Configurações de Layout & Posição",
+        "MenuHint": "Ajuste escala e posição da HUD",
+        "Legend": "Layout & Posição"
+      },
+      "FoundryUI": {
+        "MenuTitle": "Interface do Foundry",
+        "MenuName": "Interface do Foundry",
+        "MenuLabel": "Configurações da Interface do Foundry",
+        "MenuHint": "Controle a visibilidade da barra de macros e tempo de dica",
+        "Legend": "Interface do Foundry"
+      },
+      "GMHotbar": {
+        "MenuTitle": "Hotbar do Mestre",
+        "MenuName": "Hotbar do Mestre",
+        "MenuLabel": "Configurações da Hotbar do Mestre",
+        "MenuHint": "Configure visibilidade da hotbar do Mestre",
+        "Legend": "Hotbar do Mestre"
+      },
+      "TargetSelector": {
+        "MenuTitle": "Seletor de Alvos",
+        "MenuName": "Seletor de Alvos",
+        "MenuLabel": "Configurações do Seletor de Alvos",
+        "MenuHint": "Configure a marcação de alvos no estilo BG3 para magias e habilidades",
+        "Legend": "Seleção de Alvos",
+        "EnableName": "Ativar Seletor de Alvos",
+        "EnableHint": "Quando ativado, clicar em magias/habilidades que precisam de alvos exibirá uma solicitação para marcação de alvo",
+        "SkipName": "Pular se Existir Alvo Válido",
+        "SkipHint": "Ignora o seletor de alvo se você já tiver um alvo válido marcado",
+        "RangeName": "Forçar Verificação de Alcance",
+        "RangeHint": "Impede a marcação de tokens que estejam fora do alcance",
+        "AutoSelfName": "Auto-Marcar em Pessoal",
+        "AutoSelfHint": "Defina automaticamente a si mesmo como alvo para habilidades de auto-marcação",
+        "RangeIndicatorLegend": "Indicador de Alcance",
+        "ShowRangeIndicatorsName": "Mostrar Indicador de Alcance",
+        "ShowRangeIndicatorsHint": "Exibir um indicador visual mostrando o alcance da habilidade na tela",
+        "RangeShapeName": "Formato do Indicador",
+        "RangeShapeHint": "Formato do indicador de alcance (círculo ou quadrado)",
+        "RangeShapeCircle": "Círculo",
+        "RangeShapeSquare": "Quadrado",
+        "RangeAnimationName": "Animação do Indicador",
+        "RangeAnimationHint": "Estilo da animação para o indicador de alcance",
+        "RangeAnimationPulse": "Pulso",
+        "RangeAnimationStatic": "Estático",
+        "RangeLineWidthName": "Largura da Linha",
+        "RangeLineWidthHint": "Espessura da linha do indicador de alcance",
+        "RangeLineWidthThin": "Fina (1px)",
+        "RangeLineWidthNormal": "Normal (2px)",
+        "RangeLineWidthThick": "Grossa (3px)",
+        "RangeLineWidthExtraThick": "Muito Grossa (4px)",
+        "RangeColorName": "Cor do Indicador",
+        "RangeColorHint": "Cor do indicador de alcance (formato hexadecimal)"
+      },
+      "PortraitData": {
+        "Title": "Configuração de Dados do Retrato",
+        "MenuName": "Dados do Retrato",
+        "MenuLabel": "Configurar Dados do Retrato",
+        "MenuHint": "Exibe indicadores de dados ao redor do retrato (CA, Deslocamento, Pontos Heróicos, etc.)",
+        "ShowName": "Mostrar Dados no Retrato",
+        "ShowHint": "Exibe indicadores de dados ao redor do retrato",
+        "TopLeft": "Superior Esquerdo",
+        "TopRight": "Superior Direito",
+        "MiddleLeft": "Centro Esquerdo",
+        "MiddleRight": "Centro Direito",
+        "BottomLeft": "Inferior Esquerdo",
+        "BottomRight": "Inferior Direito",
+        "Saved": "Configuração de dados do retrato salva",
+        "WorldOverride": "Usar Configuração do Mundo (Todos os Jogadores)",
+        "SyncToWorld": "Sincronizar com o Mundo",
+        "SyncedToWorld": "Dados de retrato sincronizados com o mundo. Agora, todos os jogadores irão usar esta configuração",
+        "WorldConfigActive": "Seu mestre definiu uma configuração global",
+        "UseMyOwnConfig": "Usar minha própria configuração"
+      },
+      "AutoPopulate": {
+        "Options": "Opções",
+        "HotbarGrid": "Grade {number} da Hotbar"
+      }
+    },
+    "Controls": {
+      "Lock": {
+        "Tooltip": "Travar Configurações<br>(Clique direito para opções)",
+        "NoSettingsWarning": "Por favor, clique com o botão direito no botão de bloqueio para selecionar quais configurações deseja bloquear.",
+        "DeselectToken": "Desselecionar Token",
+        "Opacity": "Opacidade",
+        "DragDrop": "Arrastar & Soltar"
+      },
+      "GMToggle": {
+        "Tooltip": "Alternar entre Hotbar do Mestre e Hotbar de Token"
+      },
+      "Row": {
+        "Add": "Adicionar Linha",
+        "Remove": "Remover Linha"
+      },
+      "Settings": {
+        "Tooltip": "Configurações<br>(Clique direito para ações rápidas)",
+        "ResetLayout": "Redefinir Layout",
+        "ClearAllItems": "Limpar Todos os Itens",
+        "SaveLayout": "Salvar Layout como Padrão do Ator",
+        "ExportLayout": "Exportar Layout",
+        "ImportLayout": "Importar Layout"
+      }
+    },
+    "ContextMenu": {
+      "EditItem": "Editar Item",
+      "RemoveItem": "Remover Item",
+      "SortContainer": "Ordenar Contêiner",
+      "ClearContainer": "Limpar Contêiner",
+      "AutoPopulateContainer": "Auto-Preencher Contêiner",
+      "AutoPopulateHint": "Preencha este contêiner manualmente com itens do ator. Observação: os NPCs são preenchidos automaticamente na criação do token, mas os personagens dos jogadores devem usar esta opção."
+    },
+    "Filters": {
+      "LeftClick": "Clique Esquerdo: Destacar itens correspondentes",
+      "RightClick": "Clique Direito: Marcar como usado"
+    },
+    "Tooltips": {
+      "InfoButton": "Informações do Personagem<br><small>Clique direito para Iniciativa</small>",
+      "SwitchWeaponSet": "Clique: Alternar para conjunto de armas {number}"
+    },
+    "Views": {
+      "CreateTitle": "Criar Nova Visualização",
+      "EditTitle": "Editar Visualização",
+      "CreateButton": "Criar",
+      "SaveButton": "Salvar",
+      "DefaultNewName": "Nova Visualização",
+      "DefaultEditName": "Visualizar",
+      "NameLabel": "Nome da Visualização",
+      "NamePlaceholder": "Insira o nome da visualização...",
+      "IconLabel": "Selecionar Ícone",
+      "CustomIconLabel": "Ou insira uma classe personalizada do Font Awesome:",
+      "CustomIconPlaceholder": "ex: fa-sparkles",
+      "ErrorEmptyName": "O nome da visualização não pode estar vazio"
+    },
+    "TargetSelector": {
+      "Instructions": "Selecione {min}-{max} alvos. Pressione {confirm} para confirmar ou {cancel} para cancelar.",
+      "AdjustTargets": "Ajuste os alvos com {plus}/{minus}",
+      "Activated": "Seleção de alvos ativa. Pressione {confirm} para confirmar ou {cancel} para cancelar.",
+      "Confirm": "Confirmar",
+      "Cancel": "Cancelar",
+      "SelectedTargets": "Alvos Selecionados",
+      "NoTargetsSelected": "Nenhum alvo selecionado",
+      "RemoveTarget": "Remover Alvo",
+      "Unlimited": "ilimitado",
+      "InvalidTarget": "Alvo inválido",
+      "NoActor": "O alvo não tem ator",
+      "TokenNotVisible": "O alvo não está visível",
+      "SelfOnly": "Pode marcar apenas a si mesmo",
+      "CannotTargetSelf": "Não pode marcar a si mesmo",
+      "MustBeEnemy": "Deve marcar um inimigo",
+      "MustBeAlly": "Deve marcar um aliado",
+      "MustBeCreature": "Deve marcar uma criatura",
+      "OutOfRange": "O alvo está fora de alcance",
+      "Flanked": "Flanqueado",
+      "MaxTargetsReached": "Máximo de {max} alvos alcançado",
+      "MinTargetsRequired": "Mínimo de {min} alvos necessário",
+      "IncreaseMax": "Aumentar Máximo de Alvos",
+      "DecreaseMax": "Diminuir Máximo de Alvos"
+    },
+    "MaxSelectionsReached": "Máximo de {max} seleções alcançado"
+  }
+}
