@@ -139,7 +139,7 @@ export function registerSettings() {
         moduleId: MODULE_ID,
         titleKey: 'bg3-hud-core.Settings.FoundryUI.MenuTitle',
         sections: [
-            { legend: 'bg3-hud-core.Settings.FoundryUI.Legend', keys: ['collapseMacrobar', 'tooltipDelay'] }
+            { legend: 'bg3-hud-core.Settings.FoundryUI.Legend', keys: ['collapseMacrobar', 'tooltipDelay', 'nameOnlyTooltips'] }
         ]
     });
 
@@ -524,6 +524,16 @@ export function registerSettings() {
                 tooltipManager.delay = value;
             }
         }
+    });
+
+    // Name-only tooltips setting
+    game.settings.register(MODULE_ID, 'nameOnlyTooltips', {
+        name: 'bg3-hud-core.Settings.FoundryUI.NameOnlyTooltipsName',
+        hint: 'bg3-hud-core.Settings.FoundryUI.NameOnlyTooltipsHint',
+        scope: 'client',
+        config: false,
+        type: Boolean,
+        default: false
     });
 
     // GM Hotbar settings (submenu-managed)

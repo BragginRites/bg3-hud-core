@@ -125,7 +125,9 @@
         "MenuName": "Foundry UI",
         "MenuLabel": "Foundry UI Settings",
         "MenuHint": "Control macro bar visibility and tooltip timing",
-        "Legend": "Foundry UI"
+        "Legend": "Foundry UI",
+        "NameOnlyTooltipsName": "Name-Only Tooltips",
+        "NameOnlyTooltipsHint": "Use simple, native tooltips instead of rich system tooltips for items, spells, and features."
       },
       "GMHotbar": {
         "MenuTitle": "GM Hotbar",

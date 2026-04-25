@@ -55,9 +55,34 @@ export class UpdateCoordinator {
             return; // Don't switch away from GM hotbar if override is set
         }
 
-        // Check how many tokens are currently controlled
-        const controlledTokens = canvas.tokens.controlled;
+        // Filter out group actors from controlled tokens
+        const controlledTokens = canvas.tokens.controlled.filter(t => {
+            const adapter = BG3HUD_REGISTRY.activeAdapter;
+            return adapter && typeof adapter.isCompatible === 'function' ? adapter.isCompatible(t.actor) : t.actor?.type !== 'group';
+        });
         const multipleTokensControlled = controlledTokens.length > 1;
+
+        // If the current token being controlled/uncontrolled is not compatible, 
+        // ignore the event unless it changes our valid selection count
+        const adapter = BG3HUD_REGISTRY.activeAdapter;
+        const isCompatible = adapter && typeof adapter.isCompatible === 'function' ? adapter.isCompatible(token.actor) : token.actor?.type !== 'group';
+        
+        if (!isCompatible) {
+            // Only proceed if we still need to evaluate the remaining valid tokens
+            if (controlledTokens.length === 1 && this.hotbarApp.currentToken !== controlledTokens[0]) {
+                // Another valid token is selected, show it
+                this.hotbarApp.overrideGMHotbar = false;
+                this.hotbarApp.currentToken = controlledTokens[0];
+                this.hotbarApp.currentActor = controlledTokens[0].actor;
+                await this.hotbarApp.refresh();
+            } else if (controlledTokens.length !== 1 && this.hotbarApp.currentToken) {
+                // We lost our single valid selection
+                this.hotbarApp.currentToken = null;
+                this.hotbarApp.currentActor = null;
+                await this.hotbarApp.refresh();
+            }
+            return;
+        }
 
         if (controlled) {
             if (multipleTokensControlled) {
@@ -66,7 +91,7 @@ export class UpdateCoordinator {
                 this.hotbarApp.currentToken = null;
                 this.hotbarApp.currentActor = null;
                 await this.hotbarApp.refresh();
-            } else {
+            } else if (controlledTokens.length === 1) {
                 // Single token controlled - show UI normally
                 this.hotbarApp.overrideGMHotbar = false; // Clear override when selecting token
                 this.hotbarApp.currentToken = token;
@@ -112,7 +137,11 @@ export class UpdateCoordinator {
         // This is necessary because token control state may not be immediately available
         await new Promise(resolve => setTimeout(resolve, 100));
 
-        const controlledTokens = canvas.tokens?.controlled || [];
+        // Filter out incompatible actors (like groups/vehicles)
+        const controlledTokens = (canvas.tokens?.controlled || []).filter(t => {
+            const adapter = BG3HUD_REGISTRY.activeAdapter;
+            return adapter && typeof adapter.isCompatible === 'function' ? adapter.isCompatible(t.actor) : t.actor?.type !== 'group';
+        });
 
         if (controlledTokens.length === 1) {
             // Single token selected - show HUD for it

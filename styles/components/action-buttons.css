@@ -63,8 +63,10 @@
     width: 100%;
     text-align: center;
     overflow: hidden;
-    font-size: calc(var(--bg3-hotbar-cell-size, 60px) / 4);
+    text-overflow: ellipsis;
+    font-size: clamp(8px, calc(var(--bg3-hotbar-cell-size, 60px) / 4.5), 14px);
     white-space: nowrap;
+    padding: 0 2px;
 }
 
 /* End Turn button specific styling */

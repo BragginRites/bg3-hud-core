@@ -188,6 +188,13 @@ export class TooltipManager {
             return; // Don't show duplicate tooltip
         }
 
+        // Check if the user wants name-only tooltips
+        const nameOnly = game.settings.get('bg3-hud-core', 'nameOnlyTooltips');
+        if (nameOnly && data.name) {
+            this.showSimpleTooltip(target, data.name, 'UP', [], uuid);
+            return;
+        }
+
         const renderer = this.renderers.get(systemId);
         if (!renderer) {
             console.warn(`BG3 HUD Core | No tooltip renderer registered for system: ${systemId}`);
