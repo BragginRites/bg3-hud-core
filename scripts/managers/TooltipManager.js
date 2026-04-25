@@ -190,10 +190,6 @@ export class TooltipManager {
 
         // Check if the user wants name-only tooltips
         const nameOnly = game.settings.get('bg3-hud-core', 'nameOnlyTooltips');
-        if (nameOnly && data.name) {
-            this.showSimpleTooltip(target, data.name, 'UP', [], uuid);
-            return;
-        }
 
         const renderer = this.renderers.get(systemId);
         if (!renderer) {
@@ -220,6 +216,12 @@ export class TooltipManager {
             } else {
                 console.error('BG3 HUD Core | Tooltip renderer must return content as string or HTMLElement, got:', typeof result.content);
                 return;
+            }
+
+            if (nameOnly) {
+                // Find and remove description elements to show only structure
+                const descElements = this.tooltipElement.querySelectorAll('.description, .tooltip-description');
+                descElements.forEach(el => el.remove());
             }
 
             // Apply classes - start with base classes
