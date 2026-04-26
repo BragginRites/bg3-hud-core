@@ -83,7 +83,7 @@ export class UpdateCoordinator {
         if (controlled) {
             if (multipleTokensControlled) {
                 // Multiple tokens selected - show GM hotbar if enabled, otherwise hide
-                console.log('BG3 HUD Core | Multiple tokens controlled');
+                console.debug('[bg3-hud-core] Multiple tokens controlled');
                 this.hotbarApp.currentToken = null;
                 this.hotbarApp.currentActor = null;
                 await this.hotbarApp.refresh();
@@ -289,7 +289,7 @@ export class UpdateCoordinator {
 
         // No full refresh fallback - only update elements that have explicit handlers
         // Unhandled changes are logged for debugging but don't trigger expensive re-renders
-        console.debug('BG3 HUD Core | UpdateCoordinator: Unhandled actor change (no refresh):', changes);
+        console.debug('[bg3-hud-core] UpdateCoordinator: Unhandled actor change (no refresh):', changes);
     }
 
     /**
@@ -648,7 +648,7 @@ export class UpdateCoordinator {
             // This ensures visual depletion is applied after cells have fresh data
             this._updateDepletionStatesDeferred(item.parent, changes);
         } catch (e) {
-            console.error('BG3 HUD Core | UpdateCoordinator: Failed to handle embedded item change', e);
+            console.error('[bg3-hud-core] UpdateCoordinator: Failed to handle embedded item change', e);
             await this.hotbarApp.refresh();
         }
     }

@@ -17,12 +17,12 @@ const MODULE_ID = 'bg3-hud-core';
 // ========================================
 
 Hooks.once('init', () => {
-    console.log('BG3 HUD Core | Registering settings');
+    console.info('[bg3-hud-core] Registering settings');
     registerSettings();
 });
 
 Hooks.once('ready', async () => {
-    console.log('BG3 HUD Core | Initializing');
+    console.info('[bg3-hud-core] Initializing');
 
     // Apply theme CSS variables early
     await applyTheme();
@@ -49,7 +49,7 @@ Hooks.once('ready', async () => {
     );
 
     // Trigger hook for adapters to register
-    console.log('BG3 HUD Core | Calling bg3HudReady hook for system adapters');
+    console.info('[bg3-hud-core] Calling bg3HudReady hook for system adapters');
     Hooks.callAll('bg3HudReady', BG3HUD_API);
 
     // Only wait for adapter registration if a compatible adapter module is active
@@ -62,7 +62,7 @@ Hooks.once('ready', async () => {
     }
 
     // Create and render the HUD
-    console.log('BG3 HUD Core | Creating HUD application');
+    console.info('[bg3-hud-core] Creating HUD application');
     ui.BG3HUD_APP = new BG3Hotbar();
     ui.BG3HUD_APP.render(true);
 
@@ -70,7 +70,7 @@ Hooks.once('ready', async () => {
     // This runs after the HUD is created but the canvas is already ready
     const token = canvas.tokens?.controlled?.[0];
     if (token) {
-        console.log('BG3 HUD Core | Found pre-selected token on load:', token.name);
+        console.debug('[bg3-hud-core] Found pre-selected token on load:', token.name);
         ui.BG3HUD_APP.currentToken = token;
         ui.BG3HUD_APP.currentActor = token.actor;
         // Slight delay to ensure HUD is fully rendered before refresh
@@ -83,7 +83,7 @@ Hooks.once('ready', async () => {
     // Apply container row settings
     applyContainerRowSettings();
 
-    console.log('BG3 HUD Core | Initialization complete');
+    console.info('[bg3-hud-core] Initialization complete');
 });
 
 // ========================================
@@ -173,6 +173,6 @@ Hooks.on('createToken', async (tokenDocument, options, userId) => {
             await adapter.onTokenCreationComplete(actor, tempPersistence);
         }
     } catch (error) {
-        console.error('BG3 HUD Core | Error in auto-populate on token creation:', error);
+        console.error('[bg3-hud-core] Error in auto-populate on token creation:', error);
     }
 });

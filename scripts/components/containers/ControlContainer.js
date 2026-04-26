@@ -169,7 +169,7 @@ export class ControlContainer extends BG3Component {
      */
     async _addRow() {
         if (!this.hotbarApp || !this.hotbarApp.components.hotbar) {
-            console.warn('BG3 HUD Core | No hotbar to add row to');
+            console.warn('[bg3-hud-core] No hotbar to add row to');
             return;
         }
 
@@ -203,7 +203,7 @@ export class ControlContainer extends BG3Component {
      */
     async _removeRow() {
         if (!this.hotbarApp || !this.hotbarApp.components.hotbar) {
-            console.warn('BG3 HUD Core | No hotbar to remove row from');
+            console.warn('[bg3-hud-core] No hotbar to remove row from');
             return;
         }
 
@@ -467,7 +467,7 @@ export class ControlContainer extends BG3Component {
 
             ui.notifications?.info(game.i18n.localize('bg3-hud-core.Notifications.SaveLayoutSuccess'));
         } catch (error) {
-            console.error('BG3 HUD Core | Failed to save layout as actor default:', error);
+            console.error('[bg3-hud-core] Failed to save layout as actor default:', error);
             ui.notifications?.error(game.i18n.localize('bg3-hud-core.Notifications.SaveLayoutFailed'));
         }
     }
@@ -555,7 +555,7 @@ export class ControlContainer extends BG3Component {
             await Promise.all(updates);
 
         } catch (error) {
-            console.error('BG3 HUD Core | Failed to clear all items:', error);
+            console.error('[bg3-hud-core] Failed to clear all items:', error);
             ui.notifications.error(game.i18n.localize('bg3-hud-core.Notifications.ClearAllFailed'));
         }
     }
@@ -636,7 +636,7 @@ export class ControlContainer extends BG3Component {
                         await this._importLayoutV1(importData);
                     }
                 } catch (error) {
-                    console.error('BG3 HUD Core | Failed to import layout:', error);
+                    console.error('[bg3-hud-core] Failed to import layout:', error);
                     ui.notifications.error(game.i18n.localize('bg3-hud-core.Notifications.ImportLayoutFailed'));
                 }
             };

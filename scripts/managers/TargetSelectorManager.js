@@ -54,7 +54,7 @@ export class TargetSelectorManager {
      */
     async select({ token, item, activity = null }) {
         if (this.isActive) {
-            console.warn('BG3 HUD Core | Target selector is already active');
+            console.warn('[bg3-hud-core] Target selector is already active');
             return [];
         }
 
@@ -150,7 +150,7 @@ export class TargetSelectorManager {
 
             const isInRange = distance <= range;
 
-            console.log(`BG3 HUD Core | Range Check: ${this.sourceToken?.name} → ${token?.name}`, {
+            console.debug(`[bg3-hud-core] Range Check: ${this.sourceToken?.name} → ${token?.name}`, {
                 distance,
                 range,
                 originalRange: this.requirements.range,
@@ -329,7 +329,7 @@ export class TargetSelectorManager {
         this._switchToTargetTool();
 
         // Activate UI
-        console.warn('BG3 HUD Core | Manager: Calling UI.activate with:', {
+        console.warn('[bg3-hud-core] Manager: Calling UI.activate with:', {
             range: this.requirements.range,
             sourceToken: this.sourceToken?.name,
             requirements: this.requirements
@@ -382,7 +382,7 @@ export class TargetSelectorManager {
     _getTargetRequirements() {
         // Adapter must provide targeting rules - return defaults if not
         if (!this.adapter?.targetingRules?.getTargetRequirements) {
-            console.warn('BG3 HUD Core | No targeting rules available, using defaults');
+            console.warn('[bg3-hud-core] No targeting rules available, using defaults');
             return {
                 minTargets: 1,
                 maxTargets: 1,

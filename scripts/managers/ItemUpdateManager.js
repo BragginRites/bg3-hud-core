@@ -104,7 +104,7 @@ export class ItemUpdateManager {
         // Save the updated data back to the actor
         await tempPersistence.saveState(state);
 
-        console.log(`BG3 HUD Core | Updated hotbar data for actor "${actor.name}" (action: ${action}, item: "${item.name}")`);
+        console.debug(`[bg3-hud-core] Updated hotbar data for actor "${actor.name}" (action: ${action}, item: "${item.name}")`);
     }
 
     /**
@@ -118,20 +118,20 @@ export class ItemUpdateManager {
         // Check if the item already exists in any grid
         const existingLocation = persistenceManager.findUuidInHud(item.uuid);
         if (existingLocation) {
-            console.log(`BG3 HUD Core | Skipping "${item.name}" - already exists in ${existingLocation.container} grid ${existingLocation.containerIndex}`);
+            console.debug(`[bg3-hud-core] Skipping "${item.name}" - already exists in ${existingLocation.container} grid ${existingLocation.containerIndex}`);
             return;
         }
 
         // Find the appropriate grid for this item type
         const gridIndex = this._findAppropriateGrid(item);
         if (gridIndex === null) {
-            console.log(`BG3 HUD Core | No appropriate grid found for "${item.name}" (${item.type})`);
+            console.debug(`[bg3-hud-core] No appropriate grid found for "${item.name}" (${item.type})`);
             return;
         }
 
         const grid = state.hotbar.grids[gridIndex];
         if (!grid) {
-            console.warn(`BG3 HUD Core | Grid ${gridIndex} does not exist`);
+            console.warn(`[bg3-hud-core] Grid ${gridIndex} does not exist`);
             return;
         }
 
@@ -159,10 +159,10 @@ export class ItemUpdateManager {
                 // Add the item to the hotbar data
                 grid.items[slotKey] = cellData;
 
-                console.log(`BG3 HUD Core | Auto-added item "${item.name}" (${item.type}) to actor "${actor.name}" grid ${gridIndex + 1} at slot ${slotKey}`);
+                console.debug(`[bg3-hud-core] Auto-added item "${item.name}" (${item.type}) to actor "${actor.name}" grid ${gridIndex + 1} at slot ${slotKey}`);
             }
         } else {
-            console.log(`BG3 HUD Core | No available slots in grid ${gridIndex + 1} for "${item.name}" on actor "${actor.name}"`);
+            console.debug(`[bg3-hud-core] No available slots in grid ${gridIndex + 1} for "${item.name}" on actor "${actor.name}"`);
         }
     }
 
@@ -182,7 +182,7 @@ export class ItemUpdateManager {
                 if (slotItem && slotItem.uuid === item.uuid) {
                     delete grid.items[slotKey];
                     removed = true;
-                    console.log(`BG3 HUD Core | Removed "${item.name}" from actor "${actor.name}" hotbar`);
+                    console.debug(`[bg3-hud-core] Removed "${item.name}" from actor "${actor.name}" hotbar`);
                 }
             }
         }
@@ -193,7 +193,7 @@ export class ItemUpdateManager {
                 if (slotItem && slotItem.uuid === item.uuid) {
                     delete set.items[slotKey];
                     removed = true;
-                    console.log(`BG3 HUD Core | Removed "${item.name}" from actor "${actor.name}" weapon set`);
+                    console.debug(`[bg3-hud-core] Removed "${item.name}" from actor "${actor.name}" weapon set`);
                 }
             }
         }
@@ -204,7 +204,7 @@ export class ItemUpdateManager {
                 if (slotItem && slotItem.uuid === item.uuid) {
                     delete grid.items[slotKey];
                     removed = true;
-                    console.log(`BG3 HUD Core | Removed "${item.name}" from actor "${actor.name}" quick access`);
+                    console.debug(`[bg3-hud-core] Removed "${item.name}" from actor "${actor.name}" quick access`);
                 }
             }
         }
@@ -279,7 +279,7 @@ export class ItemUpdateManager {
             }
         }
 
-        console.log(`BG3 HUD Core | Updated item "${item.name}" in actor "${actor.name}" hotbar data`);
+        console.debug(`[bg3-hud-core] Updated item "${item.name}" in actor "${actor.name}" hotbar data`);
     }
 
     /**
@@ -366,7 +366,7 @@ export class ItemUpdateManager {
         if (adapter && typeof adapter.shouldBlockFromHotbar === 'function') {
             const blockResult = await adapter.shouldBlockFromHotbar(item);
             if (blockResult?.blocked) {
-                console.log(`BG3 HUD Core | Blocking item "${item.name}" from auto-add: ${blockResult.reason || 'adapter blocked'}`);
+                console.debug(`[bg3-hud-core] Blocking item "${item.name}" from auto-add: ${blockResult.reason || 'adapter blocked'}`);
                 return false;
             }
         }
@@ -424,7 +424,7 @@ export class ItemUpdateManager {
                 await gridContainer.render();
             }
         } catch (e) {
-            console.warn(`BG3 HUD Core | Failed to update grid container ${gridIndex}:`, e);
+            console.warn(`[bg3-hud-core] Failed to update grid container ${gridIndex}:`, e);
         }
     }
 
@@ -445,7 +445,7 @@ export class ItemUpdateManager {
         const itemActor = item.parent;
         if (!itemActor) return;
 
-        console.log(`BG3 HUD Core | Item created: "${item.name}" (${item.type}) for actor ${itemActor.name}`);
+        console.debug(`[bg3-hud-core] Item created: "${item.name}" (${item.type}) for actor ${itemActor.name}`);
 
         // Add a small delay to ensure the item is fully processed
         await new Promise(resolve => setTimeout(resolve, 50));
@@ -472,7 +472,7 @@ export class ItemUpdateManager {
                     }
                 }
             } catch (e) {
-                console.warn('BG3 HUD Core | UI update on item create failed:', e);
+                console.warn('[bg3-hud-core] UI update on item create failed:', e);
             }
         }
     }
@@ -500,7 +500,7 @@ export class ItemUpdateManager {
             return;
         }
 
-        console.log(`BG3 HUD Core | Item updated: "${item.name}" (${item.type}) for actor ${itemActor.name}`);
+        console.debug(`[bg3-hud-core] Item updated: "${item.name}" (${item.type}) for actor ${itemActor.name}`);
 
         // Check current location before update (for spell preparation changes)
         const currentActor = this.hotbarApp?.currentActor;
@@ -531,7 +531,7 @@ export class ItemUpdateManager {
                     }
                 }
             } catch (e) {
-                console.warn('BG3 HUD Core | UI update on item update failed:', e);
+                console.warn('[bg3-hud-core] UI update on item update failed:', e);
             }
         }
     }
@@ -553,7 +553,7 @@ export class ItemUpdateManager {
         const itemActor = item.parent;
         if (!itemActor) return;
 
-        console.log(`BG3 HUD Core | Item deleted: "${item.name}" (${item.type}) from actor ${itemActor.name}`);
+        console.debug(`[bg3-hud-core] Item deleted: "${item.name}" (${item.type}) from actor ${itemActor.name}`);
 
         // Check current location before deletion
         const currentActor = this.hotbarApp?.currentActor;
@@ -572,7 +572,7 @@ export class ItemUpdateManager {
                     await this._updateGridContainer(wasInHotbar.containerIndex);
                 }
             } catch (e) {
-                console.warn('BG3 HUD Core | UI update on item delete failed:', e);
+                console.warn('[bg3-hud-core] UI update on item delete failed:', e);
             }
         }
     }

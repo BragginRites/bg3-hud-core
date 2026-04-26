@@ -121,11 +121,11 @@ export class TooltipManager {
      */
     registerRenderer(systemId, renderer) {
         if (typeof renderer !== 'function') {
-            console.error('BG3 HUD Core | Tooltip renderer must be a function');
+            console.error('[bg3-hud-core] Tooltip renderer must be a function');
             return;
         }
         this.renderers.set(systemId, renderer);
-        console.log(`BG3 HUD Core | Registered tooltip renderer for system: ${systemId}`);
+        console.info(`[bg3-hud-core] Registered tooltip renderer for system: ${systemId}`);
     }
 
     /**
@@ -190,14 +190,14 @@ export class TooltipManager {
 
         const renderer = this.renderers.get(systemId);
         if (!renderer) {
-            console.warn(`BG3 HUD Core | No tooltip renderer registered for system: ${systemId}`);
+            console.warn(`[bg3-hud-core] No tooltip renderer registered for system: ${systemId}`);
             return;
         }
 
         try {
             const result = await renderer(data, options);
             if (!result) {
-                console.warn('BG3 HUD Core | Tooltip renderer returned null/undefined');
+                console.warn('[bg3-hud-core] Tooltip renderer returned null/undefined');
                 return;
             }
 
@@ -211,7 +211,7 @@ export class TooltipManager {
             } else if (result.content instanceof HTMLElement) {
                 this.tooltipElement.appendChild(result.content);
             } else {
-                console.error('BG3 HUD Core | Tooltip renderer must return content as string or HTMLElement, got:', typeof result.content);
+                console.error('[bg3-hud-core] Tooltip renderer must return content as string or HTMLElement, got:', typeof result.content);
                 return;
             }
 
@@ -247,8 +247,8 @@ export class TooltipManager {
             this.tooltipElement.style.visibility = 'visible';
             this.tooltipElement.classList.add('visible');
         } catch (error) {
-            console.error('BG3 HUD Core | Error rendering tooltip:', error);
-            console.error('BG3 HUD Core | Error stack:', error.stack);
+            console.error('[bg3-hud-core] Error rendering tooltip:', error);
+            console.error('[bg3-hud-core] Error stack:', error.stack);
         }
     }
 
@@ -601,7 +601,7 @@ export class TooltipManager {
                                 await this.showRichTooltip(target, item, systemId, {}, uuid);
                             }
                         } catch (error) {
-                            console.error('BG3 HUD Core | Error loading item for tooltip:', error);
+                            console.error('[bg3-hud-core] Error loading item for tooltip:', error);
                         }
                     }
                     // Clear pending target after timeout

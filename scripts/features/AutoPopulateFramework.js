@@ -49,7 +49,7 @@ export class AutoPopulateFramework {
             const addedCount = await this.addItemsToContainer(sortedItems, container, persistenceManager);
 
         } catch (error) {
-            console.error('BG3 HUD Core | AutoPopulate error:', error);
+            console.error('[bg3-hud-core] AutoPopulate error:', error);
             ui.notifications.error(game.i18n.localize('bg3-hud-core.Notifications.AutoPopulateFailed'));
         }
     }
@@ -255,7 +255,7 @@ export class AutoPopulateFramework {
             // Build initial HUD state with populated items per grid
             await this._populateInitialStateByGrid(configuration, actor, persistenceManager);
         } catch (error) {
-            console.error('BG3 HUD Core | Error auto-populating on token creation:', error);
+            console.error('[bg3-hud-core] Error auto-populating on token creation:', error);
         }
     }
 
@@ -283,7 +283,7 @@ export class AutoPopulateFramework {
 
             // Ensure grid exists
             if (!state.hotbar.grids[gridIndex]) {
-                console.warn(`BG3 HUD Core | Grid ${gridIndex} does not exist, skipping`);
+                console.warn(`[bg3-hud-core] Grid ${gridIndex} does not exist, skipping`);
                 continue;
             }
 

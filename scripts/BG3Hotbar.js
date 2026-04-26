@@ -335,7 +335,7 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
         // Get the main container
         const container = this.element.querySelector('#bg3-hotbar-container');
         if (!container) {
-            console.error('BG3 HUD Core | Container element not found');
+            console.error('[bg3-hud-core] Container element not found');
             return;
         }
 

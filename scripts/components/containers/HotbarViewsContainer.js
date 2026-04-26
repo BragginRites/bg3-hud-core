@@ -127,7 +127,7 @@ export class HotbarViewsContainer extends BG3Component {
             await this.render();
 
         } catch (error) {
-            console.error('BG3 HUD Core | Failed to switch view:', error);
+            console.error('[bg3-hud-core] Failed to switch view:', error);
         }
     }
 
@@ -215,7 +215,7 @@ export class HotbarViewsContainer extends BG3Component {
 
             ui.notifications.info(game.i18n.format('bg3-hud-core.Views.Created', { name }));
         } catch (error) {
-            console.error('BG3 HUD Core | Failed to create view:', error);
+            console.error('[bg3-hud-core] Failed to create view:', error);
             ui.notifications.error(game.i18n.localize('bg3-hud-core.Views.CreateFailed'));
         }
     }
@@ -299,7 +299,7 @@ export class HotbarViewsContainer extends BG3Component {
             // Refresh the views container
             await this.render();
         } catch (error) {
-            console.error('BG3 HUD Core | Failed to rename view:', error);
+            console.error('[bg3-hud-core] Failed to rename view:', error);
             ui.notifications.error(game.i18n.localize('bg3-hud-core.Views.RenameFailed'));
         }
     }
@@ -321,7 +321,7 @@ export class HotbarViewsContainer extends BG3Component {
             // Refresh the views container
             await this.render();
         } catch (error) {
-            console.error('BG3 HUD Core | Failed to duplicate view:', error);
+            console.error('[bg3-hud-core] Failed to duplicate view:', error);
             ui.notifications.error(game.i18n.localize('bg3-hud-core.Views.DuplicateFailed'));
         }
     }
@@ -358,7 +358,7 @@ export class HotbarViewsContainer extends BG3Component {
             // Refresh the views container
             await this.render();
         } catch (error) {
-            console.error('BG3 HUD Core | Failed to delete view:', error);
+            console.error('[bg3-hud-core] Failed to delete view:', error);
             ui.notifications.error(game.i18n.localize('bg3-hud-core.Views.DeleteFailed'));
         }
     }

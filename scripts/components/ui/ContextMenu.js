@@ -31,7 +31,7 @@ export class ContextMenu extends BG3Component {
         const visibleItems = this.items.filter(item => item.visible !== false);
 
         if (visibleItems.length === 0) {
-            console.warn('BG3 HUD Core | No visible menu items');
+            console.warn('[bg3-hud-core] No visible menu items');
             return this.element;
         }
 

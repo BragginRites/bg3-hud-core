@@ -175,7 +175,7 @@ export class InteractionCoordinator {
                 );
             }
         } catch (error) {
-            console.error('BG3 HUD Core | Error sorting container:', error);
+            console.error('[bg3-hud-core] Error sorting container:', error);
             ui.notifications.error(game.i18n.localize('bg3-hud-core.Notifications.SortFailed'));
         }
     }
@@ -186,7 +186,7 @@ export class InteractionCoordinator {
      */
     async autoPopulateContainer(container) {
         if (!this.adapter || !this.adapter.autoPopulate) {
-            console.warn('BG3 HUD Core | No adapter or autoPopulate capability');
+            console.warn('[bg3-hud-core] No adapter or autoPopulate capability');
             return;
         }
 
@@ -210,7 +210,7 @@ export class InteractionCoordinator {
                 );
             }
         } catch (error) {
-            console.error('BG3 HUD Core | Error auto-populating container:', error);
+            console.error('[bg3-hud-core] Error auto-populating container:', error);
             ui.notifications.error(game.i18n.localize('bg3-hud-core.Notifications.AutoPopulateFailed'));
         }
     }
@@ -234,7 +234,7 @@ export class InteractionCoordinator {
             }
 
         } catch (error) {
-            console.error('BG3 HUD Core | Error clearing container:', error);
+            console.error('[bg3-hud-core] Error clearing container:', error);
             ui.notifications.error(game.i18n.localize('bg3-hud-core.Notifications.ClearContainerFailed'));
         }
     }
@@ -339,7 +339,7 @@ export class InteractionCoordinator {
     async _handleInternalDrop(targetCell, dragData) {
         const sourceCell = this.dragSourceCell;
         if (!sourceCell) {
-            console.warn('BG3 HUD Core | No source cell for internal drop');
+            console.warn('[bg3-hud-core] No source cell for internal drop');
             return;
         }
 
@@ -494,7 +494,7 @@ export class InteractionCoordinator {
         // STEP 1: Get document from drag data (supports Item, Macro, and Activity)
         const result = await this._getDocumentFromDragData(event);
         if (!result) {
-            console.warn('BG3 HUD Core | Could not get document from drag data');
+            console.warn('[bg3-hud-core] Could not get document from drag data');
             return;
         }
 
@@ -545,14 +545,11 @@ export class InteractionCoordinator {
                 };
             }
         } else {
-            console.log('BG3 HUD Core | Calling _transformItemToCellData for:', document.name, 'type:', document.type);
-            console.log('BG3 HUD Core | Adapter available:', !!this.adapter, 'has transformItemToCellData:', typeof this.adapter?.transformItemToCellData);
             cellData = await this._transformItemToCellData(document);
-            console.log('BG3 HUD Core | _transformItemToCellData returned:', cellData);
         }
 
         if (!cellData) {
-            console.warn('BG3 HUD Core | Could not transform document to cell data');
+            console.warn('[bg3-hud-core] Could not transform document to cell data');
             return;
         }
 
@@ -649,7 +646,7 @@ export class InteractionCoordinator {
                 }
             }
         } catch (e) {
-            console.warn('BG3 HUD Core | Failed to parse drag data:', e);
+            console.warn('[bg3-hud-core] Failed to parse drag data:', e);
         }
         return null;
     }
@@ -705,7 +702,7 @@ export class InteractionCoordinator {
         const actor = this.hotbarApp?.currentActor;
         const token = this.hotbarApp?.currentToken;
 
-        console.log('BG3 HUD Core | Executing macro:', macro.name);
+        console.debug('[bg3-hud-core] Executing macro:', macro.name);
         await macro.execute({ actor, token });
     }
 

@@ -627,7 +627,7 @@ export async function showViewDialog(options = {}) {
         return result;
     } catch (error) {
         if (error?.message !== 'Name required') {
-            console.error('BG3 HUD Core | showViewDialog error:', error);
+            console.error('[bg3-hud-core] showViewDialog error:', error);
         }
         return null;
     }

@@ -31,7 +31,7 @@ export class TargetSelectorUI {
      * @param {Object} requirements - Targeting requirements
      */
     activate(requirements) {
-        console.warn('BG3 HUD Core | UI: Activate called', requirements);
+        console.warn('[bg3-hud-core] UI: Activate called', requirements);
 
         this._createInstructionsDisplay(requirements);
         this._createMouseDisplay(requirements);
@@ -41,14 +41,14 @@ export class TargetSelectorUI {
         this.showTargetList();
 
         if (requirements.range && this.manager.sourceToken) {
-            console.warn('BG3 HUD Core | UI: Attempting to show range indicator', { range: requirements.range, token: this.manager.sourceToken.name });
+            console.warn('[bg3-hud-core] UI: Attempting to show range indicator', { range: requirements.range, token: this.manager.sourceToken.name });
             try {
                 this.showRangeIndicator(this.manager.sourceToken, requirements.range);
             } catch (e) {
-                console.error('BG3 HUD Core | Error showing range indicator:', e);
+                console.error('[bg3-hud-core] Error showing range indicator:', e);
             }
         } else {
-            console.warn('BG3 HUD Core | UI: Skipping range indicator', { range: requirements.range, hasSourceToken: !!this.manager.sourceToken });
+            console.warn('[bg3-hud-core] UI: Skipping range indicator', { range: requirements.range, hasSourceToken: !!this.manager.sourceToken });
         }
 
         // Add targeting class to body
@@ -200,7 +200,7 @@ export class TargetSelectorUI {
                     top: rect.top
                 });
             } catch (err) {
-                console.warn('BG3 HUD Core | Failed to save target selector position:', err);
+                console.warn('[bg3-hud-core] Failed to save target selector position:', err);
             }
         };
 
@@ -510,7 +510,7 @@ export class TargetSelectorUI {
             try {
                 img = await game.video?.createThumbnail(img, { width: 50, height: 50 }) ?? img;
             } catch (err) {
-                console.warn('BG3 HUD Core | Failed to create video thumbnail:', err);
+                console.warn('[bg3-hud-core] Failed to create video thumbnail:', err);
             }
         }
 
@@ -552,7 +552,7 @@ export class TargetSelectorUI {
                     info.details.push(game.i18n.localize('bg3-hud-core.TargetSelector.Flanked'));
                 }
             } catch (err) {
-                console.warn('BG3 HUD Core | Error getting adapter target info:', err);
+                console.warn('[bg3-hud-core] Error getting adapter target info:', err);
             }
         }
 
@@ -637,9 +637,9 @@ export class TargetSelectorUI {
 
         // Check if range indicators are enabled
         const showRangeIndicators = game.settings.get('bg3-hud-core', 'showRangeIndicators');
-        // console.warn('BG3 HUD Core | Range Indicator Check:', { showRangeIndicators, range, sourceToken: sourceToken?.name });
+        // console.warn('[bg3-hud-core] Range Indicator Check:', { showRangeIndicators, range, sourceToken: sourceToken?.name });
         if (!showRangeIndicators) {
-            // console.warn('BG3 HUD Core | Range indicator disabled in settings');
+            // console.warn('[bg3-hud-core] Range indicator disabled in settings');
             return;
         }
 
@@ -684,7 +684,7 @@ export class TargetSelectorUI {
         this._rangeIndicator.position.set(sourceToken.center.x, sourceToken.center.y);
 
         // Debug logging
-        console.warn('BG3 HUD Core | Creating PIXI Graphics:', {
+        console.warn('[bg3-hud-core] Creating PIXI Graphics:', {
             radius: rangeInPixels,
             x: sourceToken.center.x,
             y: sourceToken.center.y,

@@ -11,7 +11,7 @@ export class AutoSortFramework {
      */
     async sortContainer(container) {
         if (!container?.items) {
-            console.warn('BG3 HUD Core | AutoSort: No container or items to sort');
+            console.warn('[bg3-hud-core] AutoSort: No container or items to sort');
             return;
         }
 
@@ -43,7 +43,7 @@ export class AutoSortFramework {
             await this.rearrangeGrid(items, container);
 
         } catch (error) {
-            console.error('BG3 HUD Core | AutoSort error:', error);
+            console.error('[bg3-hud-core] AutoSort error:', error);
             ui.notifications.error(game.i18n.localize('bg3-hud-core.Notifications.SortContainerFailed'));
         }
     }
@@ -68,7 +68,7 @@ export class AutoSortFramework {
                     };
                 }
             } catch (error) {
-                console.warn(`BG3 HUD Core | Failed to fetch item data for ${item.uuid}:`, error);
+                console.warn(`[bg3-hud-core] Failed to fetch item data for ${item.uuid}:`, error);
                 item.sortData = { name: item.name || '' };
             }
         }

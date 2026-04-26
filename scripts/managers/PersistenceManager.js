@@ -75,7 +75,7 @@ export class PersistenceManager {
         }
 
         if (!this.currentActor) {
-            console.warn('BG3 HUD Core | PersistenceManager: No actor, returning defaults');
+            console.warn('[bg3-hud-core] PersistenceManager: No actor, returning defaults');
             return this._getDefaultState();
         }
 
@@ -93,7 +93,7 @@ export class PersistenceManager {
 
         // Check for version 1 state (needs views migration)
         if (savedState && savedState.version === 1) {
-            console.log('BG3 HUD Core | PersistenceManager: Migrating from version 1 to version 2 (views)');
+            console.info('[bg3-hud-core] PersistenceManager: Migrating from version 1 to version 2 (views)');
             this.state = await this._migrateToVersion2(savedState);
             await this.saveState(this.state);
             return this.state;
@@ -106,7 +106,7 @@ export class PersistenceManager {
         const oldActiveSet = this.currentActor.getFlag(this.MODULE_ID, 'activeWeaponSet');
 
         if (oldHotbarData || oldWeaponSets || oldQuickAccess) {
-            console.log('BG3 HUD Core | PersistenceManager: Migrating from old flag format');
+            console.info('[bg3-hud-core] PersistenceManager: Migrating from old flag format');
             this.state = await this._migrateFromOldFlags(oldHotbarData, oldWeaponSets, oldQuickAccess, oldActiveSet);
 
             // Save migrated state
@@ -115,11 +115,11 @@ export class PersistenceManager {
             // Clean up old flags
             await this._cleanupOldFlags();
 
-            console.log('BG3 HUD Core | PersistenceManager: Migration complete, old flags cleaned');
+            console.info('[bg3-hud-core] PersistenceManager: Migration complete, old flags cleaned');
             return this.state;
         }
 
-        console.log('BG3 HUD Core | PersistenceManager: No saved state, using defaults');
+        console.info('[bg3-hud-core] PersistenceManager: No saved state, using defaults');
         this.state = this._getDefaultState();
         return this.state;
     }
@@ -134,7 +134,7 @@ export class PersistenceManager {
     async hydrateState(state) {
         const adapter = ui.BG3HOTBAR?.registry?.activeAdapter;
         if (!adapter || typeof adapter.transformItemToCellData !== 'function') {
-            console.warn('BG3 HUD Core | PersistenceManager: No adapter or transform method available for hydration');
+            console.warn('[bg3-hud-core] PersistenceManager: No adapter or transform method available for hydration');
             return state;
         }
 
@@ -213,13 +213,13 @@ export class PersistenceManager {
                             items[slotKey] = freshData;
                             hydrated++;
                         } else {
-                            console.warn(`BG3 HUD Core | ✗ Transform returned null for ${containerPath}[${slotKey}]`);
+                            console.warn(`[bg3-hud-core] ✗ Transform returned null for ${containerPath}[${slotKey}]`);
                         }
                     } else {
-                        console.warn(`BG3 HUD Core | ✗ Could not resolve UUID for ${containerPath}[${slotKey}]:`, cellData.uuid);
+                        console.warn(`[bg3-hud-core] ✗ Could not resolve UUID for ${containerPath}[${slotKey}]:`, cellData.uuid);
                     }
                 } catch (error) {
-                    console.error(`BG3 HUD Core | ✗ Failed to hydrate ${containerPath}[${slotKey}]:`, error);
+                    console.error(`[bg3-hud-core] ✗ Failed to hydrate ${containerPath}[${slotKey}]:`, error);
                 }
             }
         }
@@ -243,7 +243,7 @@ export class PersistenceManager {
         }
 
         if (!this.currentActor) {
-            console.warn('BG3 HUD Core | PersistenceManager: No actor to save to');
+            console.warn('[bg3-hud-core] PersistenceManager: No actor to save to');
             return;
         }
 
@@ -261,7 +261,7 @@ export class PersistenceManager {
             await this.currentActor.setFlag(this.MODULE_ID, this.FLAG_NAME, state);
             this.state = foundry.utils.deepClone(state);
         } catch (error) {
-            console.error('BG3 HUD Core | PersistenceManager: Error saving state:', error);
+            console.error('[bg3-hud-core] PersistenceManager: Error saving state:', error);
             throw error;
         } finally {
             this._saveInProgress = false;
@@ -293,7 +293,7 @@ export class PersistenceManager {
             case 'hotbar': {
                 const grid = state.hotbar?.grids?.[containerIndex];
                 if (!grid) {
-                    console.warn('BG3 HUD Core | PersistenceManager: Hotbar grid not found:', containerIndex);
+                    console.warn('[bg3-hud-core] PersistenceManager: Hotbar grid not found:', containerIndex);
                     return;
                 }
                 grid.items[slotKey] = data;
@@ -301,7 +301,7 @@ export class PersistenceManager {
             }
             case 'quickAccess': {
                 if (!state.quickAccess || !Array.isArray(state.quickAccess.grids)) {
-                    console.warn('BG3 HUD Core | PersistenceManager: QuickAccess branch missing, creating new one.');
+                    console.warn('[bg3-hud-core] PersistenceManager: QuickAccess branch missing, creating new one.');
                     state.quickAccess = { grids: [{ rows: 2, cols: 3, items: {} }] };
                 }
                 const qGrid = state.quickAccess.grids[containerIndex] || (state.quickAccess.grids[containerIndex] = { rows: 2, cols: 3, items: {} });
@@ -314,7 +314,7 @@ export class PersistenceManager {
             case 'weaponSet': {
                 const set = state.weaponSets?.sets?.[containerIndex];
                 if (!set) {
-                    console.warn('BG3 HUD Core | PersistenceManager: Weapon set not found:', containerIndex);
+                    console.warn('[bg3-hud-core] PersistenceManager: Weapon set not found:', containerIndex);
                     return;
                 }
                 set.items[slotKey] = data;
@@ -323,7 +323,7 @@ export class PersistenceManager {
             case 'containerPopover': {
                 // Container popovers save nested within their parent cell's data
                 if (!parentCell) {
-                    console.error('BG3 HUD Core | PersistenceManager: No parent cell provided for containerPopover');
+                    console.error('[bg3-hud-core] PersistenceManager: No parent cell provided for containerPopover');
                     return;
                 }
 
@@ -343,12 +343,12 @@ export class PersistenceManager {
                         parentGrid = state.weaponSets?.sets?.[parentCell.containerIndex];
                         break;
                     default:
-                        console.error('BG3 HUD Core | PersistenceManager: Unknown parent container type:', parentCell.containerType);
+                        console.error('[bg3-hud-core] PersistenceManager: Unknown parent container type:', parentCell.containerType);
                         return;
                 }
 
                 if (!parentGrid) {
-                    console.error('BG3 HUD Core | PersistenceManager: Parent grid not found', {
+                    console.error('[bg3-hud-core] PersistenceManager: Parent grid not found', {
                         parentType: parentCell.containerType,
                         parentIndex: parentCell.containerIndex
                     });
@@ -359,7 +359,7 @@ export class PersistenceManager {
                 const parentCellData = parentGrid.items[parentSlotKey];
 
                 if (!parentCellData) {
-                    console.error('BG3 HUD Core | PersistenceManager: Parent cell has no data', {
+                    console.error('[bg3-hud-core] PersistenceManager: Parent cell has no data', {
                         parentSlotKey,
                         availableSlots: Object.keys(parentGrid.items)
                     });
@@ -394,7 +394,7 @@ export class PersistenceManager {
                 break;
             }
             default:
-                console.warn('BG3 HUD Core | PersistenceManager: Unknown container type:', container);
+                console.warn('[bg3-hud-core] PersistenceManager: Unknown container type:', container);
                 return;
         }
 
@@ -430,7 +430,7 @@ export class PersistenceManager {
         const state = await this.loadState();
 
         if (!state.hotbar.grids[gridIndex]) {
-            console.error('BG3 HUD Core | PersistenceManager: Invalid grid index:', gridIndex);
+            console.error('[bg3-hud-core] PersistenceManager: Invalid grid index:', gridIndex);
             return;
         }
 
@@ -488,7 +488,7 @@ export class PersistenceManager {
         switch (containerType) {
             case 'hotbar':
                 if (!state.hotbar.grids[containerIndex]) {
-                    console.error('BG3 HUD Core | PersistenceManager: Invalid hotbar grid index:', containerIndex);
+                    console.error('[bg3-hud-core] PersistenceManager: Invalid hotbar grid index:', containerIndex);
                     return;
                 }
                 state.hotbar.grids[containerIndex].items = items;
@@ -496,7 +496,7 @@ export class PersistenceManager {
 
             case 'weaponSet':
                 if (!state.weaponSets.sets[containerIndex]) {
-                    console.error('BG3 HUD Core | PersistenceManager: Invalid weapon set index:', containerIndex);
+                    console.error('[bg3-hud-core] PersistenceManager: Invalid weapon set index:', containerIndex);
                     return;
                 }
                 state.weaponSets.sets[containerIndex].items = items;
@@ -518,7 +518,7 @@ export class PersistenceManager {
                 return;
 
             default:
-                console.error('BG3 HUD Core | PersistenceManager: Unknown container type:', containerType);
+                console.error('[bg3-hud-core] PersistenceManager: Unknown container type:', containerType);
                 return;
         }
 
@@ -568,7 +568,7 @@ export class PersistenceManager {
 
         // If legacy quickAccess is a single grid object with items array, convert to object map and wrap into grids[]
         if (Array.isArray(state.quickAccess.items)) {
-            console.log('BG3 HUD Core | PersistenceManager: Migrating quickAccess from array to object map');
+            console.info('[bg3-hud-core] PersistenceManager: Migrating quickAccess from array to object map');
             const cols = state.quickAccess.cols || 3;
             const arrayItems = state.quickAccess.items;
             const mapItems = {};
@@ -583,7 +583,7 @@ export class PersistenceManager {
             }
 
             state.quickAccess.items = mapItems;
-            console.log('BG3 HUD Core | PersistenceManager: QuickAccess migrated to object map format');
+            console.info('[bg3-hud-core] PersistenceManager: QuickAccess migrated to object map format');
         }
 
         // Wrap single quickAccess grid into grids[] if not already
@@ -594,7 +594,7 @@ export class PersistenceManager {
             state.quickAccess = {
                 grids: [{ rows, cols, items }]
             };
-            console.log('BG3 HUD Core | PersistenceManager: QuickAccess wrapped into grids[]');
+            console.info('[bg3-hud-core] PersistenceManager: QuickAccess wrapped into grids[]');
         }
     }
 
@@ -729,7 +729,7 @@ export class PersistenceManager {
             };
         }
 
-        console.log('BG3 HUD Core | PersistenceManager: Migration complete');
+        console.info('[bg3-hud-core] PersistenceManager: Migration complete');
         return state;
     }
 
@@ -742,14 +742,14 @@ export class PersistenceManager {
         if (!this.currentActor) return;
 
         try {
-            console.log('BG3 HUD Core | PersistenceManager: Cleaning up old flags');
+            console.info('[bg3-hud-core] PersistenceManager: Cleaning up old flags');
             await this.currentActor.unsetFlag(this.MODULE_ID, 'hotbarData');
             await this.currentActor.unsetFlag(this.MODULE_ID, 'weaponSets');
             await this.currentActor.unsetFlag(this.MODULE_ID, 'quickAccessGrid');
             await this.currentActor.unsetFlag(this.MODULE_ID, 'activeWeaponSet');
-            console.log('BG3 HUD Core | PersistenceManager: Old flags removed');
+            console.info('[bg3-hud-core] PersistenceManager: Old flags removed');
         } catch (error) {
-            console.warn('BG3 HUD Core | PersistenceManager: Error cleaning up old flags:', error);
+            console.warn('[bg3-hud-core] PersistenceManager: Error cleaning up old flags:', error);
         }
     }
 
@@ -811,7 +811,7 @@ export class PersistenceManager {
 
         await this.saveState(state);
 
-        console.log('BG3 HUD Core | PersistenceManager: Created empty view:', name);
+        console.debug('[bg3-hud-core] PersistenceManager: Created empty view:', name);
         return viewId;
     }
 
@@ -825,14 +825,14 @@ export class PersistenceManager {
 
         // Can't delete if it's the only view
         if (state.views.list.length <= 1) {
-            console.warn('BG3 HUD Core | PersistenceManager: Cannot delete the only view');
+            console.warn('[bg3-hud-core] PersistenceManager: Cannot delete the only view');
             return;
         }
 
         // Find view index
         const viewIndex = state.views.list.findIndex(v => v.id === viewId);
         if (viewIndex === -1) {
-            console.warn('BG3 HUD Core | PersistenceManager: View not found:', viewId);
+            console.warn('[bg3-hud-core] PersistenceManager: View not found:', viewId);
             return;
         }
 
@@ -852,7 +852,7 @@ export class PersistenceManager {
 
         await this.saveState(state);
 
-        console.log('BG3 HUD Core | PersistenceManager: Deleted view:', viewId);
+        console.debug('[bg3-hud-core] PersistenceManager: Deleted view:', viewId);
     }
 
     /**
@@ -866,7 +866,7 @@ export class PersistenceManager {
         // Find the view
         const view = state.views.list.find(v => v.id === viewId);
         if (!view) {
-            console.warn('BG3 HUD Core | PersistenceManager: View not found:', viewId);
+            console.warn('[bg3-hud-core] PersistenceManager: View not found:', viewId);
             return;
         }
 
@@ -893,7 +893,7 @@ export class PersistenceManager {
         // Find the view
         const view = state.views.list.find(v => v.id === viewId);
         if (!view) {
-            console.warn('BG3 HUD Core | PersistenceManager: View not found:', viewId);
+            console.warn('[bg3-hud-core] PersistenceManager: View not found:', viewId);
             return;
         }
 
@@ -905,7 +905,7 @@ export class PersistenceManager {
 
         await this.saveState(state);
 
-        console.log('BG3 HUD Core | PersistenceManager: Renamed view to:', newName);
+        console.debug('[bg3-hud-core] PersistenceManager: Renamed view to:', newName);
     }
 
     /**
@@ -920,7 +920,7 @@ export class PersistenceManager {
         // Find the view to duplicate
         const sourceView = state.views.list.find(v => v.id === viewId);
         if (!sourceView) {
-            console.warn('BG3 HUD Core | PersistenceManager: View not found:', viewId);
+            console.warn('[bg3-hud-core] PersistenceManager: View not found:', viewId);
             return null;
         }
 
@@ -940,7 +940,7 @@ export class PersistenceManager {
 
         await this.saveState(state);
 
-        console.log('BG3 HUD Core | PersistenceManager: Duplicated view:', duplicateView.name);
+        console.debug('[bg3-hud-core] PersistenceManager: Duplicated view:', duplicateView.name);
         return newViewId;
     }
 
@@ -958,7 +958,7 @@ export class PersistenceManager {
         // Find the view
         const view = state.views.list.find(v => v.id === targetViewId);
         if (!view) {
-            console.warn('BG3 HUD Core | PersistenceManager: View not found:', targetViewId);
+            console.warn('[bg3-hud-core] PersistenceManager: View not found:', targetViewId);
             return;
         }
 
@@ -971,7 +971,7 @@ export class PersistenceManager {
 
         await this.saveState(state);
 
-        console.log('BG3 HUD Core | PersistenceManager: Updated view:', view.name);
+        console.debug('[bg3-hud-core] PersistenceManager: Updated view:', view.name);
     }
 
     /**
