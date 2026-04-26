@@ -16,30 +16,51 @@ export class UpdateCoordinator {
     }
 
     /**
-     * Register all Foundry hooks
+     * Register all Foundry hooks.
+     * Stores hook IDs for proper cleanup via unregisterHooks().
      */
     registerHooks() {
-        Hooks.on('controlToken', this._onControlToken.bind(this));
-        Hooks.on('updateToken', this._onUpdateToken.bind(this));
-        Hooks.on('updateActor', this._onUpdateActor.bind(this));
-        Hooks.on('updateCombat', this._onUpdateCombat.bind(this));
-        Hooks.on('combatStart', this._onCombatStateChange.bind(this));
-        Hooks.on('combatRound', this._onCombatStateChange.bind(this));
-        Hooks.on('combatTurn', this._onCombatStateChange.bind(this));
-        Hooks.on('deleteCombat', this._onCombatStateChange.bind(this));
+        if (this._hookIds) {
+            console.warn('[bg3-hud-core] UpdateCoordinator hooks already registered, skipping');
+            return;
+        }
+
+        this._hookIds = new Map();
+
+        this._hookIds.set('controlToken', Hooks.on('controlToken', this._onControlToken.bind(this)));
+        this._hookIds.set('updateToken', Hooks.on('updateToken', this._onUpdateToken.bind(this)));
+        this._hookIds.set('updateActor', Hooks.on('updateActor', this._onUpdateActor.bind(this)));
+        this._hookIds.set('updateCombat', Hooks.on('updateCombat', this._onUpdateCombat.bind(this)));
+        this._hookIds.set('combatStart', Hooks.on('combatStart', this._onCombatStateChange.bind(this)));
+        this._hookIds.set('combatRound', Hooks.on('combatRound', this._onCombatStateChange.bind(this)));
+        this._hookIds.set('combatTurn', Hooks.on('combatTurn', this._onCombatStateChange.bind(this)));
+        this._hookIds.set('deleteCombat', Hooks.on('deleteCombat', this._onCombatStateChange.bind(this)));
 
         // Canvas ready hook - check for pre-selected tokens on page load
-        Hooks.on('canvasReady', this._onCanvasReady.bind(this));
+        this._hookIds.set('canvasReady', Hooks.on('canvasReady', this._onCanvasReady.bind(this)));
 
         // Active effects hooks
-        Hooks.on('createActiveEffect', this._onActiveEffectChange.bind(this));
-        Hooks.on('updateActiveEffect', this._onActiveEffectChange.bind(this));
-        Hooks.on('deleteActiveEffect', this._onActiveEffectChange.bind(this));
+        this._hookIds.set('createActiveEffect', Hooks.on('createActiveEffect', this._onActiveEffectChange.bind(this)));
+        this._hookIds.set('updateActiveEffect', Hooks.on('updateActiveEffect', this._onActiveEffectChange.bind(this)));
+        this._hookIds.set('deleteActiveEffect', Hooks.on('deleteActiveEffect', this._onActiveEffectChange.bind(this)));
 
         // Item hooks to react to quantity / uses changes immediately
         // Note: createItem and deleteItem are handled by ItemUpdateManager
         // We only handle updateItem here for UI refresh of existing items
-        Hooks.on('updateItem', this._onEmbeddedItemChange.bind(this));
+        this._hookIds.set('updateItem', Hooks.on('updateItem', this._onEmbeddedItemChange.bind(this)));
+    }
+
+    /**
+     * Unregister all Foundry hooks.
+     * Called during destroy to prevent memory leaks from duplicate listeners.
+     */
+    unregisterHooks() {
+        if (!this._hookIds) return;
+
+        for (const [hookName, hookId] of this._hookIds) {
+            Hooks.off(hookName, hookId);
+        }
+        this._hookIds = null;
     }
 
     /**

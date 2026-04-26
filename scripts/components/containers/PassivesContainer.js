@@ -77,7 +77,7 @@ export class PassivesContainer extends BG3Component {
     async showConfigurationDialog(event) {
         // Base implementation does nothing
         // Adapters should override to show selection UI
-        ui.notifications.info('Passive configuration not implemented for this system');
+        ui.notifications.info(game.i18n.localize('bg3-hud-core.Notifications.PassivesNotImplemented'));
     }
 
     /**

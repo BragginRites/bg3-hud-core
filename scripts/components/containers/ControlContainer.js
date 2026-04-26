@@ -448,7 +448,7 @@ export class ControlContainer extends BG3Component {
      */
     async _saveLayoutAsActorDefault() {
         if (!this.hotbarApp?.currentActor) {
-            ui.notifications?.warn('No actor available to save layout.');
+            ui.notifications?.warn(game.i18n.localize('bg3-hud-core.Notifications.NoActorForSave'));
             return;
         }
 
@@ -465,10 +465,10 @@ export class ControlContainer extends BG3Component {
             pm.setToken(baseActor);
             await pm.saveState(foundry.utils.deepClone(currentState));
 
-            ui.notifications?.info('Saved layout as actor default for future tokens.');
+            ui.notifications?.info(game.i18n.localize('bg3-hud-core.Notifications.SaveLayoutSuccess'));
         } catch (error) {
             console.error('BG3 HUD Core | Failed to save layout as actor default:', error);
-            ui.notifications?.error('Failed to save layout as actor default.');
+            ui.notifications?.error(game.i18n.localize('bg3-hud-core.Notifications.SaveLayoutFailed'));
         }
     }
 
@@ -556,7 +556,7 @@ export class ControlContainer extends BG3Component {
 
         } catch (error) {
             console.error('BG3 HUD Core | Failed to clear all items:', error);
-            ui.notifications.error('Failed to clear all items');
+            ui.notifications.error(game.i18n.localize('bg3-hud-core.Notifications.ClearAllFailed'));
         }
     }
 
@@ -637,7 +637,7 @@ export class ControlContainer extends BG3Component {
                     }
                 } catch (error) {
                     console.error('BG3 HUD Core | Failed to import layout:', error);
-                    ui.notifications.error('Failed to import layout');
+                    ui.notifications.error(game.i18n.localize('bg3-hud-core.Notifications.ImportLayoutFailed'));
                 }
             };
             reader.readAsText(file);

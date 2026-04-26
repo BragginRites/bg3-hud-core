@@ -75,7 +75,7 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
 
         // Re-apply display settings when adapter registration completes
         // This handles the case where HUD renders before adapter is fully ready
-        Hooks.on('bg3HudRegistrationComplete', () => {
+        this._registrationCompleteHookId = Hooks.on('bg3HudRegistrationComplete', () => {
             if (this.rendered) {
                 this.updateDisplaySettings();
             }
@@ -225,7 +225,7 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
 
         // Check if GM hotbar is enabled
         if (!game.settings.get('bg3-hud-core', 'enableGMHotbar')) {
-            ui.notifications.warn("GM Hotbar is not enabled in module settings.");
+            ui.notifications.warn(game.i18n.localize('bg3-hud-core.Notifications.GMHotbarNotEnabled'));
             return;
         }
 
@@ -241,7 +241,7 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
                 this.currentActor = token.actor;
                 await this.refresh();
             } else {
-                ui.notifications.warn("Select a token to switch to Token Hotbar");
+                ui.notifications.warn(game.i18n.localize('bg3-hud-core.Notifications.SelectTokenToSwitch'));
             }
         } else {
             // Switch from token hotbar to GM hotbar
@@ -503,6 +503,17 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
      */
     async close(options = {}) {
         this._destroyComponents();
+
+        // Unregister manager hooks to prevent memory leaks
+        this.updateCoordinator.unregisterHooks();
+        this.itemUpdateManager.destroy();
+
+        // Unregister the registration-complete hook
+        if (this._registrationCompleteHookId !== undefined) {
+            Hooks.off('bg3HudRegistrationComplete', this._registrationCompleteHookId);
+            this._registrationCompleteHookId = undefined;
+        }
+
         return super.close(options);
     }
 }

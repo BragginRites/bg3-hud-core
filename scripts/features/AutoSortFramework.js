@@ -29,7 +29,7 @@ export class AutoSortFramework {
             }
 
             if (items.length === 0) {
-                ui.notifications.warn('No items to sort');
+                ui.notifications.warn(game.i18n.localize('bg3-hud-core.Notifications.NoItemsToSort'));
                 return;
             }
 
@@ -44,7 +44,7 @@ export class AutoSortFramework {
 
         } catch (error) {
             console.error('BG3 HUD Core | AutoSort error:', error);
-            ui.notifications.error('Failed to sort container. See console for details.');
+            ui.notifications.error(game.i18n.localize('bg3-hud-core.Notifications.SortContainerFailed'));
         }
     }
 

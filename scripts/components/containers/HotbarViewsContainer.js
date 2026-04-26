@@ -185,7 +185,7 @@ export class HotbarViewsContainer extends BG3Component {
         // Check if already at max views
         const views = this.persistenceManager?.getViews() || [];
         if (views.length >= HotbarViewsContainer.MAX_VIEWS) {
-            ui.notifications.warn(`Maximum of ${HotbarViewsContainer.MAX_VIEWS} views allowed`);
+            ui.notifications.warn(game.i18n.format('bg3-hud-core.Views.MaxViewsReached', { max: HotbarViewsContainer.MAX_VIEWS }));
             return;
         }
 
@@ -213,10 +213,10 @@ export class HotbarViewsContainer extends BG3Component {
             // Refresh the views container to show the new view
             await this.render();
 
-            ui.notifications.info(`Created view: ${name}`);
+            ui.notifications.info(game.i18n.format('bg3-hud-core.Views.Created', { name }));
         } catch (error) {
             console.error('BG3 HUD Core | Failed to create view:', error);
-            ui.notifications.error('Failed to create view');
+            ui.notifications.error(game.i18n.localize('bg3-hud-core.Views.CreateFailed'));
         }
     }
 
@@ -237,21 +237,21 @@ export class HotbarViewsContainer extends BG3Component {
 
         const menuItems = [
             {
-                label: 'Edit View',
+                label: game.i18n.localize('bg3-hud-core.Views.ContextEdit'),
                 icon: 'fas fa-edit',
                 onClick: async () => {
                     await this._showRenameViewDialog(view);
                 }
             },
             {
-                label: 'Duplicate View',
+                label: game.i18n.localize('bg3-hud-core.Views.ContextDuplicate'),
                 icon: 'fas fa-copy',
                 onClick: async () => {
                     await this._duplicateView(view.id);
                 }
             },
             {
-                label: 'Delete View',
+                label: game.i18n.localize('bg3-hud-core.Views.ContextDelete'),
                 icon: 'fas fa-trash',
                 disabled: !canDelete,
                 onClick: async () => {
@@ -300,7 +300,7 @@ export class HotbarViewsContainer extends BG3Component {
             await this.render();
         } catch (error) {
             console.error('BG3 HUD Core | Failed to rename view:', error);
-            ui.notifications.error('Failed to rename view');
+            ui.notifications.error(game.i18n.localize('bg3-hud-core.Views.RenameFailed'));
         }
     }
 
@@ -322,7 +322,7 @@ export class HotbarViewsContainer extends BG3Component {
             await this.render();
         } catch (error) {
             console.error('BG3 HUD Core | Failed to duplicate view:', error);
-            ui.notifications.error('Failed to duplicate view');
+            ui.notifications.error(game.i18n.localize('bg3-hud-core.Views.DuplicateFailed'));
         }
     }
 
@@ -338,8 +338,8 @@ export class HotbarViewsContainer extends BG3Component {
 
         // Confirm deletion using Foundry's DialogV2
         const confirmed = await foundry.applications.api.DialogV2.confirm({
-            window: { title: 'Delete View' },
-            content: `<p>Are you sure you want to delete the view <strong>"${view?.name}"</strong>?</p><p>This action cannot be undone.</p>`,
+            window: { title: game.i18n.localize('bg3-hud-core.Views.DeleteTitle') },
+            content: `<p>${game.i18n.format('bg3-hud-core.Views.DeleteConfirm', { name: view?.name })}</p><p>${game.i18n.localize('bg3-hud-core.Views.DeleteWarning')}</p>`,
             rejectClose: false
         });
 
@@ -359,7 +359,7 @@ export class HotbarViewsContainer extends BG3Component {
             await this.render();
         } catch (error) {
             console.error('BG3 HUD Core | Failed to delete view:', error);
-            ui.notifications.error('Failed to delete view');
+            ui.notifications.error(game.i18n.localize('bg3-hud-core.Views.DeleteFailed'));
         }
     }
 

@@ -13,7 +13,7 @@ export class AutoPopulateFramework {
      */
     async populateContainer(container, actor, persistenceManager = null) {
         if (!actor) {
-            ui.notifications.warn('No actor available for auto-populate');
+            ui.notifications.warn(game.i18n.localize('bg3-hud-core.Notifications.NoActorForAutoPopulate'));
             return;
         }
 
@@ -22,7 +22,7 @@ export class AutoPopulateFramework {
             const choices = await this.getItemTypeChoices();
 
             if (!choices || choices.length === 0) {
-                ui.notifications.warn('No item types available for auto-populate');
+                ui.notifications.warn(game.i18n.localize('bg3-hud-core.Notifications.NoItemTypesForAutoPopulate'));
                 return;
             }
 
@@ -38,7 +38,7 @@ export class AutoPopulateFramework {
             const items = await this.getMatchingItems(actor, selectedTypes);
 
             if (items.length === 0) {
-                ui.notifications.warn('No matching items found');
+                ui.notifications.warn(game.i18n.localize('bg3-hud-core.Notifications.NoMatchingItems'));
                 return;
             }
 
@@ -50,7 +50,7 @@ export class AutoPopulateFramework {
 
         } catch (error) {
             console.error('BG3 HUD Core | AutoPopulate error:', error);
-            ui.notifications.error('Failed to auto-populate container');
+            ui.notifications.error(game.i18n.localize('bg3-hud-core.Notifications.AutoPopulateFailed'));
         }
     }
 
@@ -168,7 +168,7 @@ export class AutoPopulateFramework {
         const allNewItems = [...uuidItems, ...customCellData];
 
         if (allNewItems.length === 0) {
-            ui.notifications.info('All selected items are already in the HUD');
+            ui.notifications.info(game.i18n.localize('bg3-hud-core.Notifications.AllItemsAlreadyInHud'));
             return 0;
         }
 
@@ -384,7 +384,7 @@ export class AutoPopulateFramework {
 
         const choices = await this.getItemTypeChoices();
         if (!choices || choices.length === 0) {
-            ui.notifications.warn('No item types available for configuration');
+            ui.notifications.warn(game.i18n.localize('bg3-hud-core.Notifications.NoItemTypesForConfig'));
             return null;
         }
 

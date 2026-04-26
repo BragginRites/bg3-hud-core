@@ -10,23 +10,43 @@ export class ItemUpdateManager {
     constructor(options = {}) {
         this.hotbarApp = options.hotbarApp;
         this.persistenceManager = options.persistenceManager;
+        this._hookIds = null;
         this._registerHooks();
     }
 
     /**
-     * Register Foundry hooks for item changes
+     * Register Foundry hooks for item changes.
+     * Stores hook IDs for proper cleanup via destroy().
      * @private
      */
     _registerHooks() {
+        if (this._hookIds) {
+            console.warn('[bg3-hud-core] ItemUpdateManager hooks already registered, skipping');
+            return;
+        }
+
+        this._hookIds = new Map();
+
         // Item creation
-        Hooks.on('createItem', this._handleItemCreate.bind(this));
+        this._hookIds.set('createItem', Hooks.on('createItem', this._handleItemCreate.bind(this)));
 
         // Item updates are handled by UpdateCoordinator._onEmbeddedItemChange
         // to avoid race conditions with depletion state updates.
-        // Removed: Hooks.on('updateItem', this._handleItemUpdate.bind(this));
 
         // Item deletion
-        Hooks.on('deleteItem', this._handleItemDelete.bind(this));
+        this._hookIds.set('deleteItem', Hooks.on('deleteItem', this._handleItemDelete.bind(this)));
+    }
+
+    /**
+     * Unregister all hooks and clean up resources.
+     */
+    destroy() {
+        if (!this._hookIds) return;
+
+        for (const [hookName, hookId] of this._hookIds) {
+            Hooks.off(hookName, hookId);
+        }
+        this._hookIds = null;
     }
 
     /**

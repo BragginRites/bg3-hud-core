@@ -158,7 +158,7 @@ export class InteractionCoordinator {
      */
     async sortContainer(container) {
         if (!this.adapter || !this.adapter.autoSort) {
-            ui.notifications.warn('AutoSort not available');
+            ui.notifications.warn(game.i18n.localize('bg3-hud-core.Notifications.AutoSortNotAvailable'));
             return;
         }
 
@@ -176,7 +176,7 @@ export class InteractionCoordinator {
             }
         } catch (error) {
             console.error('BG3 HUD Core | Error sorting container:', error);
-            ui.notifications.error('Failed to sort container');
+            ui.notifications.error(game.i18n.localize('bg3-hud-core.Notifications.SortFailed'));
         }
     }
 
@@ -211,7 +211,7 @@ export class InteractionCoordinator {
             }
         } catch (error) {
             console.error('BG3 HUD Core | Error auto-populating container:', error);
-            ui.notifications.error('Failed to auto-populate container');
+            ui.notifications.error(game.i18n.localize('bg3-hud-core.Notifications.AutoPopulateFailed'));
         }
     }
 
@@ -235,7 +235,7 @@ export class InteractionCoordinator {
 
         } catch (error) {
             console.error('BG3 HUD Core | Error clearing container:', error);
-            ui.notifications.error('Failed to clear container');
+            ui.notifications.error(game.i18n.localize('bg3-hud-core.Notifications.ClearContainerFailed'));
         }
     }
 
@@ -353,7 +353,7 @@ export class InteractionCoordinator {
         const targetIsPopover = targetCell.containerType === 'containerPopover';
 
         if (sourceIsPopover !== targetIsPopover) {
-            ui.notifications.warn('Cannot move items between the container and the hotbar');
+            ui.notifications.warn(game.i18n.localize('bg3-hud-core.Notifications.CrossContainerMoveBlocked'));
             return;
         }
 
@@ -375,7 +375,7 @@ export class InteractionCoordinator {
             });
 
             if (existingLocation) {
-                ui.notifications.warn('This item already exists elsewhere in the HUD');
+                ui.notifications.warn(game.i18n.localize('bg3-hud-core.Notifications.DuplicateItem'));
                 return;
             }
         }
@@ -393,7 +393,7 @@ export class InteractionCoordinator {
             });
 
             if (existingLocation) {
-                ui.notifications.warn('This item already exists elsewhere in the HUD');
+                ui.notifications.warn(game.i18n.localize('bg3-hud-core.Notifications.DuplicateItem'));
                 return;
             }
         }
@@ -515,14 +515,14 @@ export class InteractionCoordinator {
         if (!isMacro) {
             const currentActor = this.hotbarApp?.currentActor;
             if (!currentActor) {
-                ui.notifications.warn('No actor selected');
+                ui.notifications.warn(game.i18n.localize('bg3-hud-core.Notifications.NoActorSelected'));
                 return;
             }
 
             // For activities, check the parent item's actor
             const ownerActor = isActivity ? document.actor : document.actor;
             if (ownerActor && ownerActor.id !== currentActor.id) {
-                ui.notifications.warn(`This ${isActivity ? 'activity' : 'item'} belongs to ${ownerActor.name}, not ${currentActor.name}`);
+                ui.notifications.warn(game.i18n.format('bg3-hud-core.Notifications.ItemOwnerMismatch', { type: isActivity ? 'activity' : 'item', owner: ownerActor.name, current: currentActor.name }));
                 return;
             }
         }
@@ -568,7 +568,7 @@ export class InteractionCoordinator {
                     cellData.slotId
                 );
                 if (existingLocation) {
-                    ui.notifications.warn('This spell slot is already in the HUD');
+                    ui.notifications.warn(game.i18n.localize('bg3-hud-core.Notifications.DuplicateSpellSlot'));
                     return;
                 }
             } else {
@@ -576,7 +576,7 @@ export class InteractionCoordinator {
                 const existingLocation = this.persistenceManager.findUuidInHud(cellData.uuid);
                 if (existingLocation) {
                     const label = isMacro ? 'macro' : isActivity ? 'activity' : 'item';
-                    ui.notifications.warn(`This ${label} is already in the HUD`);
+                    ui.notifications.warn(game.i18n.format('bg3-hud-core.Notifications.DuplicateInHud', { label }));
                     return;
                 }
             }
@@ -697,7 +697,7 @@ export class InteractionCoordinator {
     async _executeMacro(uuid) {
         const macro = await fromUuid(uuid);
         if (!macro) {
-            ui.notifications.warn('Macro not found');
+            ui.notifications.warn(game.i18n.localize('bg3-hud-core.Notifications.MacroNotFound'));
             return;
         }
 
