@@ -12,18 +12,8 @@ The core UI framework for the BG3 Inspired HUD system. This module provides the 
 > [!IMPORTANT]
 > **This is a library module and requires a system-specific adapter module (bg3-hud-dnd5e, bg3-hud-pf2e, etc.) to function.**
 
-## Support Development & Vote on Features
-
-Maintaining these modules takes time and caffeine. If you enjoy using this HUD, there are two ways to support the project:
-
-### 1. Join the Dev Circle (Patreon)
-Join me on [Patreon](https://www.patreon.com/BragginRites) to support the maintenance of my Foundry mods and my project TTRPG, **Chantry**.
-* **Vote:** Help decide which modules and features get prioritized next.
-* **Preview:** See early builds of the modules and Chantry.
-* **Access:** Get the supporting roles in Discord.
-
-### 2. The Tip Jar (Ko-fi)
-Not into subscriptions? You can toss a coin in the jar over on [Ko-fi](https://ko-fi.com/bragginrites). It keeps the coffee flowing during those 2 AM coding sessions.
+## Support Development
+If it's your kind of thing please consider my [Ko-fi](https://ko-fi.com/bragginrites). It helps to keep me up to 2am coding these modules. Thank you!
 
 ---
 
