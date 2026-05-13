@@ -1,3 +1,13 @@
+## [0.3.1] - 2026-05-13
+
+### Changed
+- **Snappier token switching**: Changing controlled token updates the existing HUD instead of tearing it down and rebuilding it, so it should feel quicker and flash less.
+- **Faster first draw**: When you load in with a token (or pick one for the first time), the HUD skips extra wait-and-fade steps it used when nothing was on screen yet, and tries harder not to run the same refresh twice from startup hooks.
+- **Loading hotbar data**: Item hydration for slots runs more work in parallel so big bars load a bit faster.
+
+### Fixed
+- **Flash after picking a token**: Follow-up refreshes from the canvas or token hooks were sometimes redoing the whole HUD right after a swap; those redundant passes are skipped when nothing actually changed.
+
 ## [0.3.0] - 2026-04-28
 
 ### Changed
