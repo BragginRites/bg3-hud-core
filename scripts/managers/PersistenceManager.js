@@ -133,6 +133,7 @@ export class PersistenceManager {
      * Hydrate cell data from UUIDs to ensure fresh data
      * Re-fetches item data and uses adapter's transformation
      * This ensures quantity, uses, and other system-specific data are current
+     * All containers and items are hydrated in parallel for maximum speed.
      * @param {Object} state - The loaded state to hydrate
      * @returns {Promise<Object>} Hydrated state
      */
@@ -143,17 +144,15 @@ export class PersistenceManager {
             return state;
         }
 
-        let totalItems = 0;
-        let hydratedItems = 0;
+        // Collect all hydration jobs and run them in parallel
+        const jobs = [];
 
         // Hydrate hotbar grids
         if (state.hotbar?.grids) {
             for (let i = 0; i < state.hotbar.grids.length; i++) {
                 const grid = state.hotbar.grids[i];
                 if (grid.items) {
-                    const counts = await this._hydrateItemsObject(grid.items, adapter, `hotbar.grid[${i}]`);
-                    totalItems += counts.total;
-                    hydratedItems += counts.hydrated;
+                    jobs.push(this._hydrateItemsObject(grid.items, adapter, `hotbar.grid[${i}]`));
                 }
             }
         }
@@ -163,9 +162,7 @@ export class PersistenceManager {
             for (let i = 0; i < state.weaponSets.sets.length; i++) {
                 const set = state.weaponSets.sets[i];
                 if (set.items) {
-                    const counts = await this._hydrateItemsObject(set.items, adapter, `weaponSets.set[${i}]`);
-                    totalItems += counts.total;
-                    hydratedItems += counts.hydrated;
+                    jobs.push(this._hydrateItemsObject(set.items, adapter, `weaponSets.set[${i}]`));
                 }
             }
         }
@@ -175,40 +172,41 @@ export class PersistenceManager {
             for (let i = 0; i < state.quickAccess.grids.length; i++) {
                 const grid = state.quickAccess.grids[i];
                 if (grid?.items) {
-                    const counts = await this._hydrateItemsObject(grid.items, adapter, `quickAccess.grid[${i}]`);
-                    totalItems += counts.total;
-                    hydratedItems += counts.hydrated;
+                    jobs.push(this._hydrateItemsObject(grid.items, adapter, `quickAccess.grid[${i}]`));
                 }
             }
         }
+
+        // Run all container hydrations in parallel
+        await Promise.all(jobs);
 
         return state;
     }
 
     /**
      * Hydrate a single items object (slotKey: cellData mapping)
+     * All items within the container are hydrated in parallel via Promise.all.
      * @param {Object} items - Items object to hydrate
      * @param {Object} adapter - The system adapter
      * @param {string} containerPath - Debug path (e.g., "hotbar.grid[0]")
-     * @returns {Object} Counts of total and hydrated items
+     * @returns {Promise<Object>} Counts of total and hydrated items
      * @private
      */
     async _hydrateItemsObject(items, adapter, containerPath = 'unknown') {
-        let total = 0;
+        const entries = Object.entries(items);
+        let total = entries.length;
         let hydrated = 0;
 
-        for (const slotKey in items) {
-            const cellData = items[slotKey];
-            total++;
-
-            // Skip Macro cells - they are world-level documents that don't need hydration
-            // and passing them to adapter.transformItemToCellData() causes validation errors
-            // because "script" is not a valid Item type
-            if (cellData?.type === 'Macro') {
-                continue;
-            }
-
-            if (cellData?.uuid) {
+        // Build parallel hydration promises for all non-Macro cells with UUIDs
+        const hydrationPromises = entries
+            .filter(([_, cellData]) => {
+                // Skip Macro cells - they are world-level documents that don't need hydration
+                // and passing them to adapter.transformItemToCellData() causes validation errors
+                // because "script" is not a valid Item type
+                if (cellData?.type === 'Macro') return false;
+                return !!cellData?.uuid;
+            })
+            .map(async ([slotKey, cellData]) => {
                 try {
                     const item = await fromUuid(cellData.uuid);
                     if (item) {
@@ -226,8 +224,9 @@ export class PersistenceManager {
                 } catch (error) {
                     console.error(`[bg3-hud-core] ✗ Failed to hydrate ${containerPath}[${slotKey}]:`, error);
                 }
-            }
-        }
+            });
+
+        await Promise.all(hydrationPromises);
 
         return { total, hydrated };
     }

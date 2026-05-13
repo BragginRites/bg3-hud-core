@@ -154,9 +154,8 @@ export class UpdateCoordinator {
      * @private
      */
     async _onCanvasReady() {
-        // Slight delay to ensure canvas.tokens.controlled is fully populated
-        // This is necessary because token control state may not be immediately available
-        await new Promise(resolve => setTimeout(resolve, 100));
+        // Brief delay to ensure canvas.tokens.controlled is fully populated
+        await new Promise(resolve => setTimeout(resolve, 50));
 
         // Filter out incompatible actors (like groups/vehicles)
         const controlledTokens = (canvas.tokens?.controlled || []).filter(t => {
@@ -169,18 +168,12 @@ export class UpdateCoordinator {
             const token = controlledTokens[0];
             this.hotbarApp.currentToken = token;
             this.hotbarApp.currentActor = token.actor;
-            await this.hotbarApp.refresh();
-        } else if (controlledTokens.length === 0) {
-            // No tokens - show GM hotbar if enabled, otherwise clear
-            this.hotbarApp.currentToken = null;
-            this.hotbarApp.currentActor = null;
-            await this.hotbarApp.refresh();
         } else {
-            // Multiple tokens - clear HUD (consistent with multi-select behavior)
+            // No tokens or multiple tokens - clear HUD (show GM hotbar if enabled)
             this.hotbarApp.currentToken = null;
             this.hotbarApp.currentActor = null;
-            await this.hotbarApp.refresh();
         }
+        await this.hotbarApp.refresh();
     }
 
     /**

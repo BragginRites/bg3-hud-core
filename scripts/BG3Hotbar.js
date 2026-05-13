@@ -53,6 +53,12 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
         this.currentActor = null;
         this.overrideGMHotbar = false; // Flag to manually override GM hotbar
 
+        // Debounce state for refresh coalescing
+        this._refreshDebounceTimer = null;
+        this._refreshGeneration = 0;
+        /** @type {boolean} Track whether theme has been applied at least once */
+        this._themeApplied = false;
+
         // Initialize managers
         this.persistenceManager = new PersistenceManager();
         this.componentFactory = new ComponentFactory(this);
@@ -123,48 +129,61 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
 
         // Get display settings from active adapter
         const adapter = BG3HUD_REGISTRY.activeAdapter;
+        let itemName = 'false';
+        let itemUse = 'false';
         if (adapter && typeof adapter.getDisplaySettings === 'function') {
             const settings = adapter.getDisplaySettings();
-
-            // Convert boolean to string for data attributes (CSS checks for string "true")
-            const itemName = String(!!settings.showItemNames);
-            const itemUse = String(!!settings.showItemUses);
-
-            // Apply to the container element which CSS targets
-            const container = this.element?.querySelector('#bg3-hotbar-container');
-            if (container) {
-                container.dataset.itemName = itemName;
-                container.dataset.itemUse = itemUse;
-            } else {
-                this.element.dataset.itemName = itemName;
-                this.element.dataset.itemUse = itemUse;
-            }
-        } else {
-            // Fallback: no display options if no adapter
-            const container = this.element?.querySelector('#bg3-hotbar-container');
-            if (container) {
-                container.dataset.itemName = 'false';
-                container.dataset.itemUse = 'false';
-            } else {
-                this.element.dataset.itemName = 'false';
-                this.element.dataset.itemUse = 'false';
-            }
+            itemName = String(!!settings.showItemNames);
+            itemUse = String(!!settings.showItemUses);
         }
+
+        // Apply to the container element which CSS targets
+        const target = this.element.querySelector('#bg3-hotbar-container') || this.element;
+        target.dataset.itemName = itemName;
+        target.dataset.itemUse = itemUse;
     }
 
     /**
      * Refresh the hotbar (re-render)
+     * Debounced: rapid calls within 50ms are coalesced into a single render.
+     * Uses CSS transitionend instead of hard setTimeout for fade-out.
      */
     async refresh() {
         if (!this.rendered) return;
+
+        // Increment generation to invalidate any previous pending refresh
+        const generation = ++this._refreshGeneration;
+
+        // Cancel any pending debounce timer
+        if (this._refreshDebounceTimer) {
+            clearTimeout(this._refreshDebounceTimer);
+            this._refreshDebounceTimer = null;
+        }
+
+        // Debounce: wait 50ms for rapid calls to coalesce (e.g., multi-token select)
+        await new Promise(resolve => {
+            this._refreshDebounceTimer = setTimeout(resolve, 50);
+        });
+
+        // If a newer refresh was requested while we waited, bail out
+        if (generation !== this._refreshGeneration) return;
 
         // Add fade-out transition before re-rendering
         if (this.element && !this.element.classList.contains('bg3-hud-building')) {
             this.element.classList.remove('bg3-hud-visible');
             this.element.classList.add('bg3-hud-fading-out');
 
-            // Wait for fade-out transition to complete
-            await new Promise(resolve => setTimeout(resolve, 300));
+            // Wait for CSS transition to finish, with safety cap at 200ms
+            await new Promise(resolve => {
+                const safetyTimeout = setTimeout(resolve, 200);
+                this.element?.addEventListener('transitionend', function handler() {
+                    clearTimeout(safetyTimeout);
+                    resolve();
+                }, { once: true });
+            });
+
+            // Check again after waiting — a newer call may have superseded us
+            if (generation !== this._refreshGeneration) return;
         }
 
         await this.render(false);
@@ -191,8 +210,12 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
     async _onRender(context, options) {
         await super._onRender(context, options);
 
-        // Apply theme CSS variables
-        await applyTheme();
+        // Apply theme CSS variables — only on first render.
+        // Subsequent theme changes are applied by ThemeSettingDialog.close().
+        if (!this._themeApplied) {
+            await applyTheme();
+            this._themeApplied = true;
+        }
 
         // Apply display settings
         this.updateDisplaySettings();
@@ -326,8 +349,7 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
             if (this.element) {
                 this.element.classList.add('bg3-hud-hidden');
             }
-            // Apply macrobar setting since HUD is now hidden (Issue #8)
-            applyMacrobarCollapseSetting(false);
+            // Macrobar sync handled by _onRender after this returns (Issue #8)
             return;
         }
 
