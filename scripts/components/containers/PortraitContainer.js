@@ -37,13 +37,18 @@ export class PortraitContainer extends BG3Component {
      * @returns {Promise<HTMLElement>}
      */
     async render() {
-        // Create portrait container
-        this.element = this.createElement('div', ['bg3-portrait-container']);
+        // Create portrait container on first render only
+        if (!this.element) {
+            this.element = this.createElement('div', ['bg3-portrait-container']);
+        }
 
         if (!this.token) {
             console.warn('PortraitContainer | No token provided');
             return this.element;
         }
+
+        // Clear for re-population (Portrait is complex enough that clearing content is safer for now)
+        this.element.innerHTML = '';
 
         // Add info container if provided (positioned above portrait)
         if (this.infoContainer) {

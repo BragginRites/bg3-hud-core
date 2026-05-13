@@ -107,6 +107,28 @@ export class QuickAccessContainer extends BG3Component {
     }
 
     /**
+     * Update quick access context and propagate to child grids
+     * @param {Object} options - New configuration options
+     */
+    updateContext(options = {}) {
+        super.updateContext(options);
+        if (options.grids) this.grids = options.grids;
+
+        // Propagate to grid containers
+        this.gridContainers.forEach((grid, i) => {
+            const gridData = this.grids[i];
+            if (grid && gridData) {
+                grid.updateContext({
+                    ...options,
+                    rows: gridData.rows,
+                    cols: gridData.cols,
+                    items: gridData.items || {}
+                });
+            }
+        });
+    }
+
+    /**
      * Destroy the container
      */
     destroy() {

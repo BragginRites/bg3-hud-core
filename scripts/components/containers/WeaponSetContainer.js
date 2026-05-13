@@ -246,6 +246,28 @@ export class WeaponSetContainer extends BG3Component {
     }
 
     /**
+     * Update weapon set context and propagate to child grids
+     * @param {Object} options - New configuration options
+     */
+    updateContext(options = {}) {
+        super.updateContext(options);
+        if (options.weaponSets) this.weaponSets = options.weaponSets;
+        
+        // Propagate to all child grid containers
+        this.gridContainers.forEach((grid, i) => {
+            const setData = this.weaponSets[i];
+            if (grid && setData) {
+                grid.updateContext({
+                    ...options,
+                    rows: setData.rows,
+                    cols: setData.cols,
+                    items: setData.items || {}
+                });
+            }
+        });
+    }
+
+    /**
      * Destroy the container
      */
     destroy() {

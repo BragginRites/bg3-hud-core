@@ -62,6 +62,19 @@ export class BG3Component {
     }
 
     /**
+     * Update the component's internal state without destroying it.
+     * Subclasses can override this to handle specific update logic.
+     * @param {Object} options - New configuration options
+     */
+    updateContext(options = {}) {
+        this.options = { ...this.options, ...options };
+        // Map common options to top-level properties for convenience
+        if (options.actor) this.actor = options.actor;
+        if (options.token) this.token = options.token;
+        if (options.grids) this.grids = options.grids;
+    }
+
+    /**
      * Destroy the component and clean up resources
      */
     destroy() {

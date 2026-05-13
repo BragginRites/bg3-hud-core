@@ -378,6 +378,36 @@ export class HotbarContainer extends BG3Component {
     }
 
     /**
+     * Update context for hotbar and all sub-containers
+     * @param {Object} options - New configuration options
+     */
+    updateContext(options = {}) {
+        super.updateContext(options);
+        
+        // Pass to sub-containers
+        if (this.activeEffectsContainer) this.activeEffectsContainer.updateContext(options);
+        if (this.passivesContainer) this.passivesContainer.updateContext(options);
+        
+        // Update grids
+        if (options.grids) {
+            this.grids = options.grids;
+        }
+
+        // Pass to grid containers
+        this.gridContainers.forEach((grid, i) => {
+            const gridData = this.grids[i];
+            if (gridData) {
+                grid.updateContext({
+                    ...options,
+                    rows: gridData.rows,
+                    cols: gridData.cols,
+                    items: gridData.items || {}
+                });
+            }
+        });
+    }
+
+    /**
      * Destroy the container and all children
      */
     destroy() {

@@ -194,6 +194,18 @@ export class GridContainer extends BG3Component {
     }
 
     /**
+     * Update grid context and data
+     * @param {Object} options - New configuration options
+     */
+    updateContext(options = {}) {
+        super.updateContext(options);
+        if (options.rows !== undefined) this.rows = options.rows;
+        if (options.cols !== undefined) this.cols = options.cols;
+        if (options.items !== undefined) this.items = options.items;
+        if (options.decorateCellElement !== undefined) this.decorateCellElement = options.decorateCellElement;
+    }
+
+    /**
      * Destroy the grid and all cells
      */
     destroy() {
