@@ -35,6 +35,7 @@
     width: 100%;
     height: 100%;
     position: relative;
+    transform-origin: center center;
 }
 
 #bg3-hotbar-container .portrait-image {
@@ -46,6 +47,44 @@
     border: none;
     outline: none;
     box-shadow: none;
+}
+
+/* ==========================================================================
+   Health Overlay + Alpha Mask (shared across systems)
+   Adapters create `.health-overlay` / `.damage-overlay`; core owns the mask.
+   ========================================================================== */
+
+#bg3-hotbar-container .health-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+#bg3-hotbar-container .health-overlay .damage-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    transition: height 0.3s ease-out, opacity 0.3s ease-out;
+    background: rgba(255, 0, 0, 0.4);
+}
+
+#bg3-hotbar-container .portrait-image-subcontainer[data-bend-mode="true"] {
+    mask-image: var(--bend-img);
+    -webkit-mask-image: var(--bend-img);
+    mask-mode: alpha;
+    -webkit-mask-mode: alpha;
+    mask-repeat: no-repeat;
+    -webkit-mask-repeat: no-repeat;
+    mask-size: 100% 100%;
+}
+
+#bg3-hotbar-container .bg3-portrait-container.use-bend-mask .portrait-image-container {
+    overflow: visible;
 }
 
 /* Portrait hidden — keep info button only */

@@ -1,3 +1,5 @@
+import { Logger } from '../utils/logger.js';
+
 /** Foundry document cell types resolved via fromUuid during populate. */
 const DOCUMENT_CELL_TYPES = new Set(['Item', 'Macro', 'Activity', 'PreparedSpell']);
 
@@ -60,7 +62,7 @@ export class AutoPopulateFramework {
             const addedCount = await this.addItemsToContainer(sortedItems, container, persistenceManager);
 
         } catch (error) {
-            console.error('[bg3-hud-core] AutoPopulate error:', error);
+            Logger.error('AutoPopulate error:', error);
             ui.notifications.error(game.i18n.localize('bg3-hud-core.Notifications.AutoPopulateFailed'));
         }
     }
@@ -270,7 +272,7 @@ export class AutoPopulateFramework {
             // Build initial HUD state with populated items per grid
             await this._populateInitialStateByGrid(configuration, actor, persistenceManager);
         } catch (error) {
-            console.error('[bg3-hud-core] Error auto-populating on token creation:', error);
+            Logger.error('Error auto-populating on token creation:', error);
         }
     }
 
@@ -304,7 +306,7 @@ export class AutoPopulateFramework {
 
             // Ensure grid exists
             if (!state.hotbar.grids[gridIndex]) {
-                console.warn(`[bg3-hud-core] Grid ${gridIndex} does not exist, skipping`);
+                Logger.warn(`Grid ${gridIndex} does not exist, skipping`);
                 continue;
             }
 

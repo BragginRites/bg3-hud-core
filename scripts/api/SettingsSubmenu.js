@@ -80,6 +80,10 @@ export function createSettingsSubmenu({ moduleId, titleKey, sections }) {
         const fields = section.keys.map(key => {
             const setting = game.settings.settings.get(`${moduleId}.${key}`);
             if (!setting) throw new Error(`[${moduleId}] Unknown setting ${key}`);
+            // Hide settings the current user cannot modify (world/restricted settings for a
+            // non-GM). This keeps a player-visible menu showing only the fields they can change.
+            const needsGM = setting.scope === 'world' || setting.restricted;
+            if (needsGM && !game.user.isGM) return '';
             const value = game.settings.get(moduleId, key);
             return renderField({ key, setting, value });
         }).join('');
@@ -168,6 +172,12 @@ export function createSettingsSubmenu({ moduleId, titleKey, sections }) {
             for (const key of allKeys) {
                 const setting = game.settings.settings.get(`${moduleId}.${key}`);
                 if (!setting) continue;
+
+                // Skip settings the current user cannot write. A menu visible to players may
+                // still include world-scoped (GM-only) settings; attempting to save those would
+                // throw. World settings require GM; `restricted` settings likewise.
+                const needsGM = setting.scope === 'world' || setting.restricted;
+                if (needsGM && !game.user.isGM) continue;
 
                 let value = updates[key];
 

@@ -2,6 +2,7 @@ import { BG3Component } from '../BG3Component.js';
 import { ContextMenu } from '../ui/ContextMenu.js';
 import { BG3HUD_API } from '../../utils/registry.js';
 import { PortraitDataResolver } from '../../utils/PortraitDataResolver.js';
+import { Logger } from '../../utils/logger.js';
 
 /**
  * Portrait Container - Abstract Base Class
@@ -15,6 +16,19 @@ import { PortraitDataResolver } from '../../utils/PortraitDataResolver.js';
  * @abstract
  */
 export class PortraitContainer extends BG3Component {
+    /** Media file extensions treated as animated portraits/tokens. */
+    static VIDEO_EXTENSIONS = ['webm', 'mp4', 'ogg', 'ogv'];
+
+    /**
+     * Whether a media source URL points at a supported video format.
+     * @param {string} src - Media source URL
+     * @returns {boolean}
+     */
+    static isVideoSrc(src) {
+        const extension = src?.split('.').pop()?.toLowerCase() || '';
+        return PortraitContainer.VIDEO_EXTENSIONS.includes(extension);
+    }
+
     /**
      * Create a new portrait panel
      * @param {Object} options - Panel configuration
@@ -41,7 +55,7 @@ export class PortraitContainer extends BG3Component {
         this.element = this.createElement('div', ['bg3-portrait-container']);
 
         if (!this.token) {
-            console.warn('PortraitContainer | No token provided');
+            Logger.warn('PortraitContainer | No token provided');
             return this.element;
         }
 
@@ -136,9 +150,7 @@ export class PortraitContainer extends BG3Component {
         const sub = this.element?.querySelector('.portrait-image-subcontainer');
         if (sub && token) {
             const src = await this.getPortraitImage();
-            const videoExtensions = ['webm', 'mp4', 'ogg', 'ogv'];
-            const extension = src?.split('.').pop()?.toLowerCase() || '';
-            const isVideo = videoExtensions.includes(extension);
+            const isVideo = PortraitContainer.isVideoSrc(src);
 
             const existing = sub.querySelector('.portrait-image, .portrait-video');
             const existingIsVideo = existing?.tagName === 'VIDEO';
@@ -159,6 +171,8 @@ export class PortraitContainer extends BG3Component {
                 if (existing) existing.remove();
                 sub.appendChild(this._createMediaElement(src, this.actor?.name || 'Portrait'));
             }
+
+            this._syncPortraitAlphaMask(sub);
         }
 
         const imageContainer = this.element?.querySelector('.portrait-image-container');
@@ -181,6 +195,34 @@ export class PortraitContainer extends BG3Component {
     }
 
     /**
+     * Sync health-overlay alpha mask to the current portrait media.
+     * Adapters create/remove `.health-overlay` based on system settings;
+     * core only binds the mask when an image + overlay are present.
+     * @param {HTMLElement} [portraitImageSubContainer]
+     * @protected
+     */
+    _syncPortraitAlphaMask(portraitImageSubContainer = null) {
+        const sub = portraitImageSubContainer
+            || this.element?.querySelector('.portrait-image-subcontainer');
+        if (!sub || !this.element) return;
+
+        const media = sub.querySelector('.portrait-image, .portrait-video');
+        const hasOverlay = !!sub.querySelector('.health-overlay');
+        const isVideo = media?.tagName === 'VIDEO';
+
+        if (!hasOverlay || !media || isVideo || !media.src) {
+            sub.removeAttribute('data-bend-mode');
+            sub.style.removeProperty('--bend-img');
+            this.element.classList.remove('use-bend-mask');
+            return;
+        }
+
+        sub.setAttribute('data-bend-mode', 'true');
+        sub.style.setProperty('--bend-img', `url("${media.src}")`);
+        this.element.classList.add('use-bend-mask');
+    }
+
+    /**
      * Create appropriate media element for portrait (img or video)
      * Supports animated tokens in webm, mp4, ogg, ogv formats
      * @param {string} src - Media source URL
@@ -189,9 +231,7 @@ export class PortraitContainer extends BG3Component {
      * @protected
      */
     _createMediaElement(src, alt = 'Portrait') {
-        const videoExtensions = ['webm', 'mp4', 'ogg', 'ogv'];
-        const extension = src?.split('.').pop()?.toLowerCase() || '';
-        const isVideo = videoExtensions.includes(extension);
+        const isVideo = PortraitContainer.isVideoSrc(src);
 
         if (isVideo) {
             const video = this.createElement('video', ['portrait-image', 'portrait-video']);
@@ -451,7 +491,7 @@ export class PortraitContainer extends BG3Component {
                 icon: 'fas fa-chess-pawn',
                 onClick: async () => {
                     // Override in subclass or via MenuBuilder
-                    console.warn('PortraitContainer | Use Token Image not implemented');
+                    Logger.warn('PortraitContainer | Use Token Image not implemented');
                 }
             },
             {
@@ -459,21 +499,10 @@ export class PortraitContainer extends BG3Component {
                 icon: 'fas fa-user',
                 onClick: async () => {
                     // Override in subclass or via MenuBuilder
-                    console.warn('PortraitContainer | Use Character Portrait not implemented');
+                    Logger.warn('PortraitContainer | Use Character Portrait not implemented');
                 }
             }
         ];
-    }
-
-    /**
-     * Get system-specific features to display
-     * Override in subclass to add death saves, stamina, etc.
-     * 
-     * @abstract
-     * @returns {Array<BG3Component>}
-     */
-    getSystemFeatures() {
-        return [];
     }
 
     /**

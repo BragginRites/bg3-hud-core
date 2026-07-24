@@ -129,6 +129,7 @@ export class ComponentFactory {
         return new ActionButtonsClass({
             actor: this.hotbarApp.currentActor,
             token: this.hotbarApp.currentToken,
+            hotbarApp: this.hotbarApp,
             getButtons: adapter?.getActionButtons ? () => adapter.getActionButtons() : undefined
         });
     }

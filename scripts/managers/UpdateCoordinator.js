@@ -6,6 +6,7 @@
  */
 import { BG3HUD_REGISTRY } from '../utils/registry.js';
 import { ControlsManager } from './ControlsManager.js';
+import { Logger } from '../utils/logger.js';
 
 export class UpdateCoordinator {
     constructor(options = {}) {
@@ -21,7 +22,7 @@ export class UpdateCoordinator {
      */
     registerHooks() {
         if (this._hookIds) {
-            console.warn('[bg3-hud-core] UpdateCoordinator hooks already registered, skipping');
+            Logger.warn('UpdateCoordinator hooks already registered, skipping');
             return;
         }
 
@@ -108,7 +109,7 @@ export class UpdateCoordinator {
         if (controlled) {
             if (multipleTokensControlled) {
                 // Multiple tokens selected - show GM hotbar if enabled, otherwise hide
-                console.debug('[bg3-hud-core] Multiple tokens controlled');
+                Logger.debug('Multiple tokens controlled');
                 this.hotbarApp.currentToken = null;
                 this.hotbarApp.currentActor = null;
                 await this.hotbarApp.refresh({ tokenSwap: true });
@@ -214,12 +215,16 @@ export class UpdateCoordinator {
         // Token tweaks and control changes often emit updateToken with fields that do not
         // require a HUD rebuild. A bare refresh() runs the fade + full teardown, which
         // visibly flashes right after soft token swap (controlToken).
+        //
+        // IMPORTANT: do NOT ignore `delta` - dnd5e wild shape / polymorph writes the
+        // transformed actor through ActorDelta on the TokenDocument. Ignoring it leaves
+        // the HUD stuck on the pre-transform sheet until a manual token reselect.
         const ignoredProperties = [
             'x', 'y', 'rotation', 'hidden', 'elevation',
             'alpha', 'sort', 'width', 'height', 'scale',
             'lockRotation', 'mirrorX', 'mirrorY', 'tint',
             'displayName', 'displayBars', 'bar1', 'bar2', 'disposition',
-            'flags', 'actor', 'actorId', 'delta', 'effects', 'ring', 'ovrl', 'subject'
+            'flags', 'actor', 'actorId', 'effects', 'ring', 'ovrl', 'subject'
         ];
         const changedKeys = Object.keys(changes || {});
         const shouldIgnore = changedKeys.length === 0
@@ -227,6 +232,11 @@ export class UpdateCoordinator {
 
         if (shouldIgnore) {
             return;
+        }
+
+        // Keep currentActor pointed at the live token actor after delta transforms
+        if (token?.actor && this.hotbarApp.currentActor !== token.actor) {
+            this.hotbarApp.currentActor = token.actor;
         }
 
         await this.hotbarApp.refresh({ tokenSwap: true });
@@ -345,7 +355,7 @@ export class UpdateCoordinator {
 
         // No full refresh fallback - only update elements that have explicit handlers
         // Unhandled changes are logged for debugging but don't trigger expensive re-renders
-        console.debug('[bg3-hud-core] UpdateCoordinator: Unhandled actor change (no refresh):', changes);
+        Logger.debug('UpdateCoordinator: Unhandled actor change (no refresh):', changes);
     }
 
     /**
@@ -425,7 +435,7 @@ export class UpdateCoordinator {
             try {
                 return !!(await adapter.onAdapterFlagsChanged(adapterFlags, this.hotbarApp));
             } catch (e) {
-                console.error('[bg3-hud-core] onAdapterFlagsChanged failed:', e);
+                Logger.error('onAdapterFlagsChanged failed:', e);
                 return false;
             }
         }
@@ -619,7 +629,7 @@ export class UpdateCoordinator {
                 this._updateDepletionStatesDeferred(item.parent, changes);
             }
         } catch (e) {
-            console.error('[bg3-hud-core] UpdateCoordinator: Failed to handle embedded item change', e);
+            Logger.error('UpdateCoordinator: Failed to handle embedded item change', e);
             await this.hotbarApp.refresh({ tokenSwap: true });
         }
     }

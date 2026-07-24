@@ -1,3 +1,30 @@
+## [0.6.0] - 2026-07-24
+
+Housekeeping release. Mostly an internal tidy-up to make the HUD easier to maintain, plus a fix for players not seeing their settings menus.
+
+### Added
+- **Debug Logging toggle**: A new client setting (Configure Settings, BG3 Inspired HUD - Core) turns on verbose console messages when you need to troubleshoot. It's off by default, so a normal session stays quiet. Warnings and errors always show regardless.
+
+### Fixed
+- **Player settings menus**: Settings menus now show players only the options they can actually change, and saving no longer errors when a menu also contains GM-only options. This is the groundwork that lets each system's Display menu be opened by players.
+
+### Changed
+- **Quieter console**: The HUD no longer spams the browser console during normal play. All the routine chatter is now tucked behind the new Debug Logging toggle.
+- **Under-the-hood cleanup**: Removed unused code and consolidated duplicated logic across the core and its system adapters. No visible change, same HUD, leaner internals.
+
+### Added
+- **Minimalist View setting**: Optional client setting that hides hotbar view tabs and docks the HUD flush with the bottom edge. Default layout (floating HUD + view tabs) is unchanged.
+- **Rest / End Turn + dock toggle**: Ported the legacy inspired-hotbar rest/turn button look (taller buttons with labels) and the caret dock toggle into core for all layouts, not only Minimalist View. Dock hide/show both slide the HUD (caret stays fixed).
+- **Target Selector simplified**: Interrupts use until targets are confirmed, then resumes. Validates only target count (with +/- override), self/enemy type (optional ignore setting), and range. No ally/creature/cover/flank enforcement.
+- **Polish translation**: Added `pl.json` (thanks Lioheart).
+
+### Fixed
+- **Canvas pan through HUD gutters**: Empty left/right regions no longer capture pointer events, so you can pan the canvas beside the hotbar again (Foundry v14).
+- **Tooltip cutoff**: Tall tooltips clamp to the viewport and become scrollable instead of rendering off-screen.
+- **Unlinked token Save Layout**: Saving a layout now writes to the world actor (`token.actorId`) and marks auto-populate complete so unlinked NPCs keep the setup.
+- **pt-BR Name-only tooltips label**: Correction from Kharmans.
+
+
 ## [0.4.3] - 2026-07-13
 
 ### Changed

@@ -1,3 +1,5 @@
+import { Logger } from './logger.js';
+
 /**
  * BG3 HUD Component Registry
  * Central storage for system adapter registrations
@@ -63,7 +65,7 @@ export const BG3HUD_API = {
      * @param {Class} containerClass - Class that extends PortraitContainer
      */
     registerPortraitContainer(containerClass) {
-        console.info('[bg3-hud-core] Registering portrait container:', containerClass.name);
+        Logger.info('Registering portrait container:', containerClass.name);
         BG3HUD_REGISTRY.portraitContainer = containerClass;
     },
 
@@ -72,7 +74,7 @@ export const BG3HUD_API = {
      * @param {Class} containerClass - Class that extends PassivesContainer
      */
     registerPassivesContainer(containerClass) {
-        console.info('[bg3-hud-core] Registering passives container:', containerClass.name);
+        Logger.info('Registering passives container:', containerClass.name);
         BG3HUD_REGISTRY.passivesContainer = containerClass;
     },
 
@@ -81,7 +83,7 @@ export const BG3HUD_API = {
      * @param {Class} containerClass - Class that extends ActionContainer
      */
     registerActionContainer(containerClass) {
-        console.info('[bg3-hud-core] Registering action container:', containerClass.name);
+        Logger.info('Registering action container:', containerClass.name);
         BG3HUD_REGISTRY.actionContainer = containerClass;
     },
 
@@ -90,7 +92,7 @@ export const BG3HUD_API = {
      * @param {Class} containerClass - Class that extends AbilityContainer
      */
     registerAbilityContainer(containerClass) {
-        console.info('[bg3-hud-core] Registering ability container:', containerClass.name);
+        Logger.info('Registering ability container:', containerClass.name);
         BG3HUD_REGISTRY.abilityContainer = containerClass;
     },
 
@@ -99,7 +101,7 @@ export const BG3HUD_API = {
      * @param {Class} containerClass - Class that extends ActionButtonsContainer
      */
     registerActionButtonsContainer(containerClass) {
-        console.info('[bg3-hud-core] Registering action buttons container:', containerClass.name);
+        Logger.info('Registering action buttons container:', containerClass.name);
         BG3HUD_REGISTRY.actionButtonsContainer = containerClass;
     },
 
@@ -108,7 +110,7 @@ export const BG3HUD_API = {
      * @param {Class} containerClass - Class that extends FilterContainer
      */
     registerFilterContainer(containerClass) {
-        console.info('[bg3-hud-core] Registering filter container:', containerClass.name);
+        Logger.info('Registering filter container:', containerClass.name);
         BG3HUD_REGISTRY.filterContainer = containerClass;
     },
 
@@ -117,7 +119,7 @@ export const BG3HUD_API = {
      * @param {Class} containerClass - Class that extends WeaponSetContainer
      */
     registerWeaponSetContainer(containerClass) {
-        console.info('[bg3-hud-core] Registering weapon set container:', containerClass.name);
+        Logger.info('Registering weapon set container:', containerClass.name);
         BG3HUD_REGISTRY.weaponSetContainer = containerClass;
     },
 
@@ -126,7 +128,7 @@ export const BG3HUD_API = {
      * @param {Class} containerClass - Class that extends InfoContainer
      */
     registerInfoContainer(containerClass) {
-        console.info('[bg3-hud-core] Registering info container:', containerClass.name);
+        Logger.info('Registering info container:', containerClass.name);
         BG3HUD_REGISTRY.infoContainer = containerClass;
     },
 
@@ -136,7 +138,7 @@ export const BG3HUD_API = {
      * @param {Class} containerClass - Container class
      */
     registerContainer(id, containerClass) {
-        console.info(`[bg3-hud-core] Registering container '${id}':`, containerClass.name);
+        Logger.info(`Registering container '${id}':`, containerClass.name);
         BG3HUD_REGISTRY.containers[id] = containerClass;
     },
 
@@ -152,11 +154,11 @@ export const BG3HUD_API = {
     registerAdapter(adapter, config = {}) {
         // Validate required properties
         if (!adapter.MODULE_ID) {
-            console.error('[bg3-hud-core] Adapter missing required MODULE_ID property:', adapter);
+            Logger.error('Adapter missing required MODULE_ID property:', adapter);
             return;
         }
         if (!adapter.systemId) {
-            console.error('[bg3-hud-core] Adapter missing required systemId property:', adapter);
+            Logger.error('Adapter missing required systemId property:', adapter);
             return;
         }
 
@@ -166,18 +168,18 @@ export const BG3HUD_API = {
             ...config
         };
 
-        console.info('[bg3-hud-core] Registering adapter:', adapter.constructor.name);
+        Logger.info('Registering adapter:', adapter.constructor.name);
         BG3HUD_REGISTRY.adapters.push(adapter);
 
         // Set as active if it matches current system
         if (adapter.systemId === game.system.id) {
             BG3HUD_REGISTRY.activeAdapter = adapter;
-            console.info('[bg3-hud-core] Active adapter set:', adapter.constructor.name);
+            Logger.info('Active adapter set:', adapter.constructor.name);
 
             // Connect adapter to target selector manager
             if (BG3HUD_REGISTRY.targetSelectorManager) {
                 BG3HUD_REGISTRY.targetSelectorManager.setAdapter(adapter);
-                console.info('[bg3-hud-core] Target selector connected to adapter');
+                Logger.info('Target selector connected to adapter');
             }
         }
     },
@@ -218,7 +220,7 @@ export const BG3HUD_API = {
      */
     registerTooltipRenderer(systemId, renderer) {
         if (!BG3HUD_REGISTRY.tooltipManager) {
-            console.error('[bg3-hud-core] TooltipManager not initialized. Call BG3HUD_API.setTooltipManager() first.');
+            Logger.error('TooltipManager not initialized. Call BG3HUD_API.setTooltipManager() first.');
             return;
         }
         BG3HUD_REGISTRY.tooltipManager.registerRenderer(systemId, renderer);
@@ -230,7 +232,7 @@ export const BG3HUD_API = {
      */
     setTooltipManager(tooltipManager) {
         BG3HUD_REGISTRY.tooltipManager = tooltipManager;
-        console.info('[bg3-hud-core] TooltipManager registered');
+        Logger.info('TooltipManager registered');
     },
 
     /**
@@ -253,7 +255,7 @@ export const BG3HUD_API = {
      * BG3HUD_API.registerMenuBuilder(game.system.id, MenuBuilder, { adapter: this });
      */
     registerMenuBuilder(systemId, builderClass, options = {}) {
-        console.info(`[bg3-hud-core] Registering menu builder for system '${systemId}':`, builderClass.name);
+        Logger.info(`Registering menu builder for system '${systemId}':`, builderClass.name);
 
         // Create builder instance with adapter if provided
         const builder = new builderClass({ adapter: options.adapter || null });
@@ -276,7 +278,7 @@ export const BG3HUD_API = {
      */
     setTargetSelectorManager(manager) {
         BG3HUD_REGISTRY.targetSelectorManager = manager;
-        console.info('[bg3-hud-core] TargetSelectorManager registered');
+        Logger.info('TargetSelectorManager registered');
     },
 
     /**
@@ -298,7 +300,7 @@ export const BG3HUD_API = {
     async startTargetSelection({ token, item, activity = null }) {
         const manager = BG3HUD_REGISTRY.targetSelectorManager;
         if (!manager) {
-            console.warn('[bg3-hud-core] Target selector manager not initialized');
+            Logger.warn('Target selector manager not initialized');
             return Array.from(game.user.targets);
         }
         return manager.select({ token, item, activity });

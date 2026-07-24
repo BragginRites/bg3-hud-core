@@ -3,6 +3,7 @@ import { BaseButton } from '../buttons/BaseButton.js';
 import { ContextMenu } from '../ui/ContextMenu.js';
 import { BG3HUD_API } from '../../utils/registry.js';
 import { ControlsManager } from '../../managers/ControlsManager.js';
+import { Logger } from '../../utils/logger.js';
 
 /**
  * Control Container
@@ -190,7 +191,7 @@ export class ControlContainer extends BG3Component {
         if (this._rowOpInProgress) return;
 
         if (!this.hotbarApp?.components?.hotbar) {
-            console.warn('[bg3-hud-core] No hotbar to change row count');
+            Logger.warn('No hotbar to change row count');
             return;
         }
 
@@ -447,8 +448,18 @@ export class ControlContainer extends BG3Component {
             // Get the current state (already reflects grid resize/save operations)
             const currentState = await this.hotbarApp.persistenceManager.loadState();
 
-            // Resolve the base actor (handles unlinked tokens)
-            const baseActor = game.actors?.get(this.hotbarApp.currentActor.id) || this.hotbarApp.currentActor;
+            // Resolve the sidebar/base actor. Unlinked tokens use a synthetic actor whose
+            // id is NOT the world actor id - prefer the token's actorId in that case.
+            const tokenDoc = this.hotbarApp.currentToken?.document ?? this.hotbarApp.currentToken;
+            const baseActorId = tokenDoc?.actorId
+                ?? this.hotbarApp.currentActor?.id;
+            const baseActor = (baseActorId && game.actors?.get(baseActorId))
+                || this.hotbarApp.currentActor;
+
+            // Mark auto-populate complete so future unlinked tokens keep this layout
+            if (currentState && typeof currentState === 'object') {
+                currentState.autoPopulateComplete = true;
+            }
 
             // Use a fresh persistence manager to write onto the base actor
             const { PersistenceManager } = await import('/modules/bg3-hud-core/scripts/managers/PersistenceManager.js');
@@ -457,7 +468,7 @@ export class ControlContainer extends BG3Component {
 
             ui.notifications?.info(game.i18n.localize('bg3-hud-core.Notifications.SaveLayoutSuccess'));
         } catch (error) {
-            console.error('[bg3-hud-core] Failed to save layout as actor default:', error);
+            Logger.error('Failed to save layout as actor default:', error);
             ui.notifications?.error(game.i18n.localize('bg3-hud-core.Notifications.SaveLayoutFailed'));
         }
     }
@@ -545,7 +556,7 @@ export class ControlContainer extends BG3Component {
             await Promise.all(updates);
 
         } catch (error) {
-            console.error('[bg3-hud-core] Failed to clear all items:', error);
+            Logger.error('Failed to clear all items:', error);
             ui.notifications.error(game.i18n.localize('bg3-hud-core.Notifications.ClearAllFailed'));
         }
     }
@@ -626,7 +637,7 @@ export class ControlContainer extends BG3Component {
                         await this._importLayoutV1(importData);
                     }
                 } catch (error) {
-                    console.error('[bg3-hud-core] Failed to import layout:', error);
+                    Logger.error('Failed to import layout:', error);
                     ui.notifications.error(game.i18n.localize('bg3-hud-core.Notifications.ImportLayoutFailed'));
                 }
             };

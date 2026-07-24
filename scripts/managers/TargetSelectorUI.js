@@ -3,6 +3,8 @@
  * Handles all UI elements and display logic for the target selector.
  * Manages DOM elements, canvas overlays, and visual feedback.
  */
+import { Logger } from '../utils/logger.js';
+
 export class TargetSelectorUI {
     /**
      * @param {TargetSelectorManager} manager - The parent manager instance
@@ -31,7 +33,7 @@ export class TargetSelectorUI {
      * @param {Object} requirements - Targeting requirements
      */
     activate(requirements) {
-        console.warn('[bg3-hud-core] UI: Activate called', requirements);
+        Logger.warn('UI: Activate called', requirements);
 
         this._createInstructionsDisplay(requirements);
         this._createMouseDisplay(requirements);
@@ -41,14 +43,14 @@ export class TargetSelectorUI {
         this.showTargetList();
 
         if (requirements.range && this.manager.sourceToken) {
-            console.warn('[bg3-hud-core] UI: Attempting to show range indicator', { range: requirements.range, token: this.manager.sourceToken.name });
+            Logger.warn('UI: Attempting to show range indicator', { range: requirements.range, token: this.manager.sourceToken.name });
             try {
                 this.showRangeIndicator(this.manager.sourceToken, requirements.range);
             } catch (e) {
-                console.error('[bg3-hud-core] Error showing range indicator:', e);
+                Logger.error('Error showing range indicator:', e);
             }
         } else {
-            console.warn('[bg3-hud-core] UI: Skipping range indicator', { range: requirements.range, hasSourceToken: !!this.manager.sourceToken });
+            Logger.warn('UI: Skipping range indicator', { range: requirements.range, hasSourceToken: !!this.manager.sourceToken });
         }
 
         // Add targeting class to body
@@ -200,7 +202,7 @@ export class TargetSelectorUI {
                     top: rect.top
                 });
             } catch (err) {
-                console.warn('[bg3-hud-core] Failed to save target selector position:', err);
+                Logger.warn('Failed to save target selector position:', err);
             }
         };
 
@@ -510,7 +512,7 @@ export class TargetSelectorUI {
             try {
                 img = await game.video?.createThumbnail(img, { width: 50, height: 50 }) ?? img;
             } catch (err) {
-                console.warn('[bg3-hud-core] Failed to create video thumbnail:', err);
+                Logger.warn('Failed to create video thumbnail:', err);
             }
         }
 
@@ -535,7 +537,7 @@ export class TargetSelectorUI {
             }
         }
 
-        // Get adapter-provided info (cover, flanking, etc.)
+        // Adapter may supply distance/range display hints only (no cover/flank rules)
         if (adapter?.targetingRules?.getTargetInfo) {
             try {
                 const adapterInfo = adapter.targetingRules.getTargetInfo({
@@ -544,15 +546,17 @@ export class TargetSelectorUI {
                     item: this.manager.item,
                     activity: this.manager.activity
                 });
-
-                if (adapterInfo.coverStatus && adapterInfo.coverStatus !== 'none') {
-                    info.details.push(adapterInfo.coverStatus);
+                if (adapterInfo.distance != null && info.distance == null) {
+                    info.distance = adapterInfo.distance;
                 }
-                if (adapterInfo.isFlanked) {
-                    info.details.push(game.i18n.localize('bg3-hud-core.TargetSelector.Flanked'));
+                if (adapterInfo.inRange === false) {
+                    info.inRange = false;
+                    if (!info.details.includes(game.i18n.localize('bg3-hud-core.TargetSelector.OutOfRange'))) {
+                        info.details.push(game.i18n.localize('bg3-hud-core.TargetSelector.OutOfRange'));
+                    }
                 }
             } catch (err) {
-                console.warn('[bg3-hud-core] Error getting adapter target info:', err);
+                Logger.warn('Error getting adapter target info:', err);
             }
         }
 
@@ -684,7 +688,7 @@ export class TargetSelectorUI {
         this._rangeIndicator.position.set(sourceToken.center.x, sourceToken.center.y);
 
         // Debug logging
-        console.warn('[bg3-hud-core] Creating PIXI Graphics:', {
+        Logger.warn('Creating PIXI Graphics:', {
             radius: rangeInPixels,
             x: sourceToken.center.x,
             y: sourceToken.center.y,

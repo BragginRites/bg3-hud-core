@@ -11,6 +11,7 @@
  */
 
 import { BG3HUD_REGISTRY } from '../utils/registry.js';
+import { Logger } from '../utils/logger.js';
 
 export class TooltipManager {
     /**
@@ -121,11 +122,11 @@ export class TooltipManager {
      */
     registerRenderer(systemId, renderer) {
         if (typeof renderer !== 'function') {
-            console.error('[bg3-hud-core] Tooltip renderer must be a function');
+            Logger.error('Tooltip renderer must be a function');
             return;
         }
         this.renderers.set(systemId, renderer);
-        console.info(`[bg3-hud-core] Registered tooltip renderer for system: ${systemId}`);
+        Logger.info(`Registered tooltip renderer for system: ${systemId}`);
     }
 
     /**
@@ -193,14 +194,14 @@ export class TooltipManager {
 
         const renderer = this.renderers.get(systemId);
         if (!renderer) {
-            console.warn(`[bg3-hud-core] No tooltip renderer registered for system: ${systemId}`);
+            Logger.warn(`No tooltip renderer registered for system: ${systemId}`);
             return;
         }
 
         try {
             const result = await renderer(data, options);
             if (!result) {
-                console.warn('[bg3-hud-core] Tooltip renderer returned null/undefined');
+                Logger.warn('Tooltip renderer returned null/undefined');
                 return;
             }
 
@@ -214,7 +215,7 @@ export class TooltipManager {
             } else if (result.content instanceof HTMLElement) {
                 this.tooltipElement.appendChild(result.content);
             } else {
-                console.error('[bg3-hud-core] Tooltip renderer must return content as string or HTMLElement, got:', typeof result.content);
+                Logger.error('Tooltip renderer must return content as string or HTMLElement, got:', typeof result.content);
                 return;
             }
 
@@ -256,8 +257,8 @@ export class TooltipManager {
             this.tooltipElement.style.visibility = 'visible';
             this.tooltipElement.classList.add('visible');
         } catch (error) {
-            console.error('[bg3-hud-core] Error rendering tooltip:', error);
-            console.error('[bg3-hud-core] Error stack:', error.stack);
+            Logger.error('Error rendering tooltip:', error);
+            Logger.error('Error stack:', error.stack);
         }
     }
 
@@ -425,14 +426,34 @@ export class TooltipManager {
         // Center to center horizontally
         let left = Math.round(el.left + el.width / 2 - ttr.width / 2);
 
-        // Default: strict 20px gap above
+        // Prefer above the source; flip below if needed
         let top = Math.round(el.top - ttr.height - gap);
-
-        // Flip below if not enough space above
-        if (top < 8) top = Math.round(el.bottom + gap);
+        let placedBelow = false;
+        if (top < 8) {
+            top = Math.round(el.bottom + gap);
+            placedBelow = true;
+        }
 
         // Clamp horizontally to viewport
         left = Math.max(8, Math.min(left, window.innerWidth - ttr.width - 8));
+
+        // Keep tall tooltips inside the viewport and scroll when needed
+        const maxTop = 8;
+        const maxBottom = window.innerHeight - 8;
+        const available = placedBelow
+            ? Math.max(120, maxBottom - top)
+            : Math.max(120, el.top - gap - maxTop);
+        if (ttr.height > available) {
+            tt.style.maxHeight = `${available}px`;
+            tt.style.overflowY = 'auto';
+            if (!placedBelow) {
+                top = Math.max(maxTop, Math.round(el.top - available - gap));
+            }
+        } else {
+            tt.style.maxHeight = '';
+            tt.style.overflowY = '';
+        }
+        top = Math.max(maxTop, Math.min(top, maxBottom - Math.min(ttr.height, available)));
 
         // Apply final position
         tt.style.position = 'fixed';
@@ -561,7 +582,7 @@ export class TooltipManager {
                                 await this.showRichTooltip(target, item, systemId, {}, uuid);
                             }
                         } catch (error) {
-                            console.error('[bg3-hud-core] Error loading item for tooltip:', error);
+                            Logger.error('Error loading item for tooltip:', error);
                         }
                     }
                     // Clear pending target after timeout

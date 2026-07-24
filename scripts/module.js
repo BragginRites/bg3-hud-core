@@ -3,6 +3,7 @@ import { BG3HUD_REGISTRY, BG3HUD_API } from './utils/registry.js';
 import { registerSettings, applyMacrobarCollapseSetting, applyContainerRowSettings, applyTheme } from './utils/settings.js';
 import { TooltipManager } from './managers/TooltipManager.js';
 import { TargetSelectorManager } from './managers/TargetSelectorManager.js';
+import { Logger } from './utils/logger.js';
 
 /**
  * BG3 HUD Core Module
@@ -17,12 +18,12 @@ const MODULE_ID = 'bg3-hud-core';
 // ========================================
 
 Hooks.once('init', () => {
-    console.info('[bg3-hud-core] Registering settings');
+    Logger.info('Registering settings');
     registerSettings();
 });
 
 Hooks.once('ready', async () => {
-    console.info('[bg3-hud-core] Initializing');
+    Logger.info('Initializing');
 
     // Apply theme CSS variables early
     await applyTheme();
@@ -49,7 +50,7 @@ Hooks.once('ready', async () => {
     );
 
     // Trigger hook for adapters to register
-    console.info('[bg3-hud-core] Calling bg3HudReady hook for system adapters');
+    Logger.info('Calling bg3HudReady hook for system adapters');
     Hooks.callAll('bg3HudReady', BG3HUD_API);
 
     // Only wait for adapter registration if a compatible adapter module is active
@@ -84,14 +85,14 @@ Hooks.once('ready', async () => {
     };
 
     // Create and render the HUD
-    console.info('[bg3-hud-core] Creating HUD application');
+    Logger.info('Creating HUD application');
     ui.BG3HUD_APP = new BG3Hotbar();
     // `ready` already applied theme — skip duplicate work in first _onRender
     ui.BG3HUD_APP._themeApplied = true;
 
     const initialToken = pickSingleHudToken();
     if (initialToken) {
-        console.debug('[bg3-hud-core] Pre-binding controlled token for first HUD render:', initialToken.name);
+        Logger.debug('Pre-binding controlled token for first HUD render:', initialToken.name);
         ui.BG3HUD_APP.currentToken = initialToken;
         ui.BG3HUD_APP.currentActor = initialToken.actor;
     }
@@ -104,7 +105,7 @@ Hooks.once('ready', async () => {
     // Apply container row settings
     applyContainerRowSettings();
 
-    console.info('[bg3-hud-core] Initialization complete');
+    Logger.info('Initialization complete');
 });
 
 // ========================================
@@ -162,7 +163,7 @@ Hooks.on('createToken', async (tokenDocument, options, userId) => {
         try {
             await adapter.autoPopulatePassives(actor, tokenDocument);
         } catch (error) {
-            console.error('[bg3-hud-core] Error auto-populating passives on token creation:', error);
+            Logger.error('Error auto-populating passives on token creation:', error);
         }
     }
 
@@ -191,6 +192,6 @@ Hooks.on('createToken', async (tokenDocument, options, userId) => {
             await adapter.onTokenCreationComplete(actor, tempPersistence);
         }
     } catch (error) {
-        console.error('[bg3-hud-core] Error in auto-populate on token creation:', error);
+        Logger.error('Error in auto-populate on token creation:', error);
     }
 });

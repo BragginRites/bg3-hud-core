@@ -1,3 +1,5 @@
+import { Logger } from './logger.js';
+
 /**
  * Dialog Utilities
  * Helper functions for showing standardized dialogs using Foundry's DialogV2
@@ -512,7 +514,7 @@ const PRESET_ICONS = [
  * @param {string} [options.icon='fa-bookmark'] - Initial icon value
  * @returns {Promise<{name: string, icon: string}|null>} Result object or null if cancelled
  */
-export async function showViewDialog(options = {}) {
+async function showViewDialog(options = {}) {
     const {
         title = game.i18n.localize('bg3-hud-core.Views.CreateTitle'),
         buttonLabel = game.i18n.localize('bg3-hud-core.Views.CreateButton'),
@@ -627,7 +629,7 @@ export async function showViewDialog(options = {}) {
         return result;
     } catch (error) {
         if (error?.message !== 'Name required') {
-            console.error('[bg3-hud-core] showViewDialog error:', error);
+            Logger.error('showViewDialog error:', error);
         }
         return null;
     }

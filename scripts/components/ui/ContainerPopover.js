@@ -1,5 +1,6 @@
 import { BG3Component } from '../BG3Component.js';
 import { GridContainer } from '../containers/GridContainer.js';
+import { Logger } from '../../utils/logger.js';
 
 /**
  * Container Popover Component
@@ -58,7 +59,7 @@ export class ContainerPopover extends BG3Component {
         if (this.adapter && typeof this.adapter.getContainerContents === 'function') {
             adapterContents = await this.adapter.getContainerContents(this.containerItem, this.actor);
         } else {
-            console.warn('ContainerPopover | Adapter does not provide getContainerContents method');
+            Logger.warn('ContainerPopover | Adapter does not provide getContainerContents method');
         }
 
         if (!savedGrid) {
@@ -105,7 +106,7 @@ export class ContainerPopover extends BG3Component {
             }
             
             if (!placed) {
-                console.warn('ContainerPopover | No empty slot found for new item:', itemData.name);
+                Logger.warn('ContainerPopover | No empty slot found for new item:', itemData.name);
             }
         }
 

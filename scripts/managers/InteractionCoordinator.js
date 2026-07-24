@@ -1,6 +1,7 @@
 import { ContainerTypeDetector } from './ContainerTypeDetector.js';
 import { SlotContextMenu } from '../components/ui/SlotContextMenu.js';
 import { ContainerPopover } from '../components/ui/ContainerPopover.js';
+import { Logger } from '../utils/logger.js';
 
 /**
  * Interaction Coordinator
@@ -109,7 +110,7 @@ export class InteractionCoordinator {
         // Get the container item
         const containerItem = cell.data?.uuid ? await fromUuid(cell.data.uuid) : null;
         if (!containerItem) {
-            console.warn('InteractionCoordinator | Could not resolve container item');
+            Logger.warn('InteractionCoordinator | Could not resolve container item');
             return;
         }
 
@@ -175,7 +176,7 @@ export class InteractionCoordinator {
                 );
             }
         } catch (error) {
-            console.error('[bg3-hud-core] Error sorting container:', error);
+            Logger.error('Error sorting container:', error);
             ui.notifications.error(game.i18n.localize('bg3-hud-core.Notifications.SortFailed'));
         }
     }
@@ -186,7 +187,7 @@ export class InteractionCoordinator {
      */
     async autoPopulateContainer(container) {
         if (!this.adapter || !this.adapter.autoPopulate) {
-            console.warn('[bg3-hud-core] No adapter or autoPopulate capability');
+            Logger.warn('No adapter or autoPopulate capability');
             return;
         }
 
@@ -214,7 +215,7 @@ export class InteractionCoordinator {
                 );
             }
         } catch (error) {
-            console.error('[bg3-hud-core] Error auto-populating container:', error);
+            Logger.error('Error auto-populating container:', error);
             ui.notifications.error(game.i18n.localize('bg3-hud-core.Notifications.AutoPopulateFailed'));
         }
     }
@@ -238,7 +239,7 @@ export class InteractionCoordinator {
             }
 
         } catch (error) {
-            console.error('[bg3-hud-core] Error clearing container:', error);
+            Logger.error('Error clearing container:', error);
             ui.notifications.error(game.i18n.localize('bg3-hud-core.Notifications.ClearContainerFailed'));
         }
     }
@@ -344,7 +345,7 @@ export class InteractionCoordinator {
     async _handleInternalDrop(targetCell, dragData) {
         const sourceCell = this.dragSourceCell;
         if (!sourceCell) {
-            console.warn('[bg3-hud-core] No source cell for internal drop');
+            Logger.warn('No source cell for internal drop');
             return;
         }
 
@@ -505,7 +506,7 @@ export class InteractionCoordinator {
         // STEP 1: Get document from drag data (supports Item, Macro, and Activity)
         const result = await this._getDocumentFromDragData(event);
         if (!result) {
-            console.warn('[bg3-hud-core] Could not get document from drag data');
+            Logger.warn('Could not get document from drag data');
             return;
         }
 
@@ -570,7 +571,7 @@ export class InteractionCoordinator {
         }
 
         if (!cellData) {
-            console.warn('[bg3-hud-core] Could not transform document to cell data');
+            Logger.warn('Could not transform document to cell data');
             return;
         }
 
@@ -699,7 +700,7 @@ export class InteractionCoordinator {
                 }
             }
         } catch (e) {
-            console.warn('[bg3-hud-core] Failed to parse drag data:', e);
+            Logger.warn('Failed to parse drag data:', e);
         }
         return null;
     }
@@ -755,7 +756,7 @@ export class InteractionCoordinator {
         const actor = this.hotbarApp?.currentActor;
         const token = this.hotbarApp?.currentToken;
 
-        console.debug('[bg3-hud-core] Executing macro:', macro.name);
+        Logger.debug('Executing macro:', macro.name);
         await macro.execute({ actor, token });
     }
 

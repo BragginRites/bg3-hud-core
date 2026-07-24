@@ -1,3 +1,5 @@
+import { Logger } from './logger.js';
+
 /**
  * Portrait Data Resolver
  * Utility for resolving actor data paths into displayable values
@@ -50,7 +52,7 @@ export class PortraitDataResolver {
                 value = await this._resolveToken(actor, path);
             }
         } catch (error) {
-            console.warn('PortraitDataResolver | Failed to resolve path:', path, error);
+            Logger.warn('PortraitDataResolver | Failed to resolve path:', path, error);
         }
 
         // Convert to string, handle empty/null

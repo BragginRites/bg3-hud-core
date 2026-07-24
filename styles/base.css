@@ -144,6 +144,10 @@
    Base Container Styles
    ========================================================================== */
 
+#bg3-hotbar.bg3-hud {
+    overflow: visible;
+}
+
 #bg3-hotbar-container {
     position: fixed;
     display: grid;
@@ -161,21 +165,29 @@
     padding-bottom: var(--position-bottom, 10px);
     transition: transform .3s ease-in-out, opacity .3s ease-in-out var(--bg3-faded-delay);
     width: 100%;
-    bottom: 30px;
+    /* Default floats above the bottom; Minimalist View can set --bg3-hud-bottom to 0 */
+    bottom: var(--bg3-hud-bottom, 30px);
     left: 0;
     right: 0;
     opacity: var(--bg3-faded-opacity, var(--bg3-normal-opacity));
     pointer-events: none;
     /* Allow clicking through empty spaces */
+    overflow: visible;
 }
 
-/* Regions */
+/* Regions
+   Keep pointer-events off on the region chrome itself so empty left/right
+   gutters do not block canvas pan/zoom. Re-enable only on real children. */
 .bg3-hud-region {
     display: flex;
     align-items: flex-end;
+    pointer-events: none;
+    height: auto;
+    align-self: end;
+}
+
+.bg3-hud-region > * {
     pointer-events: auto;
-    /* Re-enable pointer events for content */
-    height: 100%;
 }
 
 .bg3-hud-region-left {
@@ -199,6 +211,8 @@
 .bg3-hud-region-right {
     justify-content: flex-start;
     padding-left: var(--bg3-hud-column-gap, 8px);
+    align-self: end;
+    align-items: flex-end;
 }
 
 /* Hide HUD during initialization to prevent visual flicker */

@@ -73,10 +73,6 @@
         "Name": "Position Padding",
         "Hint": "Horizontal padding from screen edge (pixels)"
       },
-      "PosPaddingBottom": {
-        "Name": "Bottom Padding",
-        "Hint": "Padding from the bottom of the screen (pixels)"
-      },
       "PassivesContainerIconsPerRow": {
         "Name": "Passive Feature Icons Per Row",
         "Hint": "Number of Passive Feature icons displayed per row before wrapping"
@@ -92,6 +88,14 @@
       "ShowFilters": {
         "Name": "Show Filter Icons",
         "Hint": "Display the spell slot and action type filter icons above the hotbar"
+      },
+      "MinimalistView": {
+        "Name": "Minimalist View",
+        "Hint": "Optional edge-docked layout: hide the hotbar view tabs and sit the HUD flush with the bottom of the screen. Off by default; the normal floating HUD with view tabs stays unchanged."
+      },
+      "PosPaddingBottom": {
+        "Name": "Bottom Padding",
+        "Hint": "Padding from the bottom of the screen (pixels). Ignored while Minimalist View is enabled."
       },
       "ShowPortrait": {
         "Name": "Show Portrait",
@@ -154,11 +158,11 @@
         "MenuHint": "Configure BG3-style target selection for spells and abilities",
         "Legend": "Target Selection",
         "EnableName": "Enable Target Selector",
-        "EnableHint": "When enabled, clicking spells/abilities that need targets will prompt for target selection",
+        "EnableHint": "When enabled, spells/abilities that need targets pause until you confirm targets, then usage resumes. Checks target count, self/enemy type, and range only.",
         "SkipName": "Skip If Valid Target Exists",
         "SkipHint": "Skip the target selector if you already have a valid target selected",
         "RangeName": "Enforce Range Checking",
-        "RangeHint": "Prevent targeting tokens that are out of range",
+        "RangeHint": "Reject targets outside the ability range",
         "AutoSelfName": "Auto-Target Self",
         "AutoSelfHint": "Automatically target yourself for self-targeting abilities",
         "RangeIndicatorLegend": "Range Indicator",
@@ -179,7 +183,9 @@
         "RangeLineWidthThick": "Thick (3px)",
         "RangeLineWidthExtraThick": "Extra Thick (4px)",
         "RangeColorName": "Indicator Color",
-        "RangeColorHint": "Color of the range indicator (hex format)"
+        "RangeColorHint": "Color of the range indicator (hex format)",
+        "IgnoreTypeName": "Ignore Self / Enemy Restrictions",
+        "IgnoreTypeHint": "Allow selecting any token regardless of self/enemy targeting rules. Target count and range checks still apply when enabled."
       },
       "PortraitData": {
         "Title": "Portrait Data Configuration",
@@ -228,6 +234,11 @@
         "SaveLayout": "Save Layout as Actor Default",
         "ExportLayout": "Export Layout",
         "ImportLayout": "Import Layout"
+      },
+      "DockToggle": {
+        "Tooltip": "Show / Hide HUD Dock",
+        "Hide": "Hide HUD Dock",
+        "Show": "Show HUD Dock"
       }
     },
     "ContextMenu": {

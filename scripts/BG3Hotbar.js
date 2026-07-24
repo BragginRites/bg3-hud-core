@@ -7,6 +7,7 @@ import { ComponentFactory } from './managers/ComponentFactory.js';
 import { ItemUpdateManager } from './managers/ItemUpdateManager.js';
 import { HotbarViewsContainer } from './components/containers/HotbarViewsContainer.js';
 import { ControlsManager } from './managers/ControlsManager.js';
+import { Logger } from './utils/logger.js';
 
 /**
  * BG3 Hotbar Application
@@ -58,6 +59,8 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
         this._refreshGeneration = 0;
         /** @type {boolean} Track whether theme has been applied at least once */
         this._themeApplied = false;
+        /** @type {boolean|null} Dock minimized state (caret toggle); null while animating */
+        this._minimized = false;
 
         // Initialize managers
         this.persistenceManager = new PersistenceManager();
@@ -313,7 +316,7 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
                 try {
                     adapter.updateCellDepletionStates(this.currentActor, {});
                 } catch (e) {
-                    console.warn('[bg3-hud-core] updateCellDepletionStates after token swap failed:', e);
+                    Logger.warn('updateCellDepletionStates after token swap failed:', e);
                 }
             });
         }
@@ -504,6 +507,64 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
     }
 
     /**
+     * Toggle minimized dock state (legacy Application._onToggleMinimize behavior).
+     * @param {Event} [event]
+     */
+    _onToggleMinimize(event) {
+        event?.preventDefault?.();
+        if (this._minimized) this.maximize();
+        else this.minimize();
+    }
+
+    /**
+     * Slide the HUD off-screen, leaving the caret toggle accessible.
+     * Matches bg3-inspired-hotbar minimize().
+     * @returns {Promise<void>}
+     */
+    async minimize() {
+        const container = this.element?.querySelector('#bg3-hotbar-container');
+        if (!this.rendered || !container || [true, null].includes(this._minimized)) return;
+        this._minimized = null;
+
+        return new Promise((resolve) => {
+            container.classList.add('minimized');
+            setTimeout(() => {
+                this._minimized = true;
+                resolve();
+            }, 300);
+        });
+    }
+
+    /**
+     * Restore the HUD from the minimized dock state.
+     * Matches bg3-inspired-hotbar maximize().
+     * @returns {Promise<void>}
+     */
+    async maximize() {
+        const container = this.element?.querySelector('#bg3-hotbar-container');
+        if (!container || [false, null].includes(this._minimized)) return;
+        this._minimized = null;
+
+        return new Promise((resolve) => {
+            container.classList.remove('minimized');
+            setTimeout(() => {
+                this._minimized = false;
+                resolve();
+            }, 300);
+        });
+    }
+
+    /**
+     * Re-apply minimized class after a rebuild if the dock was slid away.
+     * @private
+     */
+    _applyHudDockState() {
+        const container = this.element?.querySelector('#bg3-hotbar-container');
+        if (!container) return;
+        container.classList.toggle('minimized', this._minimized === true);
+    }
+
+    /**
      * Update visibility based on setting
      * @param {boolean} visible - Whether UI should be visible
      */
@@ -570,7 +631,7 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
         // Get the main container
         const container = this.element.querySelector('#bg3-hotbar-container');
         if (!container) {
-            console.error('[bg3-hud-core] Container element not found');
+            Logger.error('Container element not found');
             return;
         }
 
@@ -683,9 +744,10 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
             }
 
             // Create views container - positioned at bottom center of hotbar
-            // Only show for player characters (not NPCs)
+            // Only show for player characters (not NPCs). Hidden in Minimalist View.
+            const minimalistView = game.settings.get('bg3-hud-core', 'minimalistView') === true;
             const isPlayerCharacter = this.currentActor?.hasPlayerOwner || this.currentActor?.type === 'character';
-            if (isPlayerCharacter) {
+            if (!minimalistView && isPlayerCharacter) {
                 this.components.views = new HotbarViewsContainer({
                     hotbarApp: this
                 });
@@ -711,6 +773,7 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
      * @private
      */
     _finalizeRenderVisibility() {
+        this._applyHudDockState();
         if (!this.element) return;
         this.element.classList.remove('bg3-hud-building', 'bg3-hud-hidden', 'bg3-hud-fading-out');
         requestAnimationFrame(() => {
