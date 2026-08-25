@@ -230,13 +230,12 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
             this.components.actionButtons.actor = actor;
             this.components.actionButtons.token = token;
         }
-        if (this.components.situationalBonuses) {
-            this.components.situationalBonuses.actor = actor;
-            this.components.situationalBonuses.token = token;
-        }
-        if (this.components.cprGenericActions) {
-            this.components.cprGenericActions.actor = actor;
-            this.components.cprGenericActions.token = token;
+        for (const id of this.componentFactory.getRegisteredContainerIds('left')) {
+            const comp = this.components[id];
+            if (comp) {
+                comp.actor = actor;
+                comp.token = token;
+            }
         }
     }
 
@@ -245,7 +244,7 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
      * @private
      */
     async _syncHotbarViewsForActor() {
-        const isPlayerCharacter = this.currentActor?.hasPlayerOwner || this.currentActor?.type === 'character';
+        const isPlayerCharacter = BG3HUD_API.isPlayerCharacter(this.currentActor);
         const hotbar = this.components.hotbar;
         if (!hotbar?.element) return;
 
@@ -295,8 +294,8 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
             await this.components.filters.update();
         }
 
-        for (const key of ['situationalBonuses', 'cprGenericActions']) {
-            const comp = this.components[key];
+        for (const id of this.componentFactory.getRegisteredContainerIds('left')) {
+            const comp = this.components[id];
             if (comp && typeof comp.render === 'function') {
                 await comp.render();
             }
@@ -314,7 +313,7 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
         if (adapter?.updateCellDepletionStates && this.currentActor) {
             queueMicrotask(() => {
                 try {
-                    adapter.updateCellDepletionStates(this.currentActor, {});
+                    adapter.updateCellDepletionStates(this.currentActor, { _force: true });
                 } catch (e) {
                     Logger.warn('updateCellDepletionStates after token swap failed:', e);
                 }
@@ -715,20 +714,11 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
             this.components.quickAccess = await this.componentFactory.createQuickAccessContainer(state.quickAccess, handlers);
             weaponQuickWrapper.appendChild(await this.components.quickAccess.render());
 
-            // Create situational bonuses container (if adapter provides one) - positioned between weapon sets and hotbar
-            // Currently hanging on the left, so append to LEFT region
-            this.components.situationalBonuses = await this.componentFactory.createSituationalBonusesContainer();
-            if (this.components.situationalBonuses) {
-                const situationalBonusesElement = await this.components.situationalBonuses.render();
-                leftRegion.appendChild(situationalBonusesElement); // Append to LEFT
-            }
-
-            // Create CPR Generic Actions container (if adapter provides one) - positioned next to situational bonuses
-            // Appending to LEFT region
-            this.components.cprGenericActions = await this.componentFactory.createCPRGenericActionsContainer();
-            if (this.components.cprGenericActions) {
-                const cprGenericActionsElement = await this.components.cprGenericActions.render();
-                leftRegion.appendChild(cprGenericActionsElement); // Append to LEFT
+            // Optional adapter containers (left rail), ordered by registerContainer options
+            const leftExtras = await this.componentFactory.createRegisteredContainers('left');
+            for (const { id, component } of leftExtras) {
+                this.components[id] = component;
+                leftRegion.appendChild(await component.render());
             }
 
             // Create hotbar container from UNIFIED state
@@ -746,7 +736,7 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
             // Create views container - positioned at bottom center of hotbar
             // Only show for player characters (not NPCs). Hidden in Minimalist View.
             const minimalistView = game.settings.get('bg3-hud-core', 'minimalistView') === true;
-            const isPlayerCharacter = this.currentActor?.hasPlayerOwner || this.currentActor?.type === 'character';
+            const isPlayerCharacter = BG3HUD_API.isPlayerCharacter(this.currentActor);
             if (!minimalistView && isPlayerCharacter) {
                 this.components.views = new HotbarViewsContainer({
                     hotbarApp: this

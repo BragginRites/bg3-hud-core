@@ -15,7 +15,7 @@ export const BG3HUD_REGISTRY = {
     weaponSetContainer: null,
     infoContainer: null,
 
-    // Additional containers registered by adapters (e.g., rest/turn, weapon)
+    // Additional containers registered by adapters (id → { ContainerClass, region, order })
     containers: {},
 
     // System adapters
@@ -43,6 +43,31 @@ export const BG3HUD_REGISTRY = {
  *   @returns {Promise<null|BG3HudDragResolution>}
  * @property {Function} [onAdapterFlagsChanged] Respond to Foundry deltas under `changes.flags[MODULE_ID]` for the active actor.
  *   @returns {Promise<boolean>} `true` if the adapter handled targeted UI updates for this delta.
+ * @property {Function} [resolveHotbarMembershipOnItemUpdate] Decide whether an item update should add/remove
+ *   the item from hotbar membership. System-specific (e.g. spell preparation). Return `'add'`, `'remove'`,
+ *   or `null` for no membership change (core still refreshes cell data when present).
+ *   @param {Item} item
+ *   @param {Actor} actor
+ *   @returns {Promise<'add'|'remove'|null>|'add'|'remove'|null}
+ * @property {Function} [isPlayerCharacter] Whether actor should get PC-only HUD chrome (views, etc.).
+ *   @param {Actor} actor
+ *   @returns {boolean}
+ * @property {Function} [resolveActorUpdatePlan] Map an `updateActor` changes object to targeted HUD refresh
+ *   actions. Core executes the plan; adapters own system document paths (e.g. `system.spells`).
+ *   @param {Object} changes
+ *   @returns {BG3HudActorUpdatePlan}
+ */
+
+/**
+ * @typedef {Object} BG3HudActorUpdatePlan
+ * @property {boolean} [health] Refresh portrait health / death UI
+ * @property {boolean} [attributes] Refresh portrait data badges (AC, speed, etc.)
+ * @property {boolean} [resources] Refresh filter / resource strip
+ * @property {boolean} [abilities] Refresh info panel (abilities / skills)
+ * @property {boolean} [items] Handle shallow `changes.items` indicator
+ * @property {boolean} [depletion] Run adapter.updateCellDepletionStates after handlers
+ * @property {boolean} [stop] Stop after applying this plan (no further default fallthrough)
+ * @property {boolean} [lateDepletion] Run depletion at end when stop was not set
  */
 
 /**
@@ -133,13 +158,51 @@ export const BG3HUD_API = {
     },
 
     /**
-     * Register a container class
-     * @param {string} id - Container identifier (e.g., 'restTurn', 'weapon')
+     * Register an optional docked container class (adapter-owned UI chrome).
+     * Core lays these out by region + order; it does not interpret container ids.
+     * @param {string} id - Stable container id (used as `hotbarApp.components[id]`)
      * @param {Class} containerClass - Container class
+     * @param {Object} [options]
+     * @param {'left'|'center'} [options.region='left'] - Layout region
+     * @param {number} [options.order] - Sort order within the region (lower first). Defaults to registration order.
      */
-    registerContainer(id, containerClass) {
-        Logger.info(`Registering container '${id}':`, containerClass.name);
-        BG3HUD_REGISTRY.containers[id] = containerClass;
+    registerContainer(id, containerClass, options = {}) {
+        if (!id || !containerClass) {
+            Logger.error('registerContainer requires id and containerClass');
+            return;
+        }
+        const region = options.region === 'center' ? 'center' : 'left';
+        const existingCount = Object.keys(BG3HUD_REGISTRY.containers).length;
+        const order = Number.isFinite(options.order) ? options.order : existingCount * 10;
+        Logger.info(`Registering container '${id}' (${region}, order ${order}):`, containerClass.name);
+        BG3HUD_REGISTRY.containers[id] = {
+            ContainerClass: containerClass,
+            region,
+            order
+        };
+    },
+
+    /**
+     * Registered optional containers for a layout region, sorted by order.
+     * @param {'left'|'center'} [region='left']
+     * @returns {Array<{ id: string, ContainerClass: Class, region: string, order: number }>}
+     */
+    getRegisteredContainers(region = 'left') {
+        return Object.entries(BG3HUD_REGISTRY.containers)
+            .map(([id, entry]) => {
+                // Back-compat: plain class registrations from older adapters
+                if (typeof entry === 'function') {
+                    return { id, ContainerClass: entry, region: 'left', order: 0 };
+                }
+                return {
+                    id,
+                    ContainerClass: entry?.ContainerClass,
+                    region: entry?.region || 'left',
+                    order: Number.isFinite(entry?.order) ? entry.order : 0
+                };
+            })
+            .filter((e) => e.ContainerClass && e.region === region)
+            .sort((a, b) => a.order - b.order || a.id.localeCompare(b.id));
     },
 
     /**
@@ -198,6 +261,25 @@ export const BG3HUD_API = {
      */
     getActiveAdapter() {
         return BG3HUD_REGISTRY.activeAdapter;
+    },
+
+    /**
+     * Whether an actor is treated as a player character for HUD chrome / auto-populate gates.
+     * Prefers adapter.isPlayerCharacter; falls back to hasPlayerOwner || type === 'character'.
+     * @param {Actor} actor
+     * @returns {boolean}
+     */
+    isPlayerCharacter(actor) {
+        if (!actor) return false;
+        const adapter = BG3HUD_REGISTRY.activeAdapter;
+        if (adapter && typeof adapter.isPlayerCharacter === 'function') {
+            try {
+                return !!adapter.isPlayerCharacter(actor);
+            } catch (e) {
+                Logger.error('adapter.isPlayerCharacter failed:', e);
+            }
+        }
+        return !!(actor.hasPlayerOwner || actor.type === 'character');
     },
 
     /**

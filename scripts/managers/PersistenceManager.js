@@ -243,18 +243,28 @@ export class PersistenceManager {
                         return;
                     }
 
-                    const item = await fromUuid(cellData.uuid);
-                    if (item) {
-                        // Re-transform using adapter to get fresh data
-                        const freshData = await adapter.transformItemToCellData(item);
-                        if (freshData) {
-                            items[slotKey] = freshData;
-                            hydrated++;
-                        } else {
-                            Logger.warn(`✗ Transform returned null for ${containerPath}[${slotKey}]`);
-                        }
-                    } else {
+                    const doc = await fromUuid(cellData.uuid);
+                    if (!doc) {
                         Logger.warn(`✗ Could not resolve UUID for ${containerPath}[${slotKey}]:`, cellData.uuid);
+                        return;
+                    }
+
+                    // Activities must use the activity transformer; Item transform would
+                    // mis-tag them as type 'Item' and break click handling after reconcile.
+                    const isActivity = cellData.type === 'Activity'
+                        || doc.constructor?.metadata?.name === 'Activity';
+                    let freshData = null;
+                    if (isActivity && typeof adapter.transformActivityToCellData === 'function') {
+                        freshData = await adapter.transformActivityToCellData(doc);
+                    } else if (typeof adapter.transformItemToCellData === 'function') {
+                        freshData = await adapter.transformItemToCellData(doc);
+                    }
+
+                    if (freshData) {
+                        items[slotKey] = freshData;
+                        hydrated++;
+                    } else {
+                        Logger.warn(`✗ Transform returned null for ${containerPath}[${slotKey}]`);
                     }
                 } catch (error) {
                     Logger.error(`✗ Failed to hydrate ${containerPath}[${slotKey}]:`, error);
@@ -887,6 +897,14 @@ export class PersistenceManager {
         // Skip if we saved in the last 500ms (generous window for Foundry's async hooks)
         const timeSinceLastSave = Date.now() - this._lastSaveTimestamp;
         return timeSinceLastSave < 500;
+    }
+
+    /**
+     * Mark a local save so UpdateCoordinator can skip self-triggered hudState reloads.
+     * Used when another PersistenceManager instance (e.g. ItemUpdateManager temp) wrote flags.
+     */
+    markLocalSave() {
+        this._lastSaveTimestamp = Date.now();
     }
 
     /* ==========================================================================

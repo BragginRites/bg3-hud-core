@@ -1,28 +1,29 @@
-## [0.6.0] - 2026-07-24
+## [0.6.0] - 2026-08-25
 
-Housekeeping release. Mostly an internal tidy-up to make the HUD easier to maintain, plus a fix for players not seeing their settings menus.
+A bigger update after a long gap. New layout options, smoother targeting, player-friendly settings, and several reliability fixes so your existing hotbar keeps working.
 
 ### Added
-- **Debug Logging toggle**: A new client setting (Configure Settings, BG3 Inspired HUD - Core) turns on verbose console messages when you need to troubleshoot. It's off by default, so a normal session stays quiet. Warnings and errors always show regardless.
+- **Minimalist View**: Optional setting that hides hotbar view tabs and docks the HUD along the bottom edge. The normal floating layout is unchanged if you leave this off.
+- **Rest / End Turn + dock toggle**: Clearer rest and end-turn buttons (with labels), plus a caret to tuck the HUD away and bring it back. Works in every layout, not only Minimalist View.
+- **Simpler Target Selector**: Using an ability pauses until you confirm targets, then continues. It checks how many targets you need (you can nudge the count), self vs enemy when that matters, and range. Optional setting to ignore the self/enemy check.
+- **Debug Logging toggle**: Client setting under BG3 Inspired HUD - Core. Off by default so normal play stays quiet; turn it on when troubleshooting. Warnings and errors always show.
 
 ### Fixed
-- **Player settings menus**: Settings menus now show players only the options they can actually change, and saving no longer errors when a menu also contains GM-only options. This is the groundwork that lets each system's Display menu be opened by players.
+- **Player settings menus**: Players can open the settings menus and only see options they are allowed to change. Saving no longer fails when a menu also lists GM-only options.
+- **Spells already on the bar**: Older saved layouts sometimes stored spells in a way the HUD stopped recognizing. Existing spells work again when you click them. You should not need to clear and refill the hotbar.
+- **Prepare / unprepare staying in sync**: Preparing or unpreparing a spell updates the bar correctly, and use counters / grayed-out slots survive that refresh.
+- **Canvas pan beside the HUD**: Empty space left and right of the hotbar no longer blocks panning the map (Foundry v14).
+- **Tall tooltips**: Long tooltips stay on screen and scroll instead of running off the edge.
+- **Unlinked token Save Layout**: Saving a layout for an unlinked NPC writes to the right actor and remembers that auto-populate already ran.
+- **pt-BR Name-only tooltips label**: Correction from Kharmans.
 
 ### Changed
-- **Quieter console**: The HUD no longer spams the browser console during normal play. All the routine chatter is now tucked behind the new Debug Logging toggle.
-- **Under-the-hood cleanup**: Removed unused code and consolidated duplicated logic across the core and its system adapters. No visible change, same HUD, leaner internals.
-
-### Added
-- **Minimalist View setting**: Optional client setting that hides hotbar view tabs and docks the HUD flush with the bottom edge. Default layout (floating HUD + view tabs) is unchanged.
-- **Rest / End Turn + dock toggle**: Ported the legacy inspired-hotbar rest/turn button look (taller buttons with labels) and the caret dock toggle into core for all layouts, not only Minimalist View. Dock hide/show both slide the HUD (caret stays fixed).
-- **Target Selector simplified**: Interrupts use until targets are confirmed, then resumes. Validates only target count (with +/- override), self/enemy type (optional ignore setting), and range. No ally/creature/cover/flank enforcement.
-- **Polish translation**: Added `pl.json` (thanks Lioheart).
-
-### Fixed
-- **Canvas pan through HUD gutters**: Empty left/right regions no longer capture pointer events, so you can pan the canvas beside the hotbar again (Foundry v14).
-- **Tooltip cutoff**: Tall tooltips clamp to the viewport and become scrollable instead of rendering off-screen.
-- **Unlinked token Save Layout**: Saving a layout now writes to the world actor (`token.actorId`) and marks auto-populate complete so unlinked NPCs keep the setup.
-- **pt-BR Name-only tooltips label**: Correction from Kharmans.
+- **Quieter console**: Routine chatter is hidden unless Debug Logging is on.
+- **Clearer setting wording**: Hints and messages talk about actions and resources in plain language instead of leaning on "spell slot" wording everywhere.
+- **Smoother HUD updates**: Spending slots, taking damage, and similar changes refresh the parts of the HUD that need it, with less full-screen flicker.
+- **Character vs NPC chrome**: View tabs and related player-character UI follow each game system's idea of a player character (for example owned NPCs can still count when appropriate).
+- **Extra side panels**: Optional rails (like Advantage buttons or CPR actions in D&D) register cleanly per system, so other games are not stuck with D&D-only panels.
+- **Under-the-hood cleanup**: Game-specific rules live in the companion modules; core stays shared. Same HUD for you, easier to maintain going forward.
 
 
 ## [0.4.3] - 2026-07-13

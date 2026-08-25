@@ -272,8 +272,8 @@ export class UpdateCoordinator {
         // Actor flag deltas keyed by adapter module (`flags[adapter.MODULE_ID]`)
         const adapter = BG3HUD_REGISTRY.activeAdapter;
 
-        // NOTE: Depletion states are now updated AFTER all handlers complete
-        // to avoid race conditions with grid re-renders. See end of method.
+        // NOTE: Depletion states are applied after handlers (or when the plan requests them)
+        // to avoid race conditions with grid re-renders.
 
         if (adapter && adapter.MODULE_ID) {
             const adapterFlags = changes?.flags?.[adapter.MODULE_ID];
@@ -284,78 +284,117 @@ export class UpdateCoordinator {
             }
         }
 
-        // Check for HP or death save changes (common case)
-        const hpChanged = changes?.system?.attributes?.hp;
-        const deathChanged = changes?.system?.attributes?.death;
+        // System document paths are adapter-owned (e.g. dnd5e system.spells).
+        const plan = this._resolveActorUpdatePlan(adapter, changes);
+        await this._applyActorUpdatePlan(actor, changes, plan);
+    }
 
+    /**
+     * Ask the adapter how to refresh the HUD for an actor update, with a system-agnostic fallback.
+     * @param {Object|null} adapter
+     * @param {Object} changes
+     * @returns {import('../utils/registry.js').BG3HudActorUpdatePlan}
+     * @private
+     */
+    _resolveActorUpdatePlan(adapter, changes) {
+        if (adapter && typeof adapter.resolveActorUpdatePlan === 'function') {
+            try {
+                return adapter.resolveActorUpdatePlan(changes) || {};
+            } catch (e) {
+                Logger.error('resolveActorUpdatePlan failed:', e);
+            }
+        }
+        return this._defaultActorUpdatePlan(changes);
+    }
+
+    /**
+     * Generic Foundry-shaped plan (no system.spells / other system-specific paths).
+     * @param {Object} changes
+     * @returns {Object}
+     * @private
+     */
+    _defaultActorUpdatePlan(changes) {
+        const hpChanged = changes?.system?.attributes?.hp !== undefined;
+        const deathChanged = changes?.system?.attributes?.death !== undefined;
         if (hpChanged || deathChanged) {
+            return { health: true, stop: true };
+        }
+
+        if (changes?.items !== undefined) {
+            return { items: true, stop: true };
+        }
+
+        if (changes?.system?.resources !== undefined) {
+            return { resources: true, attributes: true, depletion: true, stop: true };
+        }
+
+        if (changes?.system?.abilities !== undefined || changes?.system?.skills !== undefined) {
+            return { abilities: true, stop: true };
+        }
+
+        const plan = { lateDepletion: true };
+        if (changes?.system?.attributes !== undefined) {
+            plan.attributes = true;
+        }
+        return plan;
+    }
+
+    /**
+     * Execute a targeted actor-update plan from the adapter / default mapper.
+     * @param {Actor} actor
+     * @param {Object} changes
+     * @param {Object} plan
+     * @private
+     */
+    async _applyActorUpdatePlan(actor, changes, plan = {}) {
+        let didWork = false;
+
+        if (plan.health) {
             if (await this._handleHealthChange()) {
-                return;
+                didWork = true;
+                if (plan.stop) {
+                    if (plan.depletion) this._updateDepletionStatesDeferred(actor, changes);
+                    return;
+                }
             }
         }
 
-        // Check for other attribute changes (AC, Speed, etc.) that affect portrait data
-        const attributesChanged = changes?.system?.attributes;
-        if (attributesChanged && !hpChanged && !deathChanged) {
-            await this._handleAttributeChange();
-            // Don't return early - other handlers might also need to run
+        if (plan.attributes) {
+            didWork = (await this._handleAttributeChange()) || didWork;
         }
 
-        // Check for spell slot changes (common on many systems)
-        const spellsChanged = changes?.system?.spells;
-        if (spellsChanged) {
-            if (await this._handleResourceChange()) {
-                // LATE: Update depletion states after resource change handling
-                this._updateDepletionStatesDeferred(actor, changes);
-                return;
+        if (plan.resources) {
+            didWork = (await this._handleResourceChange()) || didWork;
+        }
+
+        if (plan.abilities) {
+            didWork = (await this._handleAbilityChange()) || didWork;
+        }
+
+        if (plan.items) {
+            if (await this._handleItemsChange(changes.items)) {
+                didWork = true;
+                if (plan.stop) {
+                    if (plan.depletion) this._updateDepletionStatesDeferred(actor, changes);
+                    return;
+                }
             }
         }
 
-        // Check for item changes (uses, quantity, etc.)
-        // Foundry provides item updates via embedded document hooks; here we detect shallow indicators
-        const itemsChanged = changes?.items;
-        if (itemsChanged) {
-            if (await this._handleItemsChange(itemsChanged)) {
-                return;
-            }
-        }
-
-        // Item hooks are already registered in registerHooks() method
-        // No need to register them again here
-
-        // Check for resource changes (ki, rage, etc.)
-        const resourcesChanged = changes?.system?.resources;
-        if (resourcesChanged) {
-            await this._handleResourceChange();
-            // Also update portrait data in case it displays resources
-            await this._handleAttributeChange();
-            // LATE: Update depletion states after resource change handling
+        if (plan.depletion) {
             this._updateDepletionStatesDeferred(actor, changes);
-            return;
         }
 
-        // Check for ability score changes (affects info container)
-        const abilitiesChanged = changes?.system?.abilities;
-        if (abilitiesChanged) {
-            if (await this._handleAbilityChange()) {
-                return;
-            }
+        if (plan.stop) return;
+
+        // Match prior behavior: attempt depletion for non-stopping plans
+        if (plan.lateDepletion !== false) {
+            this._updateDepletionStatesDeferred(actor, changes);
         }
 
-        // Check for skill proficiency/value changes (affects info container)
-        const skillsChanged = changes?.system?.skills;
-        if (skillsChanged) {
-            if (await this._handleAbilityChange()) {
-                return;
-            }
+        if (!didWork && !plan.attributes && !plan.resources && !plan.abilities && !plan.health && !plan.items) {
+            Logger.debug('UpdateCoordinator: Unhandled actor change (no refresh):', changes);
         }
-
-        // LATE: Always call depletion update at the end if no early return occurred
-        this._updateDepletionStatesDeferred(actor, changes);
-
-        // No full refresh fallback - only update elements that have explicit handlers
-        // Unhandled changes are logged for debugging but don't trigger expensive re-renders
-        Logger.debug('UpdateCoordinator: Unhandled actor change (no refresh):', changes);
     }
 
     /**
@@ -464,7 +503,7 @@ export class UpdateCoordinator {
     }
 
     /**
-     * Handle resource changes (spell slots, ki, rage, etc.)
+     * Handle resource changes (filters strip: slots, focus, ki, etc.)
      * Targeted update: only update filter container
      * @returns {Promise<boolean>} True if handled
      * @private
@@ -611,7 +650,7 @@ export class UpdateCoordinator {
         // Check if item exists in hotbar before refreshing
         const existingLocation = this.persistenceManager.findUuidInHud(item.uuid);
         if (!existingLocation) {
-            // Item not in hotbar, ItemUpdateManager will handle adding it if needed
+            // Not in HUD yet — ItemUpdateManager.updateItem may add via adapter membership policy
             return;
         }
 
@@ -620,7 +659,7 @@ export class UpdateCoordinator {
             const adapter = BG3HUD_REGISTRY.activeAdapter;
             const transformedData = adapter?.transformItemToCellData
                 ? await adapter.transformItemToCellData(item)
-                : { uuid: item.uuid, name: item.name, img: item.img };
+                : { uuid: item.uuid, name: item.name, img: item.img, type: 'Item' };
             const changed = await this._refreshCellsByUuid(item.uuid, transformedData);
 
             // AFTER all renders complete, update depletion states
@@ -715,14 +754,21 @@ export class UpdateCoordinator {
         const serverState = actor.getFlag(this.moduleId, this.flagName);
         if (!serverState) return;
 
+        // Clone then hydrate so legacy cell types (e.g. type: 'spell') and stale
+        // uses/quantity are normalized before applying to the live UI.
+        let state = foundry.utils.deepClone(serverState);
+        if (typeof this.persistenceManager.hydrateState === 'function') {
+            state = await this.persistenceManager.hydrateState(state);
+        }
+
         // Update persistence manager's cached state
-        this.persistenceManager.state = foundry.utils.deepClone(serverState);
+        this.persistenceManager.state = state;
 
         // Compare and update UI components to match server state
         // This is a lightweight reconciliation - only update what differs
-        await this._reconcileHotbarGrids(serverState);
-        await this._reconcileWeaponSets(serverState);
-        await this._reconcileQuickAccess(serverState);
+        await this._reconcileHotbarGrids(state);
+        await this._reconcileWeaponSets(state);
+        await this._reconcileQuickAccess(state);
     }
 
     /**

@@ -1,5 +1,5 @@
 import { BG3Hotbar } from './BG3Hotbar.js';
-import { BG3HUD_REGISTRY, BG3HUD_API } from './utils/registry.js';
+import { BG3HUD_API, BG3HUD_REGISTRY } from './utils/registry.js';
 import { registerSettings, applyMacrobarCollapseSetting, applyContainerRowSettings, applyTheme } from './utils/settings.js';
 import { TooltipManager } from './managers/TooltipManager.js';
 import { TargetSelectorManager } from './managers/TargetSelectorManager.js';
@@ -148,10 +148,10 @@ Hooks.on('createToken', async (tokenDocument, options, userId) => {
     const adapter = BG3HUD_REGISTRY.activeAdapter;
     if (!adapter) return;
 
-    // Only auto-populate for NPCs (non-character actors) by default
-    // Player characters should use right-click to auto-populate containers manually
+    // Only auto-populate for NPCs by default; PCs use right-click unless setting enabled.
+    // Player-character detection is adapter-owned (falls back in BG3HUD_API).
     const allowPlayerCharacters = game.settings.get(adapter.MODULE_ID, 'autoPopulatePlayerCharacters');
-    if (actor.type === 'character' && !allowPlayerCharacters) {
+    if (BG3HUD_API.isPlayerCharacter(actor) && !allowPlayerCharacters) {
         return;
     }
 

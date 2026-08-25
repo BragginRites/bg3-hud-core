@@ -31,8 +31,9 @@ export class ItemUpdateManager {
         // Item creation
         this._hookIds.set('createItem', Hooks.on('createItem', this._handleItemCreate.bind(this)));
 
-        // Item updates are handled by UpdateCoordinator._onEmbeddedItemChange
-        // to avoid race conditions with depletion state updates.
+        // Membership changes (e.g. spell prepared/unprepared) — adapter decides add/remove.
+        // UpdateCoordinator still owns in-HUD cell refresh + depletion for the current actor.
+        this._hookIds.set('updateItem', Hooks.on('updateItem', this._handleItemUpdate.bind(this)));
 
         // Item deletion
         this._hookIds.set('deleteItem', Hooks.on('deleteItem', this._handleItemDelete.bind(this)));
@@ -85,7 +86,7 @@ export class ItemUpdateManager {
         const tempPersistence = PersistenceManager.forActor(actor, targetToken);
 
         // Load the actor's current hotbar data
-        const state = await tempPersistence.loadState();
+        let state = await tempPersistence.loadState();
 
         if (action === 'create' && await this._shouldAddItemToHotbar(item)) {
             await this._addItemToActorHotbar(tempPersistence, state, item, actor);
@@ -95,8 +96,23 @@ export class ItemUpdateManager {
             await this._updateItemInActorHotbar(tempPersistence, state, item, actor);
         }
 
+        // Refresh uses/quantity/depleted on remaining cells before writing flags
+        if (typeof tempPersistence.hydrateState === 'function') {
+            state = await tempPersistence.hydrateState(state);
+        }
+
         // Sync current state to active view before saving
         tempPersistence._syncCurrentStateToActiveView(state);
+
+        // Temp PersistenceManager timestamps do not protect the live HUD manager.
+        // Mark BEFORE setFlag so UpdateCoordinator's updateActor handler sees the
+        // skip window (Foundry fires that hook during saveState, not after).
+        if (this.hotbarApp?.currentActor?.id === actor.id && this.persistenceManager) {
+            if (typeof this.persistenceManager.markLocalSave === 'function') {
+                this.persistenceManager.markLocalSave();
+            }
+            this.persistenceManager.state = foundry.utils.deepClone(state);
+        }
 
         // Save the updated data back to the actor
         await tempPersistence.saveState(state);
@@ -143,12 +159,12 @@ export class ItemUpdateManager {
             if (adapter && typeof adapter.transformItemToCellData === 'function') {
                 cellData = await adapter.transformItemToCellData(item);
             } else {
-                // Fallback: basic transformation
+                // Fallback: always use canonical 'Item' (never system subtypes like 'spell')
                 cellData = {
                     uuid: item.uuid,
                     name: item.name,
                     img: item.img,
-                    type: item.type
+                    type: 'Item'
                 };
             }
 
@@ -219,45 +235,34 @@ export class ItemUpdateManager {
     async _updateItemInActorHotbar(persistenceManager, state, item, actor) {
         const adapter = this._getAdapter();
 
-        // Handle spell preparation state changes (shape varies by system; adapters may override enforcement)
-        if (item.type === 'spell') {
-            // Check if adapter has spell preparation enforcement logic
-            // If adapter provides it, use it; otherwise default to checking preparation state
-            let shouldEnforcePreparation = true; // Default to checking preparation
-
-            if (adapter && typeof adapter.shouldEnforceSpellPreparation === 'function') {
-                shouldEnforcePreparation = adapter.shouldEnforceSpellPreparation(actor);
+        // Membership policy is adapter-owned (spell prep, etc.). Core never interprets system modes.
+        if (adapter && typeof adapter.resolveHotbarMembershipOnItemUpdate === 'function') {
+            let membership = null;
+            try {
+                membership = await adapter.resolveHotbarMembershipOnItemUpdate(item, actor);
+            } catch (error) {
+                Logger.error('resolveHotbarMembershipOnItemUpdate failed:', error);
             }
 
-            if (shouldEnforcePreparation) {
-                const method = item.system?.method ?? item.system?.preparation?.mode;
-                const prepared = item.system?.prepared ?? item.system?.preparation?.prepared;
+            if (membership === 'remove') {
+                await this._removeItemFromActorHotbar(persistenceManager, state, item, actor);
+                return;
+            }
 
-                // Remove if unprepared prepared-spell
-                if (!prepared && method === 'prepared') {
-                    await this._removeItemFromActorHotbar(persistenceManager, state, item, actor);
+            if (membership === 'add') {
+                const existingLocation = persistenceManager.findUuidInHud(item.uuid);
+                if (!existingLocation) {
+                    await this._addItemToActorHotbar(persistenceManager, state, item, actor);
                     return;
-                }
-
-                // Add if newly prepared or has valid casting mode
-                if (prepared || ['pact', 'apothecary', 'atwill', 'innate', 'ritual', 'always'].includes(method)) {
-                    const existingLocation = persistenceManager.findUuidInHud(item.uuid);
-                    if (!existingLocation) {
-                        // Item is now prepared but not in hotbar, add it
-                        await this._addItemToActorHotbar(persistenceManager, state, item, actor);
-                        return;
-                    }
                 }
             }
         }
 
-        // For other updates, ensure the item data is current
-        // The UUID should remain the same, but we can refresh the cell data
+        // No membership change — refresh cell data when the item is already on the hotbar
         const existingLocation = persistenceManager.findUuidInHud(item.uuid);
         if (existingLocation && existingLocation.container === 'hotbar') {
             const grid = state.hotbar.grids[existingLocation.containerIndex];
             if (grid && grid.items[existingLocation.slotKey]) {
-                // Refresh cell data with latest item data
                 let cellData;
                 if (adapter && typeof adapter.transformItemToCellData === 'function') {
                     cellData = await adapter.transformItemToCellData(item);
@@ -266,7 +271,7 @@ export class ItemUpdateManager {
                         uuid: item.uuid,
                         name: item.name,
                         img: item.img,
-                        type: item.type
+                        type: 'Item'
                     };
                 }
 
@@ -379,23 +384,48 @@ export class ItemUpdateManager {
         if (!this.hotbarApp?.rendered || !this.hotbarApp?.components?.hotbar) return;
 
         try {
-            // Load current state
-            const state = await this.persistenceManager.loadState();
-            const gridData = state.hotbar.grids[gridIndex];
+            // Load persisted layout, then hydrate from live documents so uses / quantity /
+            // depleted match a full UI refresh (flags alone are often stale for those fields).
+            let state = await this.persistenceManager.loadState();
+            if (typeof this.persistenceManager.hydrateState === 'function') {
+                state = await this.persistenceManager.hydrateState(state);
+                this.persistenceManager.state = state;
+            }
 
+            const gridData = state.hotbar.grids[gridIndex];
             if (!gridData) return;
 
             const hotbar = this.hotbarApp.components.hotbar;
             const gridContainer = hotbar.gridContainers[gridIndex];
 
             if (gridContainer) {
-                // Update the grid container's items and re-render
                 gridContainer.items = gridData.items;
                 await gridContainer.render();
+
+                // Slot/focus gray-out that is not always stored on cell data
+                this._refreshDepletionStates();
             }
         } catch (e) {
             Logger.warn(`Failed to update grid container ${gridIndex}:`, e);
         }
+    }
+
+    /**
+     * Ask the active adapter to recompute depleted/grayed cell visuals.
+     * @private
+     */
+    _refreshDepletionStates() {
+        const adapter = this._getAdapter();
+        const actor = this.hotbarApp?.currentActor;
+        if (!adapter?.updateCellDepletionStates || !actor) return;
+
+        queueMicrotask(() => {
+            try {
+                adapter.updateCellDepletionStates(actor, { _force: true });
+            } catch (e) {
+                Logger.warn('updateCellDepletionStates after grid refresh failed:', e);
+            }
+        });
     }
 
     /**
@@ -470,38 +500,56 @@ export class ItemUpdateManager {
             return;
         }
 
-        Logger.debug(`Item updated: "${item.name}" (${item.type}) for actor ${itemActor.name}`);
+        const adapter = this._getAdapter();
+        // Without an adapter membership hook, leave in-HUD refresh to UpdateCoordinator
+        if (!adapter || typeof adapter.resolveHotbarMembershipOnItemUpdate !== 'function') {
+            return;
+        }
 
-        // Check current location before update (for spell preparation changes)
+        let membership = null;
+        try {
+            membership = await adapter.resolveHotbarMembershipOnItemUpdate(item, itemActor);
+        } catch (error) {
+            Logger.error('resolveHotbarMembershipOnItemUpdate failed:', error);
+            return;
+        }
+
+        // Only touch persistence/UI on real membership transitions
+        if (membership !== 'add' && membership !== 'remove') {
+            return;
+        }
+
+        // Cheap presence check so prepared-spell updates do not rewrite state every time
+        const probe = PersistenceManager.forActor(itemActor);
+        await probe.loadState();
+        const existing = probe.findUuidInHud(item.uuid);
+        if (membership === 'add' && existing) return;
+        if (membership === 'remove' && !existing) return;
+
+        Logger.debug(`Item membership update (${membership}): "${item.name}" for actor ${itemActor.name}`);
+
         const currentActor = this.hotbarApp?.currentActor;
-        const wasInHotbar = currentActor && currentActor.id === itemActor.id && this.hotbarApp?.rendered
+        const isCurrentActor = !!(currentActor && currentActor.id === itemActor.id && this.hotbarApp?.rendered);
+        const wasInHotbar = isCurrentActor
             ? this.persistenceManager.findUuidInHud(item.uuid)
             : null;
 
-        // Update hotbar data for the actor (regardless of current selection)
         await this._updateHotbarForActor(itemActor, item, 'update');
 
-        // If this is the currently selected token, also update the UI
-        if (currentActor && currentActor.id === itemActor.id && this.hotbarApp?.rendered) {
+        if (isCurrentActor) {
             try {
-                // Check new location after update
+                // tempPersistence wrote flags; refresh the live manager before reading locations / grids
+                await this.persistenceManager.loadState();
                 const newLocation = this.persistenceManager.findUuidInHud(item.uuid);
+                const gridIndex = newLocation?.container === 'hotbar'
+                    ? newLocation.containerIndex
+                    : (wasInHotbar?.container === 'hotbar' ? wasInHotbar.containerIndex : null);
 
-                if (newLocation && newLocation.container === 'hotbar') {
-                    // Item is in hotbar - update that grid
-                    await this._updateGridContainer(newLocation.containerIndex);
-                } else if (wasInHotbar && wasInHotbar.container === 'hotbar') {
-                    // Item was removed from hotbar (e.g., unprepared spell) - update the grid it was in
-                    await this._updateGridContainer(wasInHotbar.containerIndex);
-                } else if (!wasInHotbar && !newLocation) {
-                    // Item might have been added - check appropriate grid
-                    const gridIndex = this._findAppropriateGrid(item);
-                    if (gridIndex !== null) {
-                        await this._updateGridContainer(gridIndex);
-                    }
+                if (gridIndex !== null && gridIndex !== undefined) {
+                    await this._updateGridContainer(gridIndex);
                 }
             } catch (e) {
-                Logger.warn('UI update on item update failed:', e);
+                Logger.warn('UI update on item membership change failed:', e);
             }
         }
     }

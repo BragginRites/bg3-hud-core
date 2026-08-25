@@ -91,7 +91,7 @@
       },
       "ShowFilters": {
         "Name": "Mostrar Ícones de Filtros",
-        "Hint": "Exibe os ícones de filtro de espaço de magia e tipo de ação acima da hotbar"
+        "Hint": "Exibe os ícones de filtro de recursos e tipos de ação acima da hotbar"
       },
       "ShowPortrait": {
         "Name": "Mostrar Retrato",
@@ -285,7 +285,7 @@
       "ClearContainerFailed": "Falha ao limpar o contêiner",
       "CrossContainerMoveBlocked": "Não é possível mover itens entre o contêiner e a hotbar",
       "DuplicateItem": "Este item já existe em outro lugar na HUD",
-      "DuplicateSpellSlot": "Este espaço de magia já está na HUD",
+      "DuplicateSpellSlot": "Esta entrada de recurso já está na HUD",
       "DuplicateInHud": "Este(a) {label} já está no HUD",
       "NoActorSelected": "Nenhum ator selecionado",
       "ItemOwnerMismatch": "Este(a) {type} pertence a {owner}, não a {current}",

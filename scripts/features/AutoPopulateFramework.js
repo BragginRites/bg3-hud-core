@@ -202,12 +202,12 @@ export class AutoPopulateFramework {
                 if (adapter && typeof adapter.transformItemToCellData === 'function') {
                     cellData = await adapter.transformItemToCellData(itemData);
                 } else {
-                    // Fallback: basic transformation
+                    // Fallback: canonical cell type (never system subtypes like 'spell')
                     cellData = {
                         uuid: item.uuid,
                         name: itemData.name,
                         img: itemData.img,
-                        type: itemData.type
+                        type: 'Item'
                     };
                 }
 
@@ -354,12 +354,12 @@ export class AutoPopulateFramework {
                 } else if (adapter?.transformItemToCellData) {
                     cellData = await adapter.transformItemToCellData(itemData);
                 } else {
-                    // Fallback: basic transformation
+                    // Fallback: canonical cell type (never system subtypes like 'spell')
                     cellData = {
                         uuid: item.uuid,
                         name: itemData.name,
                         img: itemData.img,
-                        type: itemData.type
+                        type: 'Item'
                     };
                 }
 

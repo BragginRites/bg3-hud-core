@@ -32,11 +32,6 @@
             "lang": "pt-BR",
             "name": "Português (Brasil)",
             "path": "lang/pt-BR.json"
-        },
-        {
-            "lang": "pl",
-            "name": "Polski",
-            "path": "lang/pl.json"
         }
     ],
     "url": "https://github.com/BragginRites/bg3-hud-core",

@@ -87,7 +87,7 @@
       },
       "ShowFilters": {
         "Name": "Show Filter Icons",
-        "Hint": "Display the spell slot and action type filter icons above the hotbar"
+        "Hint": "Display the resource and action filter icons above the hotbar"
       },
       "MinimalistView": {
         "Name": "Minimalist View",
@@ -289,7 +289,7 @@
       "ClearContainerFailed": "Failed to clear container",
       "CrossContainerMoveBlocked": "Cannot move items between the container and the hotbar",
       "DuplicateItem": "This item already exists elsewhere in the HUD",
-      "DuplicateSpellSlot": "This spell slot is already in the HUD",
+      "DuplicateSpellSlot": "This resource entry is already in the HUD",
       "DuplicateInHud": "This {label} is already in the HUD",
       "NoActorSelected": "No actor selected",
       "ItemOwnerMismatch": "This {type} belongs to {owner}, not {current}",

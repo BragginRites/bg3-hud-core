@@ -717,11 +717,12 @@ export class InteractionCoordinator {
             return await this.adapter.transformItemToCellData(item);
         }
 
-        // Default transformation
+        // Default transformation - canonical type (never system subtypes like 'spell')
         return {
             uuid: item.uuid,
             name: item.name,
-            img: item.img
+            img: item.img,
+            type: 'Item'
         };
     }
 

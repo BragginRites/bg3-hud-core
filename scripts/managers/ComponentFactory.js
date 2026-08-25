@@ -1,4 +1,4 @@
-import { BG3HUD_REGISTRY } from '../utils/registry.js';
+import { BG3HUD_API, BG3HUD_REGISTRY } from '../utils/registry.js';
 
 /**
  * Component Factory
@@ -9,6 +9,15 @@ import { BG3HUD_REGISTRY } from '../utils/registry.js';
 export class ComponentFactory {
     constructor(hotbarApp) {
         this.hotbarApp = hotbarApp;
+    }
+
+    /**
+     * Ids of optional containers currently registered for a region.
+     * @param {'left'|'center'} [region='left']
+     * @returns {string[]}
+     */
+    getRegisteredContainerIds(region = 'left') {
+        return BG3HUD_API.getRegisteredContainers(region).map((e) => e.id);
     }
 
     /**
@@ -187,39 +196,23 @@ export class ComponentFactory {
     }
 
     /**
-     * Create situational bonuses container
-     * Uses adapter implementation if available, otherwise returns null
-     * @returns {Promise<BG3Component|null>}
+     * Create all optional containers registered for a layout region.
+     * Adapters register via BG3HUD_API.registerContainer(id, Class, { region, order }).
+     * @param {'left'|'center'} [region='left']
+     * @returns {Promise<Array<{ id: string, component: object }>>}
      */
-    async createSituationalBonusesContainer() {
-        // Check if adapter provides a situational bonuses container class
-        const SituationalBonusesClass = BG3HUD_REGISTRY.containers['situationalBonuses'];
-        
-        // Only create if adapter registered a custom class and we have an actor
-        if (!this.hotbarApp.currentActor || !SituationalBonusesClass) return null;
-        
-        return new SituationalBonusesClass({
-            actor: this.hotbarApp.currentActor,
-            token: this.hotbarApp.currentToken
-        });
-    }
+    async createRegisteredContainers(region = 'left') {
+        if (!this.hotbarApp.currentActor) return [];
 
-    /**
-     * Create CPR Generic Actions container
-     * Uses adapter implementation if available, otherwise returns null
-     * @returns {Promise<BG3Component|null>}
-     */
-    async createCPRGenericActionsContainer() {
-        // Check if adapter provides a CPR Generic Actions container class
-        const CPRGenericActionsClass = BG3HUD_REGISTRY.containers['cprGenericActions'];
-        
-        // Only create if adapter registered a custom class and we have an actor
-        if (!this.hotbarApp.currentActor || !CPRGenericActionsClass) return null;
-        
-        return new CPRGenericActionsClass({
-            actor: this.hotbarApp.currentActor,
-            token: this.hotbarApp.currentToken
-        });
+        const created = [];
+        for (const entry of BG3HUD_API.getRegisteredContainers(region)) {
+            const component = new entry.ContainerClass({
+                actor: this.hotbarApp.currentActor,
+                token: this.hotbarApp.currentToken
+            });
+            created.push({ id: entry.id, component });
+        }
+        return created;
     }
 }
 

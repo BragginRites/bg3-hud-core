@@ -67,7 +67,7 @@ export class FilterButton extends BG3Component {
             this.element.appendChild(label);
         }
 
-        // Add slot boxes for resources with uses (spell slots, focus pool, etc.)
+        // Add slot boxes for resources with uses (slots, focus pool, etc.)
         if (this.data.value !== undefined && this.data.max !== undefined) {
             const track = document.createElement('div');
             track.classList.add('slot-track');
@@ -115,7 +115,7 @@ export class FilterButton extends BG3Component {
     }
 
     /**
-     * Update spell slot display without full re-render
+     * Update resource/slot display without full re-render
      * Handles changes to both value (filled state) and max (number of slots)
      * @param {number} value - Current value (slots remaining)
      * @param {number} max - Maximum value (total slots)
