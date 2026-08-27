@@ -215,12 +215,16 @@
     align-items: flex-end;
 }
 
-/* Hide HUD during initialization to prevent visual flicker */
+/* Hide HUD during initialization. Must beat #bg3-hotbar-container opacity,
+   and must not fade, or the assembling chrome is visible for a frame. */
 .bg3-hud.bg3-hud-building,
-.bg3-hud.bg3-hud-hidden {
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s ease-in-out;
+.bg3-hud.bg3-hud-hidden,
+.bg3-hud.bg3-hud-building #bg3-hotbar-container,
+.bg3-hud.bg3-hud-hidden #bg3-hotbar-container {
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    transition: none !important;
 }
 
 /* Fade-out state for smooth transitions */

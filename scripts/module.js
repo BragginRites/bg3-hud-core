@@ -69,28 +69,13 @@ Hooks.once('ready', async () => {
         });
     }
 
-    /**
-     * Single compatible controlled token for HUD context (matches UpdateCoordinator rules).
-     * @returns {Token|null}
-     */
-    const pickSingleHudToken = () => {
-        const list = canvas.tokens?.controlled ?? [];
-        if (list.length !== 1) return null;
-        const t = list[0];
-        const adapter = BG3HUD_REGISTRY.activeAdapter;
-        const ok = adapter && typeof adapter.isCompatible === 'function'
-            ? adapter.isCompatible(t.actor)
-            : t.actor?.type !== 'group';
-        return ok ? t : null;
-    };
-
     // Create and render the HUD
     Logger.info('Creating HUD application');
     ui.BG3HUD_APP = new BG3Hotbar();
-    // `ready` already applied theme — skip duplicate work in first _onRender
+    // `ready` already applied theme, skip duplicate work in first _onRender
     ui.BG3HUD_APP._themeApplied = true;
 
-    const initialToken = pickSingleHudToken();
+    const initialToken = ui.BG3HUD_APP.hudOnScreen.playSheetToken();
     if (initialToken) {
         Logger.debug('Pre-binding controlled token for first HUD render:', initialToken.name);
         ui.BG3HUD_APP.currentToken = initialToken;

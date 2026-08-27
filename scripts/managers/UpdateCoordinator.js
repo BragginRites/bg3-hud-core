@@ -70,91 +70,50 @@ export class UpdateCoordinator {
      * @param {boolean} controlled
      * @private
      */
-    async _onControlToken(token, controlled) {
+    async _onControlToken(_token, controlled) {
+        const hud = this.hotbarApp.hudOnScreen;
+        const selected = hud.controlled();
+        const play = hud.playSheetToken();
 
-        // Check if GM hotbar override is active
-        if (this.hotbarApp.overrideGMHotbar && game.settings.get('bg3-hud-core', 'enableGMHotbar')) {
-            return; // Don't switch away from GM hotbar if override is set
+        // Deselect-lock keeps the play sheet only when the canvas selection is empty.
+        // Two or more Tokens (any kind) still follow the zero-or-several rule.
+        if (!controlled
+            && ControlsManager.isSettingLocked('deselect')
+            && this.hotbarApp.currentToken
+            && selected.length === 0) {
+            return;
         }
 
-        // Filter out group actors from controlled tokens
-        const controlledTokens = canvas.tokens.controlled.filter(t => {
-            const adapter = BG3HUD_REGISTRY.activeAdapter;
-            return adapter && typeof adapter.isCompatible === 'function' ? adapter.isCompatible(t.actor) : t.actor?.type !== 'group';
-        });
-        const multipleTokensControlled = controlledTokens.length > 1;
-
-        // If the current token being controlled/uncontrolled is not compatible, 
-        // ignore the event unless it changes our valid selection count
-        const adapter = BG3HUD_REGISTRY.activeAdapter;
-        const isCompatible = adapter && typeof adapter.isCompatible === 'function' ? adapter.isCompatible(token.actor) : token.actor?.type !== 'group';
-        
-        if (!isCompatible) {
-            // Only proceed if we still need to evaluate the remaining valid tokens
-            if (controlledTokens.length === 1 && this.hotbarApp.currentToken !== controlledTokens[0]) {
-                // Another valid token is selected, show it
-                this.hotbarApp.overrideGMHotbar = false;
-                this.hotbarApp.currentToken = controlledTokens[0];
-                this.hotbarApp.currentActor = controlledTokens[0].actor;
-                await this.hotbarApp.refresh({ tokenSwap: true });
-            } else if (controlledTokens.length !== 1 && this.hotbarApp.currentToken) {
-                // We lost our single valid selection
-                this.hotbarApp.currentToken = null;
-                this.hotbarApp.currentActor = null;
-                await this.hotbarApp.refresh({ tokenSwap: true });
+        // GM Hotbar override stays until selection is exactly one creature Token.
+        if (this.hotbarApp.overrideGMHotbar && game.settings.get('bg3-hud-core', 'enableGMHotbar')) {
+            if (play) {
+                await hud.showToken(play);
             }
             return;
         }
 
-        if (controlled) {
-            if (multipleTokensControlled) {
-                // Multiple tokens selected - show GM hotbar if enabled, otherwise hide
-                Logger.debug('Multiple tokens controlled');
-                this.hotbarApp.currentToken = null;
-                this.hotbarApp.currentActor = null;
-                await this.hotbarApp.refresh({ tokenSwap: true });
-            } else if (controlledTokens.length === 1) {
-                // Single token controlled - show UI normally
-                const t = token;
-                if (this.hotbarApp.currentToken?.id === t.id
-                    && this.hotbarApp.currentActor?.id === t.actor?.id
-                    && this.hotbarApp.components?.hotbar
-                    && this.hotbarApp.rendered) {
-                    this.hotbarApp.currentToken = t;
-                    this.hotbarApp.currentActor = t.actor;
-                    return;
-                }
-                this.hotbarApp.overrideGMHotbar = false; // Clear override when selecting token
-                this.hotbarApp.currentToken = t;
-                this.hotbarApp.currentActor = t.actor;
-                await this.hotbarApp.refresh({ tokenSwap: true });
-            }
-        } else {
-            // Check if deselect lock is enabled - if so, keep the current token
-            if (ControlsManager.isSettingLocked('deselect') && this.hotbarApp.currentToken) {
-                // Deselect lock active - don't change the current token
+        if (play) {
+            if (this.hotbarApp.currentToken?.id === play.id
+                && this.hotbarApp.currentActor?.id === play.actor?.id
+                && this.hotbarApp.components?.hotbar
+                && this.hotbarApp.rendered
+                && !this.hotbarApp.overrideGMHotbar) {
+                this.hotbarApp.currentToken = play;
+                this.hotbarApp.currentActor = play.actor;
                 return;
             }
-
-            // When deselecting, check if we still have a single token selected
-            if (controlledTokens.length === 1) {
-                // Another token is still selected, show it
-                this.hotbarApp.overrideGMHotbar = false; // Clear override when selecting token
-                const remainingToken = controlledTokens[0];
-                this.hotbarApp.currentToken = remainingToken;
-                this.hotbarApp.currentActor = remainingToken.actor;
-                await this.hotbarApp.refresh({ tokenSwap: true });
-            } else {
-                // No tokens selected or multiple tokens selected
-                // Show GM hotbar if enabled, otherwise hide
-                this.hotbarApp.currentToken = null;
-                this.hotbarApp.currentActor = null;
-                await this.hotbarApp.refresh({ tokenSwap: true });
-            }
-
-            // DON'T clear _lastSaveWasLocal here - let the updateActor hook handle it
-            // This ensures that if an actor update is pending, it will be properly skipped
+            await hud.showToken(play);
+            return;
         }
+
+        if (!this.hotbarApp.currentToken && !this.hotbarApp.overrideGMHotbar) {
+            return;
+        }
+
+        if (selected.length > 1) {
+            Logger.debug('Multiple Tokens controlled');
+        }
+        await hud.showNotOneToken();
     }
 
     /**
@@ -164,43 +123,29 @@ export class UpdateCoordinator {
      * @private
      */
     async _onCanvasReady() {
-        // Brief delay to ensure canvas.tokens.controlled is fully populated
         await new Promise(resolve => setTimeout(resolve, 50));
 
-        // Filter out incompatible actors (like groups/vehicles)
-        const controlledTokens = (canvas.tokens?.controlled || []).filter(t => {
-            const adapter = BG3HUD_REGISTRY.activeAdapter;
-            return adapter && typeof adapter.isCompatible === 'function' ? adapter.isCompatible(t.actor) : t.actor?.type !== 'group';
-        });
+        const hud = this.hotbarApp.hudOnScreen;
+        const next = hud.playSheetToken();
 
         const prevTokenId = this.hotbarApp.currentToken?.id ?? null;
         const prevActorId = this.hotbarApp.currentActor?.id ?? null;
-
-        if (controlledTokens.length === 1) {
-            // Single token selected - show HUD for it
-            const token = controlledTokens[0];
-            this.hotbarApp.currentToken = token;
-            this.hotbarApp.currentActor = token.actor;
-        } else {
-            // No tokens or multiple tokens - clear HUD (show GM hotbar if enabled)
-            this.hotbarApp.currentToken = null;
-            this.hotbarApp.currentActor = null;
-        }
-
-        const nextTokenId = this.hotbarApp.currentToken?.id ?? null;
-        const nextActorId = this.hotbarApp.currentActor?.id ?? null;
+        const nextTokenId = next?.id ?? null;
+        const nextActorId = next?.actor?.id ?? null;
         const contextUnchanged = prevTokenId === nextTokenId && prevActorId === nextActorId;
 
-        // ready() may have already rendered this exact context; avoid a second refresh
-        // (soft swap still re-hydrates all grids — visible flash — and can fall through to
-        // full rebuild if canSoftTokenRefresh is briefly false).
+        // ready() may have already rendered this exact context; skip a second apply.
         if (contextUnchanged
             && this.hotbarApp.rendered
             && this.hotbarApp.components?.hotbar) {
             return;
         }
 
-        await this.hotbarApp.refresh({ tokenSwap: true });
+        if (next) {
+            await hud.showToken(next);
+        } else {
+            await hud.showNotOneToken();
+        }
     }
 
     /**
@@ -234,12 +179,9 @@ export class UpdateCoordinator {
             return;
         }
 
-        // Keep currentActor pointed at the live token actor after delta transforms
-        if (token?.actor && this.hotbarApp.currentActor !== token.actor) {
-            this.hotbarApp.currentActor = token.actor;
-        }
-
-        await this.hotbarApp.refresh({ tokenSwap: true });
+        // Same Token, new creature identity (e.g. wild shape delta): still this Token's play sheet.
+        // updateToken receives a TokenDocument; keep the canvas Token as currentToken.
+        await this.hotbarApp.hudOnScreen.showToken(this.hotbarApp.currentToken);
     }
 
     /**
@@ -669,7 +611,11 @@ export class UpdateCoordinator {
             }
         } catch (e) {
             Logger.error('UpdateCoordinator: Failed to handle embedded item change', e);
-            await this.hotbarApp.refresh({ tokenSwap: true });
+            if (this.hotbarApp.currentToken) {
+                await this.hotbarApp.hudOnScreen.showToken(this.hotbarApp.currentToken);
+            } else {
+                await this.hotbarApp.refresh();
+            }
         }
     }
 

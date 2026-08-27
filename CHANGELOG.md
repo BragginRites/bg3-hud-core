@@ -1,3 +1,17 @@
+## [Unreleased]
+
+Notes for the next Foundry release. Rewrite this section into a dated version heading when bumping `module.json`. Merging these bullets does not publish.
+
+### Changed
+- **Exactly one Token**: The play sheet is for one selected creature. Two or more Tokens of any kind (including a group plus an orc) use the same chrome as an empty canvas: GM Hotbar if that setting is on, otherwise nothing. They never merge.
+
+### Fixed
+- **GM Hotbar button**: Opening the GM Hotbar while a Token is selected still works. Selecting a Token again returns that creature's play sheet instead of staying on the macro bar.
+- **Deselect-lock**: Lock keeps the play sheet only when the canvas is empty. Adding a second Token still hides the play sheet.
+- **Minimalist View first paint**: With Minimalist View on, selecting a Token from an empty canvas no longer flashes the floating layout before docking.
+- **HUD assembling flash**: The HUD stays hidden until it is fully built, then appears.
+
+
 ## [0.6.0] - 2026-08-25
 
 A bigger update after a long gap. New layout options, smoother targeting, player-friendly settings, and several reliability fixes so your existing hotbar keeps working.
