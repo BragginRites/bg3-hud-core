@@ -75,7 +75,7 @@
       },
       "PosPaddingBottom": {
         "Name": "Espaçamento Inferior",
-        "Hint": "Distância da parte inferior da tela (pixels)"
+        "Hint": "Espaçamento em relação à parte inferior da tela (pixels). Ignorado enquanto a Visualização Minimalista estiver ativada."
       },
       "PassivesContainerIconsPerRow": {
         "Name": "Ícones de Características Passivas por Linha",
@@ -92,6 +92,10 @@
       "ShowFilters": {
         "Name": "Mostrar Ícones de Filtros",
         "Hint": "Exibe os ícones de filtro de espaço de magia e tipo de ação acima da hotbar"
+      },
+      "MinimalistView": {
+        "Name": "Visualização Minimalista",
+        "Hint": "Layout opcional ancorado à borda: oculta as abas de visualização da barra de atalhos e posiciona a HUD rente à parte inferior da tela. Desativado por padrão. A HUD flutuante normal com abas de visualização permanece inalterada."
       },
       "ShowPortrait": {
         "Name": "Mostrar Retrato",
@@ -154,11 +158,11 @@
         "MenuHint": "Configure a marcação de alvos no estilo BG3 para magias e habilidades",
         "Legend": "Seleção de Alvos",
         "EnableName": "Ativar Seletor de Alvos",
-        "EnableHint": "Quando ativado, clicar em magias/habilidades que precisam de alvos exibirá uma solicitação para marcação de alvo",
+        "EnableHint": "Quando ativado, magias/habilidades que exigem alvos ficam pausadas até que você confirme os alvos e em seguida, o uso é retomado. Verifica apenas a quantidade de alvos, o tipo de alvo (pessoal/inimigo) e o alcance.",
         "SkipName": "Pular se Existir Alvo Válido",
         "SkipHint": "Ignora o seletor de alvo se você já tiver um alvo válido marcado",
         "RangeName": "Forçar Verificação de Alcance",
-        "RangeHint": "Impede a marcação de tokens que estejam fora do alcance",
+        "RangeHint": "Rejeita alvos fora do alcance da habilidade",
         "AutoSelfName": "Auto-Marcar em Pessoal",
         "AutoSelfHint": "Defina automaticamente a si mesmo como alvo para habilidades de auto-marcação",
         "RangeIndicatorLegend": "Indicador de Alcance",
@@ -179,7 +183,9 @@
         "RangeLineWidthThick": "Grossa (3px)",
         "RangeLineWidthExtraThick": "Muito Grossa (4px)",
         "RangeColorName": "Cor do Indicador",
-        "RangeColorHint": "Cor do indicador de alcance (formato hexadecimal)"
+        "RangeColorHint": "Cor do indicador de alcance (formato hexadecimal)",
+        "IgnoreTypeName": "Ignorar Restrições Pessoal/Inimigo",
+        "IgnoreTypeHint": "Permite selecionar qualquer token, independentemente das regras de marcação para pessoal/inimigo. As verificações de quantidade de alvos e alcance ainda serão aplicadas quando ativadas."
       },
       "PortraitData": {
         "Title": "Configuração de Dados do Retrato",
@@ -228,6 +234,11 @@
         "SaveLayout": "Salvar Layout como Padrão do Ator",
         "ExportLayout": "Exportar Layout",
         "ImportLayout": "Importar Layout"
+      },
+      "DockToggle": {
+        "Tooltip": "Mostrar/Ocultar Ancoragem da HUD",
+        "Hide": "Ocultar Ancoragem da HUD",
+        "Show": "Mostrar Ancoragem da HUD"
       }
     },
     "ContextMenu": {
@@ -278,7 +289,7 @@
       "ClearContainerFailed": "Falha ao limpar o contêiner",
       "CrossContainerMoveBlocked": "Não é possível mover itens entre o contêiner e a hotbar",
       "DuplicateItem": "Este item já existe em outro lugar na HUD",
-      "DuplicateSpellSlot": "Este espaço de magia já está na HUD",
+      "DuplicateSpellSlot": "Esta entrada de recurso já está na HUD",
       "DuplicateInHud": "Este(a) {label} já está no HUD",
       "NoActorSelected": "Nenhum ator selecionado",
       "ItemOwnerMismatch": "Este(a) {type} pertence a {owner}, não a {current}",
