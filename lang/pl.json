@@ -1,0 +1,342 @@
+{
+  "bg3-hud-core": {
+    "Settings": {
+      "Theme": {
+        "Name": "Ustawienia motywu",
+        "Label": "Konfiguracja motywu",
+        "Hint": "Dostosuj kolory, rozmiary i wygląd interfejsu BG3 HUD",
+        "Title": "Ustawienia motywu",
+        "General": "Ogólne",
+        "GeneralHint": "Parametry mają zastosowanie do wszystkich poniższych komponentów, o ile nie określono inaczej.",
+        "UseGeneralEverywhere": "Wszędzie używaj kolorów ogólnych",
+        "UseGeneralEverywhereHint": "Po włączeniu tej opcji używana jest wyłącznie sekcja „Ogólne”. Wyłącz tę opcję, aby dostosować każdą sekcję.",
+        "Normal": "Normalny",
+        "Hover": "Przysłonięty",
+        "BorderColor": "Kolor obramowania",
+        "ContainerBackgroundColor": "Tło kontenera",
+        "TertiaryBackgroundColor": "Tło trzeciorzędne",
+        "TextColor": "Kolor tekstu",
+        "TextSecondaryColor": "Tekst dodatkowy",
+        "ContainerBorderSize": "Rozmiar obramowania kontenera",
+        "ContainerBorderRadius": "Promień zaokrąglenia obramowania kontenera",
+        "TertiaryBorderSize": "Rozmiar krawędzi trzeciorzędny",
+        "TertiaryBorderRadius": "Promień krawędzi trzeciorzędny",
+        "PortraitSize": "Rozmiar obrazu",
+        "CellSize": "Rozmiar komórki",
+        "Portrait": "Portret",
+        "Hotbar": "Pasek skrótów",
+        "SubContainer": "Podkontener",
+        "SubBackgroundColor": "Tło podkontenera",
+        "Cell": "Komórka",
+        "DragbarColor": "Separator kontenerów",
+        "WeaponSets": "Zestawy broni",
+        "SmallContainers": "Małe kontenery",
+        "SmallContainersHint": "Wspólny styl dla elementów sterujących, widoków, filtrów, elementów pasywnych oraz kontenerów aktywnych efektów.",
+        "Tooltip": "Podpowiedź",
+        "ComponentColor": "Kolor elementu",
+        "GridCells": "Komórki siatki",
+        "CellBorderWidth": "Szerokość obramowania komórki",
+        "CellBorderRadius": "Promień obramowania komórki",
+        "GridGap": "Odstęp siatki",
+        "Save": "Zapisz",
+        "Reset": "Przywróć ustawienia domyślne",
+        "ResetSuccess": "Przywrócono domyślne ustawienia motywu"
+      },
+      "NormalOpacity": {
+        "Name": "Normalna przezroczystość",
+        "Hint": "Przezroczystość interfejsu HUD, gdy jest widoczny (od 0,1 do 1,0)"
+      },
+      "FadedOpacity": {
+        "Name": "Przezroczystość zanikania",
+        "Hint": "Przezroczystość podczas zanikania HUD-u po okresie bezczynności (ustaw wartość 1,0, aby wyłączyć zanikanie)"
+      },
+      "FadeOutDelay": {
+        "Name": "Opóźnienie zanikania (sekundy)",
+        "Hint": "Jak długo należy czekać przed wygaszeniem HUD-u (od 1 do 30 sekund)"
+      },
+      "AutoScale": {
+        "Name": "Auto Skala",
+        "Hint": "Automatyczne skalowanie interfejsu użytkownika w zależności od wysokości ekranu"
+      },
+      "UIScale": {
+        "Name": "Skala interfejsu użytkownika",
+        "Hint": "Ręczna skala interfejsu użytkownika w procentach (od 50% do 300%). Stosowana wyłącznie wtedy, gdy funkcja automatycznego skalowania jest wyłączona."
+      },
+      "UIPosition": {
+        "Name": "Pozycja interfejsu użytkownika",
+        "Hint": "Gdzie umieścić HUD na ekranie",
+        "Center": "Środek",
+        "Left": "Lewo",
+        "Right": "Prawo"
+      },
+      "PosPadding": {
+        "Name": "Odstęp pozycji",
+        "Hint": "Odstęp poziomy od krawędzi ekranu (piksele)"
+      },
+      "PassivesContainerIconsPerRow": {
+        "Name": "Liczba ikon zdolności pasywnych w każdym wierszu",
+        "Hint": "Liczba ikon zdolności pasywnych wyświetlanych w każdym wierszu przed zawinięciem"
+      },
+      "ActiveEffectsContainerIconsPerRow": {
+        "Name": "Liczba ikon aktywnych efektów w każdym wierszu",
+        "Hint": "Liczba ikon aktywnych efektów wyświetlanych w każdym wierszu przed zawinięciem"
+      },
+      "ShowPassiveActiveEffects": {
+        "Name": "Pokaż efekty pasywne i aktywne",
+        "Hint": "Po włączeniu tej opcji wyświetlane są efekty stałe/pasywne (bez określonego czasu trwania) oprócz efektów tymczasowych"
+      },
+      "ShowFilters": {
+        "Name": "Pokaż ikony filtrów",
+        "Hint": "Wyświetl ikony filtrów zasobów i akcji nad paskiem skrótów"
+      },
+      "MinimalistView": {
+        "Name": "Widok minimalistyczny",
+        "Hint": "Opcjonalny układ przyklejony do krawędzi: ukrywa zakładki widoku paska skrótów i ustawia HUD równo z dolną krawędzią ekranu. Domyślnie wyłączone; standardowy pływający HUD z zakładkami widoku pozostaje bez zmian."
+      },
+      "PosPaddingBottom": {
+        "Name": "Dolny odstęp",
+        "Hint": "Odstęp od dolnej krawędzi ekranu (w pikselach). Nie jest brany pod uwagę, gdy włączony jest tryb minimalistyczny."
+      },
+      "ShowPortrait": {
+        "Name": "Pokaż portret",
+        "Hint": "Wyświetl portret postaci, nakładkę PW oraz plakietki z danymi postaci. Po wyłączeniu tej opcji przycisk informacji o postaci (k20) pozostaje dostępny."
+      },
+      "BorderPortraitPreferences": {
+        "Name": "Obramowanie portretu",
+        "Hint": "Ozdobne obramowanie wokół portretu w interfejsie HUD.",
+        "None": "Brak",
+        "Simple": "Proste",
+        "Styled": "Stylizacja (okrągły pierścień)"
+      },
+      "ShowPortraitHPControls": {
+        "Name": "Pokaż elementy sterujące PW w widoku portretu",
+        "Hint": "Wyświetl przyciski służące do ustawiania PW na minimum (czaszka) i maksimum (serce) oraz pole wprowadzania wartości PW w interfejsie w UI portretu"
+      },
+      "LayoutAppearance": {
+        "MenuTitle": "Układ i wygląd",
+        "MenuName": "Układ i wygląd",
+        "MenuLabel": "Ustawienia układu i wyglądu",
+        "MenuHint": "Dostosuj krycie, skalowanie, położenie i gęstość kontenera",
+        "OpacityLegend": "Przezroczystość i zanikanie",
+        "ScalePositionLegend": "Skala i pozycja",
+        "ContainerConfigurationLegend": "Konfiguracja kontenerów"
+      },
+      "Appearance": {
+        "MenuTitle": "Ustawienia wyglądu",
+        "MenuName": "Ustawienia wyglądu",
+        "MenuLabel": "Ustawienia wyglądu",
+        "MenuHint": "Dostosuj krycie i czas wygaszania elementów HUD-u",
+        "Legend": "Wygląd"
+      },
+      "Layout": {
+        "MenuTitle": "Układ i położenie",
+        "MenuName": "Układ i położenie",
+        "MenuLabel": "Ustawienia układu i położenia",
+        "MenuHint": "Dostosuj skalowanie i położenie interfejsu HUD",
+        "Legend": "Układ i położenie"
+      },
+      "FoundryUI": {
+        "MenuTitle": "Interfejs użytkownika Foundry",
+        "MenuName": "Interfejs użytkownika Foundry",
+        "MenuLabel": "Ustawienia interfejsu użytkownika Foundry",
+        "MenuHint": "Sterowanie widocznością paska makr i czasem wyświetlania podpowiedzi",
+        "Legend": "Interfejs użytkownika Foundry",
+        "NameOnlyTooltipsName": "Podpowiedzi zawierające wyłącznie nazwy",
+        "NameOnlyTooltipsHint": "W przypadku przedmiotów, zaklęć i zdolności należy stosować proste, natywne podpowiedzi zamiast rozbudowanych podpowiedzi systemowych."
+      },
+      "GMHotbar": {
+        "MenuTitle": "Pasek skrótów MG",
+        "MenuName": "Pasek skrótów MG",
+        "MenuLabel": "Ustawienia paska skrótów MG",
+        "MenuHint": "Konfiguracja widoczności paska skrótów MG",
+        "Legend": "Pasek skrótów MG"
+      },
+      "TargetSelector": {
+        "MenuTitle": "Selektor celów",
+        "MenuName": "Selektor celów",
+        "MenuLabel": "Ustawienia selektora celów",
+        "MenuHint": "Skonfiguruj wybór celu w stylu BG3 dla zaklęć i umiejętności",
+        "Legend": "Wybór celu",
+        "EnableName": "Włącz wybór celu",
+        "EnableHint": "Po włączeniu tej opcji zaklęcia i zdolności wymagające wyboru celów zostaną wstrzymane do momentu potwierdzenia celów, po czym ich użycie zostanie wznowione. Sprawdzana jest wyłącznie liczba celów, typ (własny/wrogi) oraz zasięg.",
+        "SkipName": "Pomiń, jeśli cel jest prawidłowy",
+        "SkipHint": "Pomiń selektor celu, jeśli masz już wybrany prawidłowy cel",
+        "RangeName": "Wymuś sprawdzanie zasięgu",
+        "RangeHint": "Odrzucaj cele znajdujące się poza zasięgiem",
+        "AutoSelfName": "Automatyczne namierzanie siebie",
+        "AutoSelfHint": "Automatycznie wybierz siebie jako cel dla zdolności autocelowania",
+        "RangeIndicatorLegend": "Wskaźnik zasięgu",
+        "ShowRangeIndicatorsName": "Pokaż wskaźnik zasięgu",
+        "ShowRangeIndicatorsHint": "Wyświetl na obszarze roboczym wizualny wskaźnik przedstawiający zakres tej zdolności",
+        "RangeShapeName": "Kształt wskaźnika",
+        "RangeShapeHint": "Kształt wskaźnika zasięgu (koło lub kwadrat)",
+        "RangeShapeCircle": "Kółko",
+        "RangeShapeSquare": "Kwadrat",
+        "RangeAnimationName": "Animacja wskaźnika",
+        "RangeAnimationHint": "Styl animacji wskaźnika zasięgu",
+        "RangeAnimationPulse": "Puls",
+        "RangeAnimationStatic": "Statyczny",
+        "RangeLineWidthName": "Szerokość linii",
+        "RangeLineWidthHint": "Grubość linii wskaźnika zasięgu",
+        "RangeLineWidthThin": "Cienka (1px)",
+        "RangeLineWidthNormal": "Normalna (2px)",
+        "RangeLineWidthThick": "Gruba (3px)",
+        "RangeLineWidthExtraThick": "Bardzo gruba (4px)",
+        "RangeColorName": "Kolor wskaźnika",
+        "RangeColorHint": "Kolor wskaźnika zasięgu (w formacie szesnastkowym)",
+        "IgnoreTypeName": "Zignoruj ograniczenia dotyczące siebie / przeciwnika",
+        "IgnoreTypeHint": "Zezwala na wybór dowolnego tokenu bez względu na zasady celowania w sojuszników/wrogów. Jeśli opcja jest włączona, nadal obowiązują ograniczenia dotyczące liczby celów i zasięgu."
+      },
+      "PortraitData": {
+        "Title": "Konfiguracja danych portretu",
+        "MenuName": "Dane portretu",
+        "MenuLabel": "Konfiguracja danych portretu",
+        "MenuHint": "Wyświetlaj ikony danych wokół portretu (KP, PW, szybkość itp.)",
+        "ShowName": "Pokaż dane portretu",
+        "ShowHint": "Wyświetl plakietki z danymi wokół portretu postaci",
+        "TopLeft": "Górny lewy",
+        "TopRight": "Górny prawy",
+        "MiddleLeft": "Środkowy lewy",
+        "MiddleRight": "Środkowy prawy",
+        "BottomLeft": "Dolny lewy",
+        "BottomRight": "Dolny prawy",
+        "Saved": "Konfiguracja danych portretu została zapisana",
+        "WorldOverride": "Użyj ustawień globalnych (wszyscy gracze)",
+        "SyncToWorld": "Synchronizacja ze światem",
+        "SyncedToWorld": "Dane portretów zsynchronizowano z serwerem – wszyscy gracze będą teraz korzystać z tej konfiguracji",
+        "WorldConfigActive": "Twój MG ustawił konfigurację świata",
+        "UseMyOwnConfig": "Zastosuj moją własną konfigurację"
+      },
+      "AutoPopulate": {
+        "Options": "Opcje",
+        "HotbarGrid": "Siatka paska skrótów {number}"
+      }
+    },
+    "Controls": {
+      "Lock": {
+        "Tooltip": "Ustawienia blokady<br>(kliknij prawym przyciskiem myszy, aby wyświetlić opcje)",
+        "NoSettingsWarning": "Kliknij prawym przyciskiem myszy przycisk blokady, aby wybrać ustawienia, które chcesz zablokować.",
+        "DeselectToken": "Odznaczenie tokenu",
+        "Opacity": "Przezroczystość",
+        "DragDrop": "Przeciągnij i upuść"
+      },
+      "GMToggle": {
+        "Tooltip": "Przełączanie między paskiem skrótów MG a paskiem skrótów tokenów"
+      },
+      "Row": {
+        "Add": "Dodaj rząd",
+        "Remove": "Usuń rząd"
+      },
+      "Settings": {
+        "Tooltip": "Ustawienia<br>(Kliknij prawym przyciskiem myszy, aby wyświetlić szybkie działania)",
+        "ResetLayout": "Zresetuj układ",
+        "ClearAllItems": "Wyczyść wszystkie przedmioty",
+        "SaveLayout": "Zapisz układ jako domyślny dla aktora",
+        "ExportLayout": "Eksportuj układ",
+        "ImportLayout": "Importuj układ"
+      },
+      "DockToggle": {
+        "Tooltip": "Pokaż / Ukryj dok HUD",
+        "Hide": "Ukryj dok HUD",
+        "Show": "Pokaż dok HUD"
+      }
+    },
+    "ContextMenu": {
+      "EditItem": "Edytuj przedmiot",
+      "RemoveItem": "Usuń przedmiot",
+      "SortContainer": "Sortuj kontener",
+      "ClearContainer": "Wyczyść kontener",
+      "AutoPopulateContainer": "Automatyczne wypełnianie kontenera",
+      "AutoPopulateHint": "Ręcznie dodaj do tego kontenera elementy z aktora. Uwaga: postacie niezależne (NPC) są automatycznie dodawane podczas tworzenia tokenu, ale postacie graczy powinny skorzystać z tej opcji."
+    },
+    "Filters": {
+      "LeftClick": "Kliknięcie lewym przyciskiem myszy: Zaznaczenie pasujących elementów",
+      "RightClick": "Kliknięcie prawym przyciskiem myszy: Oznacz jako używane"
+    },
+    "Tooltips": {
+      "InfoButton": "Informacje o postaci<br><small>Kliknij prawym przyciskiem myszy, aby rzucić na inicjatywę</small>",
+      "SwitchWeaponSet": "Kliknij: Przełącz na zestaw broni {number}"
+    },
+    "TargetSelector": {
+      "Instructions": "Wybierz {min}-{max} celów. Naciśnij {confirm}, aby potwierdzić, lub {cancel}, aby anulować.",
+      "AdjustTargets": "Dostosuj cele za pomocą przycisków {plus}/{minus}",
+      "Activated": "Wybór celu jest aktywny. Naciśnij {confirm}, aby potwierdzić, lub {cancel}, aby anulować.",
+      "Confirm": "Zatwierdź",
+      "Cancel": "Anuluj",
+      "SelectedTargets": "Wybrane cele",
+      "NoTargetsSelected": "Nie wybrano żadnych celów",
+      "RemoveTarget": "Usuń cel",
+      "Unlimited": "nieograniczony",
+      "InvalidTarget": "Nieprawidłowy cel",
+      "NoActor": "Cel nie ma aktora",
+      "TokenNotVisible": "Cel nie jest widoczny",
+      "SelfOnly": "Może być skierowane wyłącznie na siebie",
+      "CannotTargetSelf": "Nie można wybrać siebie jako celu",
+      "MustBeEnemy": "Należy wybrać wroga jako cel",
+      "MustBeAlly": "Należy wybrać sojusznika jako cel",
+      "MustBeCreature": "Należy wybrać stworzenie jako cel",
+      "OutOfRange": "Cel znajduje się poza zasięgiem",
+      "Flanked": "Flankowany",
+      "MaxTargetsReached": "Osiągnięto maksymalną liczbę celów - {max}",
+      "MinTargetsRequired": "Wymagana minimalna liczba celów - {min}",
+      "IncreaseMax": "Zwiększ maksymalną liczbę celów",
+      "DecreaseMax": "Zmniejsz maksymalną liczbę celów"
+    },
+    "Notifications": {
+      "AutoSortNotAvailable": "Funkcja AutoSort jest niedostępna",
+      "SortFailed": "Nie udało się posortować kontenera",
+      "AutoPopulateFailed": "Nie udało się automatycznie wypełnić kontenera",
+      "ClearContainerFailed": "Nie udało się wyczyścić kontenera",
+      "CrossContainerMoveBlocked": "Nie można przenosić przedmiotów między kontenerem a paskiem skrótów",
+      "DuplicateItem": "Ten element występuje już w innym miejscu w interfejsie HUD",
+      "DuplicateSpellSlot": "Ten wpis dotyczący zasobu znajduje się już w HUD-zie",
+      "DuplicateInHud": "Etykieta {label} jest już wyświetlana w HUD-zie",
+      "NoActorSelected": "Nie wybrano żadnego aktora",
+      "ItemOwnerMismatch": "Typ {type} należy do {owner}, a nie do {current}",
+      "MacroNotFound": "Nie znaleziono makra",
+      "NoItemsToSort": "Brak elementów do posortowania",
+      "SortContainerFailed": "Nie udało się posortować kontenera. Szczegóły można znaleźć w konsoli.",
+      "NoActorForAutoPopulate": "Brak aktora do automatycznego wypełnienia",
+      "NoItemTypesForAutoPopulate": "Brak typów pozycji dostępnych do automatycznego wypełniania",
+      "NoMatchingItems": "Nie znaleziono pasujących elementów",
+      "AllItemsAlreadyInHud": "Wszystkie wybrane elementy znajdują się już w HUD-zie",
+      "NoItemTypesForConfig": "Brak typów elementów dostępnych do konfiguracji",
+      "PassivesNotImplemented": "W tym systemie nie zaimplementowano konfiguracji pasywnej",
+      "ClearAllFailed": "Nie udało się usunąć wszystkich elementów",
+      "ImportLayoutFailed": "Nie udało się zaimportować układu",
+      "NoActorForSave": "Brak aktora umożliwiającego zapisanie układu.",
+      "SaveLayoutSuccess": "Układ został zapisany jako domyślny dla aktora na potrzeby przyszłych tokenów.",
+      "SaveLayoutFailed": "Nie udało się zapisać układu jako domyślnego dla aktora.",
+      "GMHotbarNotEnabled": "Funkcja paska skrótów MG nie jest włączona w ustawieniach modułu.",
+      "SelectTokenToSwitch": "Wybierz token, aby przejść do paska skrótów tokenów",
+      "MinRowsReached": "Nie można usunąć wiersza: pasek skrótów ma już minimalną wysokość."
+    },
+    "Views": {
+      "CreateTitle": "Utwórz nowy widok",
+      "EditTitle": "Edytuj widok",
+      "CreateButton": "Utwórz",
+      "SaveButton": "Zapisz",
+      "DefaultNewName": "Nowy widok",
+      "DefaultEditName": "Widok",
+      "NameLabel": "Nazwa widoku",
+      "NamePlaceholder": "Wpisz nazwę widoku...",
+      "IconLabel": "Wybierz ikonę",
+      "CustomIconLabel": "Lub wprowadź własną klasę Font Awesome:",
+      "CustomIconPlaceholder": "np. fa-sparkles",
+      "ErrorEmptyName": "Nazwa widoku nie może być pusta",
+      "MaxViewsReached": "Dopuszczalna maksymalna liczba widoków - {max}",
+      "Created": "Utworzono widok: {name}",
+      "CreateFailed": "Nie udało się utworzyć widoku",
+      "RenameFailed": "Nie udało się zmienić nazwy widoku",
+      "DuplicateFailed": "Nie udało się zduplikować widoku",
+      "DeleteTitle": "Usuń widok",
+      "DeleteConfirm": "Czy na pewno chcesz usunąć widok <strong>\"{name}\"</strong>?",
+      "DeleteWarning": "Tej czynności nie można cofnąć.",
+      "DeleteFailed": "Nie udało się usunąć widoku",
+      "ContextEdit": "Edytuj widok",
+      "ContextDuplicate": "Zduplikuj widok",
+      "ContextDelete": "Usuń widok"
+    },
+    "MaxSelectionsReached": "Osiągnięto maksymalną liczbę wyborów - {max}"
+  }
+}
