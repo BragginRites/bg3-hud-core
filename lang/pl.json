@@ -1,426 +1,342 @@
 {
-    "BG3.Hotbar": {
-        "Errors": {
-            "InvalidDrop": "Nieprawidłowe dane zrzutu: nieprawidłowy JSON.",
-            "InvalidItem": "Nieprawidłowe dane przedmiotu. Tylko przedmioty z prawidłowym identyfikatorem UUID mogą być umieszczane na pasku skrótów.",
-            "ItemNotFound": "Nie można pobrać przedmiotu z identyfikatorem UUID. Nie można umieścić na pasku skrótów.",
-            "WrongToken": "Nie można upuszczać przedmiotów z innego tokena na ten pasek skrótów.",
-            "UnableToRetrieve": "Nie można pobrać danych przedmiotu.",
-            "MacroNotFound": "Nie znaleziono makra",
-            "NoActor": "Nie znaleziono aktora",
-            "NoUIReference": "Nie znaleziono odniesienia do UI. Spróbuj odświeżyć stronę."
-        },
-        "ContextMenu": {
-            "EditItem": "Edytuj przedmiot",
-            "ConfigureActivities": "Konfiguracja aktywności",
-            "Remove": "Usuń"
-        },
-        "UI": {
-            "AddRow": "Dodaj rząd",
-            "RemoveRow": "Usuń rząd"
-        },
-        "SettingsMenu": {
-            "ResetLayout": "Zresetuj układ",
-            "ClearAllItems": "Wyczyść wszystkie przedmioty",
-            "ImportLayout": "Importuj układ",
-            "ExportLayout": "Eksportuj układ"
-        },
-        "Tooltips": {
-            "Action": "Akcja",
-            "Range": "Zasięg",
-            "Target": "Cel",
-            "Duration": "Czas trwania",
-            "Description": "Opis",
-            "LoadingDescription": "Ładowanie opisu...",
-            "NoDescription": "Brak dostępnego opisu.",
-            "Permanent": "Permanentne",
-            "RoundsRemaining": "Pozostałe rundy {count}",
-            "TurnsRemaining": "Pozostałe tury {count}",
-            "SecondsRemaining": "Pozostałe sekundy {count}",
-            "Status": "Status",
-            "Active": "Aktywny",
-            "Disabled": "Wyłączony"
-        },
-        "Ability": {
-            "Tooltip": "Kliknij lewym przyciskiem myszy, aby wyświetlić testy umiejętności i rzuty obronne.<br>Kliknij prawym przyciskiem myszy, aby rzucić inicjatywę (ALT: Ułatw./ CTRL: Utrudn.)."
-        }
+  "bg3-hud-core": {
+    "Settings": {
+      "Theme": {
+        "Name": "Ustawienia motywu",
+        "Label": "Konfiguracja motywu",
+        "Hint": "Dostosuj kolory, rozmiary i wygląd interfejsu BG3 HUD",
+        "Title": "Ustawienia motywu",
+        "General": "Ogólne",
+        "GeneralHint": "Parametry mają zastosowanie do wszystkich poniższych komponentów, o ile nie określono inaczej.",
+        "UseGeneralEverywhere": "Wszędzie używaj kolorów ogólnych",
+        "UseGeneralEverywhereHint": "Po włączeniu tej opcji używana jest wyłącznie sekcja „Ogólne”. Wyłącz tę opcję, aby dostosować każdą sekcję.",
+        "Normal": "Normalny",
+        "Hover": "Przysłonięty",
+        "BorderColor": "Kolor obramowania",
+        "ContainerBackgroundColor": "Tło kontenera",
+        "TertiaryBackgroundColor": "Tło trzeciorzędne",
+        "TextColor": "Kolor tekstu",
+        "TextSecondaryColor": "Tekst dodatkowy",
+        "ContainerBorderSize": "Rozmiar obramowania kontenera",
+        "ContainerBorderRadius": "Promień zaokrąglenia obramowania kontenera",
+        "TertiaryBorderSize": "Rozmiar krawędzi trzeciorzędny",
+        "TertiaryBorderRadius": "Promień krawędzi trzeciorzędny",
+        "PortraitSize": "Rozmiar obrazu",
+        "CellSize": "Rozmiar komórki",
+        "Portrait": "Portret",
+        "Hotbar": "Pasek skrótów",
+        "SubContainer": "Podkontener",
+        "SubBackgroundColor": "Tło podkontenera",
+        "Cell": "Komórka",
+        "DragbarColor": "Separator kontenerów",
+        "WeaponSets": "Zestawy broni",
+        "SmallContainers": "Małe kontenery",
+        "SmallContainersHint": "Wspólny styl dla elementów sterujących, widoków, filtrów, elementów pasywnych oraz kontenerów aktywnych efektów.",
+        "Tooltip": "Podpowiedź",
+        "ComponentColor": "Kolor elementu",
+        "GridCells": "Komórki siatki",
+        "CellBorderWidth": "Szerokość obramowania komórki",
+        "CellBorderRadius": "Promień obramowania komórki",
+        "GridGap": "Odstęp siatki",
+        "Save": "Zapisz",
+        "Reset": "Przywróć ustawienia domyślne",
+        "ResetSuccess": "Przywrócono domyślne ustawienia motywu"
+      },
+      "NormalOpacity": {
+        "Name": "Normalna przezroczystość",
+        "Hint": "Przezroczystość interfejsu HUD, gdy jest widoczny (od 0,1 do 1,0)"
+      },
+      "FadedOpacity": {
+        "Name": "Przezroczystość zanikania",
+        "Hint": "Przezroczystość podczas zanikania HUD-u po okresie bezczynności (ustaw wartość 1,0, aby wyłączyć zanikanie)"
+      },
+      "FadeOutDelay": {
+        "Name": "Opóźnienie zanikania (sekundy)",
+        "Hint": "Jak długo należy czekać przed wygaszeniem HUD-u (od 1 do 30 sekund)"
+      },
+      "AutoScale": {
+        "Name": "Auto Skala",
+        "Hint": "Automatyczne skalowanie interfejsu użytkownika w zależności od wysokości ekranu"
+      },
+      "UIScale": {
+        "Name": "Skala interfejsu użytkownika",
+        "Hint": "Ręczna skala interfejsu użytkownika w procentach (od 50% do 300%). Stosowana wyłącznie wtedy, gdy funkcja automatycznego skalowania jest wyłączona."
+      },
+      "UIPosition": {
+        "Name": "Pozycja interfejsu użytkownika",
+        "Hint": "Gdzie umieścić HUD na ekranie",
+        "Center": "Środek",
+        "Left": "Lewo",
+        "Right": "Prawo"
+      },
+      "PosPadding": {
+        "Name": "Odstęp pozycji",
+        "Hint": "Odstęp poziomy od krawędzi ekranu (piksele)"
+      },
+      "PassivesContainerIconsPerRow": {
+        "Name": "Liczba ikon zdolności pasywnych w każdym wierszu",
+        "Hint": "Liczba ikon zdolności pasywnych wyświetlanych w każdym wierszu przed zawinięciem"
+      },
+      "ActiveEffectsContainerIconsPerRow": {
+        "Name": "Liczba ikon aktywnych efektów w każdym wierszu",
+        "Hint": "Liczba ikon aktywnych efektów wyświetlanych w każdym wierszu przed zawinięciem"
+      },
+      "ShowPassiveActiveEffects": {
+        "Name": "Pokaż efekty pasywne i aktywne",
+        "Hint": "Po włączeniu tej opcji wyświetlane są efekty stałe/pasywne (bez określonego czasu trwania) oprócz efektów tymczasowych"
+      },
+      "ShowFilters": {
+        "Name": "Pokaż ikony filtrów",
+        "Hint": "Wyświetl ikony filtrów zasobów i akcji nad paskiem skrótów"
+      },
+      "MinimalistView": {
+        "Name": "Widok minimalistyczny",
+        "Hint": "Opcjonalny układ przyklejony do krawędzi: ukrywa zakładki widoku paska skrótów i ustawia HUD równo z dolną krawędzią ekranu. Domyślnie wyłączone; standardowy pływający HUD z zakładkami widoku pozostaje bez zmian."
+      },
+      "PosPaddingBottom": {
+        "Name": "Dolny odstęp",
+        "Hint": "Odstęp od dolnej krawędzi ekranu (w pikselach). Nie jest brany pod uwagę, gdy włączony jest tryb minimalistyczny."
+      },
+      "ShowPortrait": {
+        "Name": "Pokaż portret",
+        "Hint": "Wyświetl portret postaci, nakładkę PW oraz plakietki z danymi postaci. Po wyłączeniu tej opcji przycisk informacji o postaci (k20) pozostaje dostępny."
+      },
+      "BorderPortraitPreferences": {
+        "Name": "Obramowanie portretu",
+        "Hint": "Ozdobne obramowanie wokół portretu w interfejsie HUD.",
+        "None": "Brak",
+        "Simple": "Proste",
+        "Styled": "Stylizacja (okrągły pierścień)"
+      },
+      "ShowPortraitHPControls": {
+        "Name": "Pokaż elementy sterujące PW w widoku portretu",
+        "Hint": "Wyświetl przyciski służące do ustawiania PW na minimum (czaszka) i maksimum (serce) oraz pole wprowadzania wartości PW w interfejsie w UI portretu"
+      },
+      "LayoutAppearance": {
+        "MenuTitle": "Układ i wygląd",
+        "MenuName": "Układ i wygląd",
+        "MenuLabel": "Ustawienia układu i wyglądu",
+        "MenuHint": "Dostosuj krycie, skalowanie, położenie i gęstość kontenera",
+        "OpacityLegend": "Przezroczystość i zanikanie",
+        "ScalePositionLegend": "Skala i pozycja",
+        "ContainerConfigurationLegend": "Konfiguracja kontenerów"
+      },
+      "Appearance": {
+        "MenuTitle": "Ustawienia wyglądu",
+        "MenuName": "Ustawienia wyglądu",
+        "MenuLabel": "Ustawienia wyglądu",
+        "MenuHint": "Dostosuj krycie i czas wygaszania elementów HUD-u",
+        "Legend": "Wygląd"
+      },
+      "Layout": {
+        "MenuTitle": "Układ i położenie",
+        "MenuName": "Układ i położenie",
+        "MenuLabel": "Ustawienia układu i położenia",
+        "MenuHint": "Dostosuj skalowanie i położenie interfejsu HUD",
+        "Legend": "Układ i położenie"
+      },
+      "FoundryUI": {
+        "MenuTitle": "Interfejs użytkownika Foundry",
+        "MenuName": "Interfejs użytkownika Foundry",
+        "MenuLabel": "Ustawienia interfejsu użytkownika Foundry",
+        "MenuHint": "Sterowanie widocznością paska makr i czasem wyświetlania podpowiedzi",
+        "Legend": "Interfejs użytkownika Foundry",
+        "NameOnlyTooltipsName": "Podpowiedzi zawierające wyłącznie nazwy",
+        "NameOnlyTooltipsHint": "W przypadku przedmiotów, zaklęć i zdolności należy stosować proste, natywne podpowiedzi zamiast rozbudowanych podpowiedzi systemowych."
+      },
+      "GMHotbar": {
+        "MenuTitle": "Pasek skrótów MG",
+        "MenuName": "Pasek skrótów MG",
+        "MenuLabel": "Ustawienia paska skrótów MG",
+        "MenuHint": "Konfiguracja widoczności paska skrótów MG",
+        "Legend": "Pasek skrótów MG"
+      },
+      "TargetSelector": {
+        "MenuTitle": "Selektor celów",
+        "MenuName": "Selektor celów",
+        "MenuLabel": "Ustawienia selektora celów",
+        "MenuHint": "Skonfiguruj wybór celu w stylu BG3 dla zaklęć i umiejętności",
+        "Legend": "Wybór celu",
+        "EnableName": "Włącz wybór celu",
+        "EnableHint": "Po włączeniu tej opcji zaklęcia i zdolności wymagające wyboru celów zostaną wstrzymane do momentu potwierdzenia celów, po czym ich użycie zostanie wznowione. Sprawdzana jest wyłącznie liczba celów, typ (własny/wrogi) oraz zasięg.",
+        "SkipName": "Pomiń, jeśli cel jest prawidłowy",
+        "SkipHint": "Pomiń selektor celu, jeśli masz już wybrany prawidłowy cel",
+        "RangeName": "Wymuś sprawdzanie zasięgu",
+        "RangeHint": "Odrzucaj cele znajdujące się poza zasięgiem",
+        "AutoSelfName": "Automatyczne namierzanie siebie",
+        "AutoSelfHint": "Automatycznie wybierz siebie jako cel dla zdolności autocelowania",
+        "RangeIndicatorLegend": "Wskaźnik zasięgu",
+        "ShowRangeIndicatorsName": "Pokaż wskaźnik zasięgu",
+        "ShowRangeIndicatorsHint": "Wyświetl na obszarze roboczym wizualny wskaźnik przedstawiający zakres tej zdolności",
+        "RangeShapeName": "Kształt wskaźnika",
+        "RangeShapeHint": "Kształt wskaźnika zasięgu (koło lub kwadrat)",
+        "RangeShapeCircle": "Kółko",
+        "RangeShapeSquare": "Kwadrat",
+        "RangeAnimationName": "Animacja wskaźnika",
+        "RangeAnimationHint": "Styl animacji wskaźnika zasięgu",
+        "RangeAnimationPulse": "Puls",
+        "RangeAnimationStatic": "Statyczny",
+        "RangeLineWidthName": "Szerokość linii",
+        "RangeLineWidthHint": "Grubość linii wskaźnika zasięgu",
+        "RangeLineWidthThin": "Cienka (1px)",
+        "RangeLineWidthNormal": "Normalna (2px)",
+        "RangeLineWidthThick": "Gruba (3px)",
+        "RangeLineWidthExtraThick": "Bardzo gruba (4px)",
+        "RangeColorName": "Kolor wskaźnika",
+        "RangeColorHint": "Kolor wskaźnika zasięgu (w formacie szesnastkowym)",
+        "IgnoreTypeName": "Zignoruj ograniczenia dotyczące siebie / przeciwnika",
+        "IgnoreTypeHint": "Zezwala na wybór dowolnego tokenu bez względu na zasady celowania w sojuszników/wrogów. Jeśli opcja jest włączona, nadal obowiązują ograniczenia dotyczące liczby celów i zasięgu."
+      },
+      "PortraitData": {
+        "Title": "Konfiguracja danych portretu",
+        "MenuName": "Dane portretu",
+        "MenuLabel": "Konfiguracja danych portretu",
+        "MenuHint": "Wyświetlaj ikony danych wokół portretu (KP, PW, szybkość itp.)",
+        "ShowName": "Pokaż dane portretu",
+        "ShowHint": "Wyświetl plakietki z danymi wokół portretu postaci",
+        "TopLeft": "Górny lewy",
+        "TopRight": "Górny prawy",
+        "MiddleLeft": "Środkowy lewy",
+        "MiddleRight": "Środkowy prawy",
+        "BottomLeft": "Dolny lewy",
+        "BottomRight": "Dolny prawy",
+        "Saved": "Konfiguracja danych portretu została zapisana",
+        "WorldOverride": "Użyj ustawień globalnych (wszyscy gracze)",
+        "SyncToWorld": "Synchronizacja ze światem",
+        "SyncedToWorld": "Dane portretów zsynchronizowano z serwerem – wszyscy gracze będą teraz korzystać z tej konfiguracji",
+        "WorldConfigActive": "Twój MG ustawił konfigurację świata",
+        "UseMyOwnConfig": "Zastosuj moją własną konfigurację"
+      },
+      "AutoPopulate": {
+        "Options": "Opcje",
+        "HotbarGrid": "Siatka paska skrótów {number}"
+      }
     },
-    "BG3.Portrait": {
-        "HP": {
-            "Death": "Martwy!",
-            "Full": "Pełen zdrowia"
-        }
+    "Controls": {
+      "Lock": {
+        "Tooltip": "Ustawienia blokady<br>(kliknij prawym przyciskiem myszy, aby wyświetlić opcje)",
+        "NoSettingsWarning": "Kliknij prawym przyciskiem myszy przycisk blokady, aby wybrać ustawienia, które chcesz zablokować.",
+        "DeselectToken": "Odznaczenie tokenu",
+        "Opacity": "Przezroczystość",
+        "DragDrop": "Przeciągnij i upuść"
+      },
+      "GMToggle": {
+        "Tooltip": "Przełączanie między paskiem skrótów MG a paskiem skrótów tokenów"
+      },
+      "Row": {
+        "Add": "Dodaj rząd",
+        "Remove": "Usuń rząd"
+      },
+      "Settings": {
+        "Tooltip": "Ustawienia<br>(Kliknij prawym przyciskiem myszy, aby wyświetlić szybkie działania)",
+        "ResetLayout": "Zresetuj układ",
+        "ClearAllItems": "Wyczyść wszystkie przedmioty",
+        "SaveLayout": "Zapisz układ jako domyślny dla aktora",
+        "ExportLayout": "Eksportuj układ",
+        "ImportLayout": "Importuj układ"
+      },
+      "DockToggle": {
+        "Tooltip": "Pokaż / Ukryj dok HUD",
+        "Hide": "Ukryj dok HUD",
+        "Show": "Pokaż dok HUD"
+      }
     },
-    "BG3.Settings": {
-        "EnableUI": {
-            "Name": "Włącz interfejs BG3 Hotbar",
-            "Hint": "Włączenie lub wyłączenie interfejsu paska skrótów w stylu BG3. Wyłącz tę opcję, jeśli wolisz używać innego modułu paska skrótów lub domyślnego paska skrótów Foundry."
-        },
-        "ShowDamageRanges": {
-            "Name": "Pokaż obrażenia jako zakresy",
-            "Hint": "Wyświetlanie obrażeń od zaklęć jako minimalnych i maksymalnych zakresów zamiast notacji kości (np. „1-8 ognia” zamiast „1k8 ognia”)."
-        },
-        "ShowMaterialDescription": {
-            "Name": "Pokaż opis materialnych komponentów",
-            "Hint": "Wyświetlanie pełnego opisu materialnych komponentów w podpowiedziach zaklęć (np. „diamenty o wartości 300 sz, które wykorzystuje zaklęcie”)."
-        },
-        "EnableLightTooltip": {
-            "Name": "Konfiguracja wyświetlania podpowiedzi",
-            "Hint": "Wybierz, co ma być wyświetlane w podpowiedzi pozycji",
-            "Choices": {
-                "Full": "Całość",
-                "Light": "Pokaż tylko nazwę i typ pozycji",
-                "NoDesc": "Ukryj tylko opis"
-            }
-        },
-        "BypassSpellPreparationCheck": {
-            "Name": "Uwzględnij nieprzygotowane zaklęcia",
-            "Hint": "Po włączeniu tej opcji wszystkie zaklęcia zostaną uwzględnione na pasku skrótów, niezależnie od stanu ich przygotowania."
-        },
-        "EnforceSpellPreparationPC": {
-            "Name": "Wymuszenie przygotowania zaklęć (połączone tokeny)",
-            "Hint": "Gdy opcja ta jest włączona, połączone tokeny (w tym postacie graczy) będą wyświetlać tylko przygotowane zaklęcia i zaklęcia specjalne (wrodzone, na życzenie, pakt, rytuał, zawsze). Po wyłączeniu wyświetlane będą wszystkie zaklęcia."
-        },
-        "EnforceSpellPreparationNPC": {
-            "Name": "Wymuszenie przygotowania zaklęć (niepowiązane tokeny)",
-            "Hint": "Po włączeniu, niepołączone tokeny będą wyświetlać tylko przygotowane zaklęcia i zaklęcia specjalne (wrodzone, na życzenie, pakt, rytuał, zawsze). Gdy opcja ta jest wyłączona, wyświetlane są wszystkie zaklęcia."
-        },
-        "CollapseFoundryMacrobar": {
-            "Name": "Zwiń pasek makr Foundry",
-            "Hint": "Automatycznie zwijaj domyślny pasek makr Foundry. W Foundry V13 lub nowszych wersjach opcje „Zawsze” i „Całkowicie ukryte” działają tak samo."
-        },
-        "ShowPassiveFeaturesContainer": {
-            "Name": "Pokaż kontener pasywnych cech",
-            "Hint": "Wyświetl pojemnik pasywnych cech nad portretem"
-        },
-        "TooltipDelay": {
-            "Name": "Opóźnienie podpowiedzi",
-            "Hint": "Jak długo czekać przed wyświetleniem podpowiedzi (w milisekundach)?"
-        },
-        "FadeOutDelay": {
-            "Name": "Opóźnienie zanikania",
-            "Hint": "Sekundy oczekiwania przed wygaszeniem paska skrótów"
-        },
-        "NormalOpacity": {
-            "Name": "Normalna przezroczystość",
-            "Hint": "Przezroczystość paska skrótów, gdy znajduje się nad nim mysz (od 0,1 do 1,0)"
-        },
-        "FadedOpacity": {
-            "Name": "Przezroczystość zanikania",
-            "Hint": "Przezroczystość paska skrótów, gdy mysz nie znajduje się nad nim (od 0,0 do 1,0). Ustaw na 1, aby całkowicie wyłączyć zanikanie."
-        },
-        "AutoPopulateUnlinkedTokens": {
-            "Name": "Automatyczne wypełnianie niepowiązanych tokenów",
-            "Hint": "Automatycznie wypełnia pasek skrótów dla nowo utworzonych niepowiązanych tokenów na podstawie poniższych ustawień"
-        },
-        "Container1AutoPopulate": {
-            "Name": "Automatyczne wypełnianie kontenera 1",
-            "Hint": "Jakie typy elementów mają być automatycznie wypełniane w pierwszym kontenerze (indeks 0)?"
-        },
-        "Container2AutoPopulate": {
-            "Name": "Automatyczne wypełnianie kontenera 2",
-            "Hint": "Jakie typy elementów mają być automatycznie wypełniane w drugim kontenerze (indeks 1)?"
-        },
-        "Container3AutoPopulate": {
-            "Name": "Automatyczne wypełnianie kontenera 3",
-            "Hint": "Jakie typy elementów mają być automatycznie wypełniane w trzecim kontenerze (indeks 2)?"
-        },
-        "AutoPopulateOverflow": {
-            "Name": "Gdy kontener jest pełny",
-            "Hint": "Wybierz sposób postępowania z przedmiotami, gdy w kontenerze zabraknie miejsca.",
-            "Expand": "Kontynuuj dodawanie rzędów",
-            "NextContainer": "Przepełnienie do następnego kontenera"
-        },
-        "AutoPopulateFillDirection": {
-            "Name": "Kierunek automatycznego wypełniania",
-            "Hint": "Czy najpierw wypełniane mają być rzędy (od lewej do prawej, a następnie w dół), czy kolumny (od góry do dołu, a następnie w prawo)?",
-            "RowFirst": "Najpierw rzędy (od lewej do prawej, następnie w dół)",
-            "ColumnFirst": "Najpierw kolumny (od góry do dołu, a następnie w prawo)"
-        },
-        "ContainerAutoPopulate": {
-            "DialogTitle": "Automatyczne wypełnianie kontenera",
-            "DefaultsTitle": "Konfigurowanie domyślnych ustawień automatycznego wypełniania kontenera",
-            "Name": "Wybierz typy przedmiotów",
-            "Hint": "Wybierz typy przedmiotów, które mają być automatycznie dodawane do tego kontenera.",
-            "Weapons": "Bronie",
-            "Features": "Zdolności",
-            "Spells": "Zaklęcia",
-            "Consumables": "Materiały eksploatacyjne",
-            "Potions": "Mikstury",
-            "Scrolls": "Zwoje",
-            "Ammunition": "Amunicja",
-            "Food": "Żywność i napoje",
-            "Wands": "Różdżki",
-            "Rods": "Berła",
-            "Poisons": "Trucizny",
-            "Trinkets": "Drobiazgi",
-            "Equipment": "Ekwipunek",
-            "Tools": "Narzędzia",
-            "Loot": "Zdobycz",
-            "Populate": "Wypełnij",
-            "Cancel": "Anuluj",
-            "Save": "Zapisz Zmiany",
-            "SaveSuccess": "Ustawienia automatycznego wypełniania kontenera zostały pomyślnie zapisane",
-            "Configure": "Konfiguracja automatycznego wypełniania kontenera",
-            "Export": "Wyeksportuj Motyw"
-        },
-        "HighlightStyle": {
-            "Name": "Styl podświetlenia",
-            "Hint": "Wybierz sposób podświetlania przedmiotów podczas filtrowania",
-            "Bottom": "Dolne obramowanie",
-            "Border": "Pełne obramowanie"
-        },
-        "DefaultPortraitPreferences": {
-            "Name": "Domyślny widok portretu",
-            "Hint": "Wybierz, czy domyślnie mają być wyświetlane obrazy tokenów czy portrety postaci. Można to zmienić dla każdego tokena. Po pierwszym włączeniu tego ustawienia będzie ono stosowane do wszystkich tokenów, które nie mają ustawionego portretu.",
-            "Token": "Zawsze używaj obrazu tokena",
-            "Portrait": "Zawsze używaj portretu postaci"
-        },
-        "ShapePortraitPreferences": {
-            "Name": "Kształt widoku portretu",
-            "Hint": "Wybierz kształt portretów postaci.",
-            "Round": "Zaokrąglony",
-            "Square": "Kwadrat"
-        },
-        "BorderPortraitPreferences": {
-            "Name": "Obramowanie widoku portretu",
-            "Hint": "Wybierz obramowanie portretów postaci.",
-            "None": "Brak",
-            "Simple": "Proste",
-            "Styled": "Stylowy (tylko zaokrąglony kształt)"
-        },
-        "BackgroundPortraitPreferences": {
-            "Name": "Tło obrazu portretowego",
-            "Hint": "Wybierz kolor tła portretów postaci."
-        },
-        "ShowHealthOverlay": {
-            "Name": "Wyświetl nakładkę stanu zdrowia",
-            "Hint": ""
-        },
-        "ShowHPText": {
-            "Name": "Wyświetl tekst PW",
-            "Hint": ""
-        },
-        "ShowRestTurnButton": {
-            "Name": "Pokaż przyciski odpoczynku/tury",
-            "Hint": "Sterowanie przyciskami odpoczynku i tury wyświetlanymi na pasku skrótów",
-            "Choices": {
-                "Both": "Pokaż oba (odpoczynek i tura)",
-                "Rest": "Pokaż tylko odpoczynek",
-                "Turn": "Pokaż tylko turę", 
-                "None": "Nie pokazuj żadnego"
-            }
-        },
-        "EnableTargetSelector": {
-            "Name": "Włącz wybór celu",
-            "Hint": "Wyświetla interaktywny wybór celu dla zaklęć i zdolności, które wymagają namierzania. Gdy opcja ta jest włączona, kliknięcie przedmiotów wymagających namierzenia celu spowoduje wyświetlenie kursora z krzyżykiem i umożliwi wybranie celu na płótnie."
-        },
-        "ShowRangeIndicators": {
-            "Name": "Pokaż wskaźniki zakresu",
-            "Hint": "Wyświetlanie wizualnych wskaźników zasięgu podczas korzystania z selektora celów. Wyświetla okręgi wokół tokena, wskazując maksymalny zasięg zaklęć i zdolności."
-        },
-        "RangeIndicatorShape": {
-            "Name": "Kształt wskaźnika zasięgu",
-            "Hint": "Wybierz kształt wskaźników zasięgu. Okrąg pokazuje tradycyjny okrągły zasięg, podczas gdy kwadrat pokazuje zasięg oparty na siatce D&D 5e, który lepiej pasuje do ruchu tokenów.",
-            "Choices": {
-                "Circle": "Kółko",
-                "Square": "Kwadrat"
-            }
-        },
-        "RangeIndicatorAnimation": {
-            "Name": "Animacja wskaźnika zasięgu",
-            "Hint": "Wybierz, czy wskaźniki zasięgu mają pulsować, aby przyciągnąć uwagę, czy pozostać statyczne. Pulsowanie sprawia, że są bardziej zauważalne, podczas gdy statyczne zapewniają czystszy wygląd.",
-            "Choices": {
-                "Pulse": "Puls",
-                "Static": "Statyczny"
-            }
-        },
-        "RangeIndicatorLineWidth": {
-            "Name": "Szerokość linii wskaźnika zasięgu",
-            "Hint": "Wybierz grubość linii wskaźnika zasięgu. Grubsze linie są bardziej widoczne, ale mogą być bardziej uciążliwe.",
-            "Choices": {
-                "Thin": "Cienka (1px)",
-                "Normal": "Normalna (2px)",
-                "Thick": "Gruba (3px)",
-                "ExtraThick": "Bardzo gruba (4px)"
-            }
-        },
-        "RangeIndicatorColor": {
-            "Name": "Kolor wskaźnika zasięgu",
-            "Hint": "Wybierz kolor wskaźników zasięgu. Wskaźnik będzie wyświetlany jako kontur w tym kolorze bez wypełnienia."
-        },
-        "AutoTargetSelf": {
-            "Name": "Automatyczne namierzanie siebie",
-            "Hint": "Automatycznie celuj w siebie w przypadku zaklęć i zdolności, które mogą być skierowane tylko na rzucającego (np. samonaprowadzanie). Po włączeniu tej opcji, zaklęcia samonamierzające pomijają wybór celu."
-        },
-        "SkipSelectorWithValidTarget": {
-            "Name": "Pomiń selektor z prawidłowym celem",
-            "Hint": "W przypadku zaklęć/zdolności skierowanych na jeden cel pomiń wybór celu, jeśli prawidłowy cel został już wybrany."
-        },
-        "EnableRangeChecking": {
-            "Name": "Włącz sprawdzanie zakresu",
-            "Hint": "Sprawdza, czy cele znajdują się w zasięgu podczas korzystania z selektora celów. Po wyłączeniu tej opcji możesz obrać za cel dowolny token, niezależnie od zasięgu zaklęcia/zdolności."
-        },
-        "OverlayModePortrait": {
-            "Name": "Nakładka zdrowia jako maska",
-            "Hint": "Jeśli ta opcja jest zaznaczona, nakładka zdrowia nie będzie zakrywać przezroczystej części portretu postaci. Zaznacz to, jeśli używasz Dynamicznego Pierścienia Tokena."
-        },
-        "SettingsCategories": {
-            "HotbarContainer": "Przyciski paska skrótów",
-            "CombatContainer": "Wspólne działania kontenera",
-            "Global": "Ogólne",
-            "Portrait": "Portret postaci",
-            "Tooltip": "Podpowiedź",
-            "AutoPopulating": "Automatyczne wypełnianie",
-            "FoundryUI": "Poprawki interfejsu Foundry",
-            "MidiQoL": "Synchronizacja MidiQoL"
-        },
-        "MenuTheme": {
-            "Name": "Konfiguracja motywu",
-            "Hint": "Wybierz jeden z dostępnych motywów lub stwórz własny.",
-            "Label": "Konfiguracja motywu"
-        },
-        "scopeTheme": {
-            "Name": "Zasięg motywu",
-            "Hint": "Jeśli opcja zostanie zaznaczona, każdy gracz będzie mógł wybrać własny motyw. W przeciwnym razie motyw wybrany przez MG będzie taki sam dla wszystkich."
-        },
-        "PlayerListVisibility": {
-            "Name": "Widoczność listy graczy",
-            "Hint": "Kontroluj widoczność domyślnej listy graczy Foundry w lewym dolnym rogu.",
-            "Choices": {
-                "always": "Zawsze widoczny",
-                "hover": "Pokaż po najechaniu kursorem",
-                "hidden": "Ukryj całkowicie"
-            }
-        },
-        "ShowDeathSavingThrow": {
-            "Name": "Wyświetl rzut obronny przed śmiercią",
-            "Hint": "Kontroluj sposób wyświetlania rzutu obronnego przed śmiercią.",
-            "Choices": {
-                "show": "Domyślne",
-                "hide": "Nigdy",
-                "only": "Wyświetlaj klikalną czaszkę tylko na portrecie"
-            }
-        },
-        "EnableHPControls": {
-            "Name": "Włącz sterowanie PW",
-            "Hint": "Dodano dodatkowe elementy sterujące dla PW podczas najechania kursorem na portret."
-        },
-        "synchroMidiQoL": {
-            "BR": {
-                "Name": "Efekty aktywne bonusów i reakcji",
-                "Hint": "Ustaw akcję i reakcję bonusu zgodnie z aktywnymi efektami MidiQoL."
-            },
-            "ADV": {
-                "Name": "Dodaj przyciski ułatwienia/utrudnienia",
-                "Hint": "Dodaj źródło ułatwienia lub utrudnienia. Wymaga włączenia funkcji szybkiego przewijania MidiQoL."
-            }
-        },
-        "GamePause": {
-            "Name": "„Gra wstrzymana” ponad interfejsem",
-            "Hint": "Jeśli opcja zostanie zaznaczona, interfejs użytkownika zostanie wyświetlony pod etykietą „Gra wstrzymana”."
-        },
-        "AutoScale": {
-            "Name": "Automatyczna skala interfejsu użytkownika",
-            "Hint": "Automatycznie skaluj interfejs użytkownika w zależności od przeglądarki. Wyłącz poniższy parametr skalowania interfejsu użytkownika."
-        },
-        "EnableGMHotbar": {
-            "Name": "Włącz pasek skrótów MG",
-            "Hint": "Pokaż specjalny pasek MG, gdy nie wybrano żadnego tokenu lub wybrano wiele tokenów."
-        },
-        "EnableWeaponAutoEquip": {
-            "Name": "Włącz automatyczne wyposażanie zestawów broni",
-            "Hint": "Jeśli opcja jest zaznaczona, wybranie tokenu lub przełączenie między zestawami broni spowoduje automatyczne wyposażenie lub wyjęcie przedmiotów."
-        },
-        "NpcUseContainerDefaults": {
-            "Name": "NPC używają domyślnych ustawień kontenera",
-            "Hint": "Jeśli opcja jest zaznaczona, postacie niezależne (powiązane lub niepowiązane) będą ignorować zestawy broni i zamiast tego używać domyślnych ustawień automatycznego wypełniania kontenerów."
-        },
-        "HoverFilterShow": {
-            "Name": "Filtr paska szybkiego dostępu po najechaniu kursorem",
-            "Hint": "Jeśli opcja jest zaznaczona, filtr paska szybkiego dostępu będzie wyświetlany tylko po najechaniu na niego kursorem."
-        },
-        "ShowExtendedFilter": {
-            "Name": "Pokaż rozszerzone filtry",
-            "Hint": "Jeśli zaznaczone, pokaż elementy o ograniczonym zastosowaniu jako filtr (bez podświetlenia/szarego tła)."
-        },
-        "Keybindings": {
-            "toggleUI": "Przełącz BG3 Hotbar",
-            "decreaseTargets": "Zmniejsz liczbę celów",
-            "increaseTargets": "Zwiększ liczbę celów",
-            "confirmTargets": "Potwierdź wybór celu"
-        },
-        "Menu": {
-            "Global": {
-                "Name": "Ustawienia ogólne",
-                "Hint": "Elementy natywne Foundry lub ogólne ustawienia interfejsu użytkownika BG3.",
-                "Label": "Konfiguracja ogólna",
-                "Sub": {
-                    "Foundry": "Foundry UI",
-                    "Scale": "Skala i pozycja",
-                    "Opacity": "Nieprzezroczystość i ukrycie"
-                }
-            },
-            "Theme": {
-                "Name": "Ustawienia motywu",
-                "Hint": "Wybierz jeden z dostępnych motywów lub stwórz własny.",
-                "Label": "Konfiguracja motywu"
-            },
-            "Portrait": {
-                "Name": "Ustawienia portretu",
-                "Hint": "Zaawansowane ustawienia portretu postaci.",
-                "Label": "Konfiguracja portretu",
-                "Sub": {
-                    "Show": "Pokaż/Ukryj ustawienia",
-                    "Portrait": "Ustawienia portretu",
-                    "Other": "Inne ustawienia"
-                }
-            },
-            "Hotbar": {
-                "Name": "Ustawienia paska skrótów",
-                "Hint": "Zaawansowane ustawienia paska skrótów.",
-                "Label": "Konfiguracja paska skrótów",
-                "Sub": {
-                    "General": "Ogólne",
-                    "Weapon": "Zestawy broni",
-                    "Common": "Wspólne działania",
-                    "Other": "Inne"
-                }
-            },
-            "TargetSelector": {
-                "Name": "Ustawienia wyboru celu",
-                "Hint": "Ustawienia interaktywnego systemu wyboru celu.",
-                "Label": "Konfiguracja wyboru celu"
-            },
-            "Filter": {
-                "Name": "Ustawienia filtra"
-            },
-            "Combat": {
-                "Name": "Ustawienia wspólnych działań",
-                "Hint": "Zaawansowane ustawienia wspólnych czynności.",
-                "Label": "Konfiguracja wspólnych działań"
-            },
-            "Populate": {
-                "Name": "Ustawienia automatycznego wypełniania",
-                "Hint": "Zaawansowane ustawienia funkcji automatycznego wypełniania.",
-                "Label": "Konfiguracja automatycznego wypełniania"
-            },
-            "Tooltip": {
-                "Name": "Ustawienia podpowiedzi",
-                "Hint": "Zaawansowane ustawienia podpowiedzi.",
-                "Label": "Konfiguracja podpowiedzi"
-            },
-            "Midi": {
-                "Name": "Synchronizacja ustawień MidiQoL",
-                "Hint": "Synchronizacja z funkcjami MidiQoL. Wymagany moduł MidiQoL.",
-                "Label": "Konfiguracja synchronizacji MidiQoL"
-            },
-            "CPR": {
-                "Name": "Wybierz czynności RKO",
-                "Hint": "Wybierz czynności RKO, które mają być automatycznie wypełniane w kontenerze wspólnych czynności.",
-                "Label": "Wybierz czynności RKO",
-                "UpTo6": "Wybierz czynności RKO, które mają być automatycznie wypełniane w kontenerze wspólnych czynności. Maksymalnie 6."
-            }
-        }
-    }
-} 
+    "ContextMenu": {
+      "EditItem": "Edytuj przedmiot",
+      "RemoveItem": "Usuń przedmiot",
+      "SortContainer": "Sortuj kontener",
+      "ClearContainer": "Wyczyść kontener",
+      "AutoPopulateContainer": "Automatyczne wypełnianie kontenera",
+      "AutoPopulateHint": "Ręcznie dodaj do tego kontenera elementy z aktora. Uwaga: postacie niezależne (NPC) są automatycznie dodawane podczas tworzenia tokenu, ale postacie graczy powinny skorzystać z tej opcji."
+    },
+    "Filters": {
+      "LeftClick": "Kliknięcie lewym przyciskiem myszy: Zaznaczenie pasujących elementów",
+      "RightClick": "Kliknięcie prawym przyciskiem myszy: Oznacz jako używane"
+    },
+    "Tooltips": {
+      "InfoButton": "Informacje o postaci<br><small>Kliknij prawym przyciskiem myszy, aby rzucić na inicjatywę</small>",
+      "SwitchWeaponSet": "Kliknij: Przełącz na zestaw broni {number}"
+    },
+    "TargetSelector": {
+      "Instructions": "Wybierz {min}-{max} celów. Naciśnij {confirm}, aby potwierdzić, lub {cancel}, aby anulować.",
+      "AdjustTargets": "Dostosuj cele za pomocą przycisków {plus}/{minus}",
+      "Activated": "Wybór celu jest aktywny. Naciśnij {confirm}, aby potwierdzić, lub {cancel}, aby anulować.",
+      "Confirm": "Zatwierdź",
+      "Cancel": "Anuluj",
+      "SelectedTargets": "Wybrane cele",
+      "NoTargetsSelected": "Nie wybrano żadnych celów",
+      "RemoveTarget": "Usuń cel",
+      "Unlimited": "nieograniczony",
+      "InvalidTarget": "Nieprawidłowy cel",
+      "NoActor": "Cel nie ma aktora",
+      "TokenNotVisible": "Cel nie jest widoczny",
+      "SelfOnly": "Może być skierowane wyłącznie na siebie",
+      "CannotTargetSelf": "Nie można wybrać siebie jako celu",
+      "MustBeEnemy": "Należy wybrać wroga jako cel",
+      "MustBeAlly": "Należy wybrać sojusznika jako cel",
+      "MustBeCreature": "Należy wybrać stworzenie jako cel",
+      "OutOfRange": "Cel znajduje się poza zasięgiem",
+      "Flanked": "Flankowany",
+      "MaxTargetsReached": "Osiągnięto maksymalną liczbę celów - {max}",
+      "MinTargetsRequired": "Wymagana minimalna liczba celów - {min}",
+      "IncreaseMax": "Zwiększ maksymalną liczbę celów",
+      "DecreaseMax": "Zmniejsz maksymalną liczbę celów"
+    },
+    "Notifications": {
+      "AutoSortNotAvailable": "Funkcja AutoSort jest niedostępna",
+      "SortFailed": "Nie udało się posortować kontenera",
+      "AutoPopulateFailed": "Nie udało się automatycznie wypełnić kontenera",
+      "ClearContainerFailed": "Nie udało się wyczyścić kontenera",
+      "CrossContainerMoveBlocked": "Nie można przenosić przedmiotów między kontenerem a paskiem skrótów",
+      "DuplicateItem": "Ten element występuje już w innym miejscu w interfejsie HUD",
+      "DuplicateSpellSlot": "Ten wpis dotyczący zasobu znajduje się już w HUD-zie",
+      "DuplicateInHud": "Etykieta {label} jest już wyświetlana w HUD-zie",
+      "NoActorSelected": "Nie wybrano żadnego aktora",
+      "ItemOwnerMismatch": "Typ {type} należy do {owner}, a nie do {current}",
+      "MacroNotFound": "Nie znaleziono makra",
+      "NoItemsToSort": "Brak elementów do posortowania",
+      "SortContainerFailed": "Nie udało się posortować kontenera. Szczegóły można znaleźć w konsoli.",
+      "NoActorForAutoPopulate": "Brak aktora do automatycznego wypełnienia",
+      "NoItemTypesForAutoPopulate": "Brak typów pozycji dostępnych do automatycznego wypełniania",
+      "NoMatchingItems": "Nie znaleziono pasujących elementów",
+      "AllItemsAlreadyInHud": "Wszystkie wybrane elementy znajdują się już w HUD-zie",
+      "NoItemTypesForConfig": "Brak typów elementów dostępnych do konfiguracji",
+      "PassivesNotImplemented": "W tym systemie nie zaimplementowano konfiguracji pasywnej",
+      "ClearAllFailed": "Nie udało się usunąć wszystkich elementów",
+      "ImportLayoutFailed": "Nie udało się zaimportować układu",
+      "NoActorForSave": "Brak aktora umożliwiającego zapisanie układu.",
+      "SaveLayoutSuccess": "Układ został zapisany jako domyślny dla aktora na potrzeby przyszłych tokenów.",
+      "SaveLayoutFailed": "Nie udało się zapisać układu jako domyślnego dla aktora.",
+      "GMHotbarNotEnabled": "Funkcja paska skrótów MG nie jest włączona w ustawieniach modułu.",
+      "SelectTokenToSwitch": "Wybierz token, aby przejść do paska skrótów tokenów",
+      "MinRowsReached": "Nie można usunąć wiersza: pasek skrótów ma już minimalną wysokość."
+    },
+    "Views": {
+      "CreateTitle": "Utwórz nowy widok",
+      "EditTitle": "Edytuj widok",
+      "CreateButton": "Utwórz",
+      "SaveButton": "Zapisz",
+      "DefaultNewName": "Nowy widok",
+      "DefaultEditName": "Widok",
+      "NameLabel": "Nazwa widoku",
+      "NamePlaceholder": "Wpisz nazwę widoku...",
+      "IconLabel": "Wybierz ikonę",
+      "CustomIconLabel": "Lub wprowadź własną klasę Font Awesome:",
+      "CustomIconPlaceholder": "np. fa-sparkles",
+      "ErrorEmptyName": "Nazwa widoku nie może być pusta",
+      "MaxViewsReached": "Dopuszczalna maksymalna liczba widoków - {max}",
+      "Created": "Utworzono widok: {name}",
+      "CreateFailed": "Nie udało się utworzyć widoku",
+      "RenameFailed": "Nie udało się zmienić nazwy widoku",
+      "DuplicateFailed": "Nie udało się zduplikować widoku",
+      "DeleteTitle": "Usuń widok",
+      "DeleteConfirm": "Czy na pewno chcesz usunąć widok <strong>\"{name}\"</strong>?",
+      "DeleteWarning": "Tej czynności nie można cofnąć.",
+      "DeleteFailed": "Nie udało się usunąć widoku",
+      "ContextEdit": "Edytuj widok",
+      "ContextDuplicate": "Zduplikuj widok",
+      "ContextDelete": "Usuń widok"
+    },
+    "MaxSelectionsReached": "Osiągnięto maksymalną liczbę wyborów - {max}"
+  }
+}
