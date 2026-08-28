@@ -1,5 +1,6 @@
 import { BG3Component } from '../BG3Component.js';
 import { GridContainer } from './GridContainer.js';
+import { Logger } from '../../utils/logger.js';
 
 /**
  * Weapon Set Container - System-Agnostic Base
@@ -233,7 +234,7 @@ export class WeaponSetContainer extends BG3Component {
      */
     async updateSet(setIndex, newData) {
         if (setIndex < 0 || setIndex >= this.gridContainers.length) {
-            console.warn('WeaponSetContainer | Invalid set index:', setIndex);
+            Logger.warn('WeaponSetContainer | Invalid set index:', setIndex);
             return;
         }
         

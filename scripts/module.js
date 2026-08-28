@@ -1,8 +1,9 @@
 import { BG3Hotbar } from './BG3Hotbar.js';
-import { BG3HUD_REGISTRY, BG3HUD_API } from './utils/registry.js';
+import { BG3HUD_API, BG3HUD_REGISTRY } from './utils/registry.js';
 import { registerSettings, applyMacrobarCollapseSetting, applyContainerRowSettings, applyTheme } from './utils/settings.js';
 import { TooltipManager } from './managers/TooltipManager.js';
 import { TargetSelectorManager } from './managers/TargetSelectorManager.js';
+import { Logger } from './utils/logger.js';
 
 /**
  * BG3 HUD Core Module
@@ -17,12 +18,12 @@ const MODULE_ID = 'bg3-hud-core';
 // ========================================
 
 Hooks.once('init', () => {
-    console.info('[bg3-hud-core] Registering settings');
+    Logger.info('Registering settings');
     registerSettings();
 });
 
 Hooks.once('ready', async () => {
-    console.info('[bg3-hud-core] Initializing');
+    Logger.info('Initializing');
 
     // Apply theme CSS variables early
     await applyTheme();
@@ -49,7 +50,7 @@ Hooks.once('ready', async () => {
     );
 
     // Trigger hook for adapters to register
-    console.info('[bg3-hud-core] Calling bg3HudReady hook for system adapters');
+    Logger.info('Calling bg3HudReady hook for system adapters');
     Hooks.callAll('bg3HudReady', BG3HUD_API);
 
     // Only wait for adapter registration if a compatible adapter module is active
@@ -68,30 +69,15 @@ Hooks.once('ready', async () => {
         });
     }
 
-    /**
-     * Single compatible controlled token for HUD context (matches UpdateCoordinator rules).
-     * @returns {Token|null}
-     */
-    const pickSingleHudToken = () => {
-        const list = canvas.tokens?.controlled ?? [];
-        if (list.length !== 1) return null;
-        const t = list[0];
-        const adapter = BG3HUD_REGISTRY.activeAdapter;
-        const ok = adapter && typeof adapter.isCompatible === 'function'
-            ? adapter.isCompatible(t.actor)
-            : t.actor?.type !== 'group';
-        return ok ? t : null;
-    };
-
     // Create and render the HUD
-    console.info('[bg3-hud-core] Creating HUD application');
+    Logger.info('Creating HUD application');
     ui.BG3HUD_APP = new BG3Hotbar();
-    // `ready` already applied theme — skip duplicate work in first _onRender
+    // `ready` already applied theme, skip duplicate work in first _onRender
     ui.BG3HUD_APP._themeApplied = true;
 
-    const initialToken = pickSingleHudToken();
+    const initialToken = ui.BG3HUD_APP.hudOnScreen.playSheetToken();
     if (initialToken) {
-        console.debug('[bg3-hud-core] Pre-binding controlled token for first HUD render:', initialToken.name);
+        Logger.debug('Pre-binding controlled token for first HUD render:', initialToken.name);
         ui.BG3HUD_APP.currentToken = initialToken;
         ui.BG3HUD_APP.currentActor = initialToken.actor;
     }
@@ -104,7 +90,7 @@ Hooks.once('ready', async () => {
     // Apply container row settings
     applyContainerRowSettings();
 
-    console.info('[bg3-hud-core] Initialization complete');
+    Logger.info('Initialization complete');
 });
 
 // ========================================
@@ -147,10 +133,10 @@ Hooks.on('createToken', async (tokenDocument, options, userId) => {
     const adapter = BG3HUD_REGISTRY.activeAdapter;
     if (!adapter) return;
 
-    // Only auto-populate for NPCs (non-character actors) by default
-    // Player characters should use right-click to auto-populate containers manually
+    // Only auto-populate for NPCs by default; PCs use right-click unless setting enabled.
+    // Player-character detection is adapter-owned (falls back in BG3HUD_API).
     const allowPlayerCharacters = game.settings.get(adapter.MODULE_ID, 'autoPopulatePlayerCharacters');
-    if (actor.type === 'character' && !allowPlayerCharacters) {
+    if (BG3HUD_API.isPlayerCharacter(actor) && !allowPlayerCharacters) {
         return;
     }
 
@@ -162,7 +148,7 @@ Hooks.on('createToken', async (tokenDocument, options, userId) => {
         try {
             await adapter.autoPopulatePassives(actor, tokenDocument);
         } catch (error) {
-            console.error('[bg3-hud-core] Error auto-populating passives on token creation:', error);
+            Logger.error('Error auto-populating passives on token creation:', error);
         }
     }
 
@@ -191,6 +177,6 @@ Hooks.on('createToken', async (tokenDocument, options, userId) => {
             await adapter.onTokenCreationComplete(actor, tempPersistence);
         }
     } catch (error) {
-        console.error('[bg3-hud-core] Error in auto-populate on token creation:', error);
+        Logger.error('Error in auto-populate on token creation:', error);
     }
 });

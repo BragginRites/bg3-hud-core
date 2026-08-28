@@ -1,102 +1,169 @@
 import { BG3Component } from '../BG3Component.js';
-import { BaseButton } from '../buttons/BaseButton.js';
 
 /**
  * Action Buttons Container
- * Displays context-aware action buttons (rest, end turn, etc.)
- * System-agnostic - adapters provide button definitions
+ * Rest / End Turn column + dock caret toggle.
+ * DOM and interaction match bg3-inspired-hotbar RestTurnContainer 1:1.
  */
 export class ActionButtonsContainer extends BG3Component {
     /**
-     * Create action buttons container
-     * @param {Object} options - Container options
-     * @param {Actor} options.actor - The actor
-     * @param {Token} options.token - The token
-     * @param {Function} options.getButtons - Function that returns button definitions
+     * @param {Object} options
+     * @param {Actor} options.actor
+     * @param {Token} options.token
+     * @param {import('../../BG3Hotbar.js').BG3Hotbar} [options.hotbarApp]
+     * @param {Function} options.getButtons
      */
     constructor(options = {}) {
         super(options);
         this.actor = options.actor;
         this.token = options.token;
+        this.hotbarApp = options.hotbarApp || ui.BG3HUD_APP || null;
         this.getButtons = options.getButtons || (() => []);
-        this.buttonComponents = [];
+        this.buttonElements = [];
+        this._dockToggle = null;
     }
 
     /**
-     * Render the action buttons container
      * @returns {Promise<HTMLElement>}
      */
     async render() {
         if (!this.element) {
-            this.element = this.createElement('div', ['bg3-action-buttons-container']);
+            this.element = this.createElement('div', ['bg3-restturn-container']);
         }
 
-        // Clear existing buttons
         this.element.innerHTML = '';
-        this.buttonComponents = [];
+        this.buttonElements = [];
+        this._dockToggle = null;
 
-        // Get button definitions from adapter
-        const buttonDefs = this.getButtons();
+        const buttonDefs = this.getButtons() || [];
 
-        // Create button components
         for (const buttonDef of buttonDefs) {
-            const button = new BaseButton({
-                key: buttonDef.key || 'action-button',
-                classes: ['bg3-action-button', ...(buttonDef.classes || [])],
-                icon: buttonDef.icon,
-                label: buttonDef.icon ? '' : buttonDef.label,
-                tooltip: buttonDef.tooltip || buttonDef.label,
-                tooltipDirection: buttonDef.tooltipDirection,
-                onClick: buttonDef.onClick,
-                visible: buttonDef.visible
-            });
-
-            await button.render();
-            
-            // Handle visibility function
-            if (typeof buttonDef.visible === 'function') {
-                const isVisible = buttonDef.visible();
-                if (!isVisible) {
-                    button.element.style.display = 'none';
-                }
-            }
-
-            this.buttonComponents.push(button);
-            this.element.appendChild(button.element);
+            const el = this._createRestTurnButton(buttonDef);
+            this.buttonElements.push({ element: el, def: buttonDef });
+            this.element.appendChild(el);
         }
+
+        // Legacy: label.btn-toggle.fas.fa-caret-down
+        this._dockToggle = this._createDockToggle();
+        this.element.appendChild(this._dockToggle);
 
         return this.element;
     }
 
     /**
+     * Build a rest/turn control as a div (legacy BaseButton path).
+     * @param {Object} buttonDef
+     * @returns {HTMLElement}
+     * @private
+     */
+    _createRestTurnButton(buttonDef) {
+        const el = document.createElement('div');
+        const classes = this._legacyButtonClasses(buttonDef);
+        el.classList.add(...classes);
+        el.dataset.bg3Ui = 'true';
+        if (buttonDef.key) el.dataset.key = buttonDef.key;
+
+        if (buttonDef.tooltip || buttonDef.label) {
+            el.dataset.tooltip = buttonDef.tooltip || buttonDef.label;
+            el.dataset.tooltipDirection = buttonDef.tooltipDirection || 'LEFT';
+        }
+
+        // Legacy order: label span first, then icon (column-reverse shows icon above label)
+        if (buttonDef.label) {
+            const label = document.createElement('span');
+            label.classList.add('rest-turn-label');
+            label.innerText = buttonDef.label;
+            el.appendChild(label);
+        }
+
+        if (buttonDef.icon) {
+            const icon = document.createElement('i');
+            const iconClasses = String(buttonDef.icon).split(/\s+/).filter(Boolean);
+            if (!iconClasses.some((c) => c === 'fas' || c === 'fa-solid' || c === 'far' || c === 'fab')) {
+                icon.classList.add('fas');
+            }
+            icon.classList.add(...iconClasses);
+            el.appendChild(icon);
+        }
+
+        const visible = typeof buttonDef.visible === 'function' ? buttonDef.visible() : true;
+        if (!visible) el.classList.add('hidden');
+
+        if (typeof buttonDef.onClick === 'function') {
+            this.addEventListener(el, 'click', (event) => buttonDef.onClick(event));
+        }
+
+        return el;
+    }
+
+    /**
+     * Map adapter button defs onto legacy restturn class names.
+     * @param {Object} buttonDef
+     * @returns {string[]}
+     * @private
+     */
+    _legacyButtonClasses(buttonDef) {
+        const incoming = new Set(buttonDef.classes || []);
+        const classes = new Set(['rest-turn-button']);
+
+        const isEndTurn = buttonDef.key === 'end-turn'
+            || incoming.has('end-turn-button')
+            || incoming.has('turn-button')
+            || incoming.has('end-turn');
+
+        if (isEndTurn) {
+            classes.add('turn-button');
+            classes.add('end-turn');
+        }
+
+        // Keep any extra adapter classes that aren't the old icon-only aliases
+        for (const cls of incoming) {
+            if (cls === 'end-turn-button' || cls === 'rest-button' || cls === 'bg3-action-button') continue;
+            classes.add(cls);
+        }
+
+        return [...classes];
+    }
+
+    /**
+     * Legacy caret dock toggle.
+     * @returns {HTMLElement}
+     * @private
+     */
+    _createDockToggle() {
+        const toggle = document.createElement('label');
+        toggle.className = 'btn-toggle fas fa-caret-down';
+        toggle.title = 'Show/Hide HotBar UI';
+        toggle.setAttribute('for', 'toggle-input');
+        toggle.dataset.bg3Ui = 'true';
+
+        this.addEventListener(toggle, 'click', (event) => {
+            const app = this.hotbarApp || ui.BG3HUD_APP;
+            if (app && typeof app._onToggleMinimize === 'function') {
+                app._onToggleMinimize(event);
+            }
+        });
+
+        return toggle;
+    }
+
+    /**
      * Update button visibility based on context (combat state, etc.)
-     * Call this when game state changes
      */
     updateVisibility() {
-        const buttonDefs = this.getButtons();
-        
-        for (let i = 0; i < this.buttonComponents.length; i++) {
-            const button = this.buttonComponents[i];
-            const buttonDef = buttonDefs[i];
-            
-            if (buttonDef && typeof buttonDef.visible === 'function') {
-                const isVisible = buttonDef.visible();
-                button.element.style.display = isVisible ? '' : 'none';
+        for (const { element, def } of this.buttonElements) {
+            if (typeof def.visible === 'function') {
+                element.classList.toggle('hidden', !def.visible());
             }
         }
     }
 
     /**
-     * Destroy the container and all buttons
+     * Destroy the container
      */
     destroy() {
-        for (const button of this.buttonComponents) {
-            if (button && typeof button.destroy === 'function') {
-                button.destroy();
-            }
-        }
-        this.buttonComponents = [];
+        this.buttonElements = [];
+        this._dockToggle = null;
         super.destroy();
     }
 }
-

@@ -1,4 +1,5 @@
 import { BG3Component } from '../BG3Component.js';
+import { Logger } from '../../utils/logger.js';
 
 /**
  * Simple Context Menu
@@ -31,7 +32,7 @@ export class ContextMenu extends BG3Component {
         const visibleItems = this.items.filter(item => item.visible !== false);
 
         if (visibleItems.length === 0) {
-            console.warn('[bg3-hud-core] No visible menu items');
+            Logger.warn('No visible menu items');
             return this.element;
         }
 

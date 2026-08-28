@@ -85,7 +85,7 @@ export class PortraitDataConfigDialog extends BG3Dialog {
     async _buildBody() {
         const context = await this._prepareContext();
         const templatePath = 'modules/bg3-hud-core/templates/dialogs/portrait-data-config.hbs';
-        return await renderTemplate(templatePath, context);
+        return await foundry.applications.handlebars.renderTemplate(templatePath, context);
     }
 
     /**

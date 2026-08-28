@@ -1,6 +1,7 @@
 import { TargetSelectorUI } from './TargetSelectorUI.js';
 import { TargetSelectorMath } from './TargetSelectorMath.js';
 import { TargetSelectorEvents } from './TargetSelectorEvents.js';
+import { Logger } from '../utils/logger.js';
 
 /**
  * BG3 Target Selector Manager
@@ -54,7 +55,7 @@ export class TargetSelectorManager {
      */
     async select({ token, item, activity = null }) {
         if (this.isActive) {
-            console.warn('[bg3-hud-core] Target selector is already active');
+            Logger.warn('Target selector is already active');
             return [];
         }
 
@@ -124,61 +125,43 @@ export class TargetSelectorManager {
 
     /**
      * Validate if a token is a valid target.
+     * Only: exists, target type (self/enemy unless overridden), and range (if enabled).
      * @param {Token} token - The token to validate
      * @returns {{valid: boolean, reason: string|null}} Validation result
      */
     validateTarget(token) {
-        if (!token) {
+        if (!token?.actor) {
             return { valid: false, reason: game.i18n.localize('bg3-hud-core.TargetSelector.InvalidTarget') };
         }
 
-        // Check visibility
-        if (!token.isVisible || token.document.hidden) {
-            return { valid: false, reason: game.i18n.localize('bg3-hud-core.TargetSelector.TokenNotVisible') };
+        // Target type: self / enemy (skippable via override setting)
+        const ignoreType = game.settings.get('bg3-hud-core', 'ignoreTargetTypeRestrictions') ?? false;
+        if (!ignoreType && this.adapter?.targetingRules?.isValidTargetType) {
+            const adapterValidation = this.adapter.targetingRules.isValidTargetType({
+                sourceToken: this.sourceToken,
+                targetToken: token,
+                requirements: this.requirements
+            });
+            if (!adapterValidation.valid) {
+                return adapterValidation;
+            }
         }
 
-        // Check range if enabled
+        // Range (optional setting)
         if (this._isRangeCheckingEnabled() && this.requirements.range) {
             const distance = TargetSelectorMath.calculateTokenDistance(this.sourceToken, token);
 
-            // Ensure range is a number (adapters might return strings like "60 feet")
             let range = this.requirements.range;
             if (typeof range === 'string') {
                 const numericMatch = range.match(/^(\d+)/);
                 range = numericMatch ? parseInt(numericMatch[1], 10) : Infinity;
             }
 
-            const isInRange = distance <= range;
-
-            console.debug(`[bg3-hud-core] Range Check: ${this.sourceToken?.name} → ${token?.name}`, {
-                distance,
-                range,
-                originalRange: this.requirements.range,
-                isInRange,
-                sourcePosition: { x: this.sourceToken?.x, y: this.sourceToken?.y, w: this.sourceToken?.w, h: this.sourceToken?.h },
-                targetPosition: { x: token?.x, y: token?.y, w: token?.w, h: token?.h },
-                gridSize: canvas?.grid?.size,
-                gridDistance: canvas?.grid?.distance
-            });
-
-            if (!isInRange) {
+            if (distance > range) {
                 return {
                     valid: false,
                     reason: game.i18n.localize('bg3-hud-core.TargetSelector.OutOfRange') + ` (${Math.round(distance)}/${range})`
                 };
-            }
-        }
-
-        // Check target type via adapter
-        if (this.adapter?.targetingRules?.isValidTargetType) {
-            const adapterValidation = this.adapter.targetingRules.isValidTargetType({
-                sourceToken: this.sourceToken,
-                targetToken: token,
-                requirements: this.requirements
-            });
-
-            if (!adapterValidation.valid) {
-                return adapterValidation;
             }
         }
 
@@ -329,7 +312,7 @@ export class TargetSelectorManager {
         this._switchToTargetTool();
 
         // Activate UI
-        console.warn('[bg3-hud-core] Manager: Calling UI.activate with:', {
+        Logger.warn('Manager: Calling UI.activate with:', {
             range: this.requirements.range,
             sourceToken: this.sourceToken?.name,
             requirements: this.requirements
@@ -382,7 +365,7 @@ export class TargetSelectorManager {
     _getTargetRequirements() {
         // Adapter must provide targeting rules - return defaults if not
         if (!this.adapter?.targetingRules?.getTargetRequirements) {
-            console.warn('[bg3-hud-core] No targeting rules available, using defaults');
+            Logger.warn('No targeting rules available, using defaults');
             return {
                 minTargets: 1,
                 maxTargets: 1,

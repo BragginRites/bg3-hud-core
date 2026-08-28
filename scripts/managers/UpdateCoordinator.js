@@ -6,6 +6,7 @@
  */
 import { BG3HUD_REGISTRY } from '../utils/registry.js';
 import { ControlsManager } from './ControlsManager.js';
+import { Logger } from '../utils/logger.js';
 
 export class UpdateCoordinator {
     constructor(options = {}) {
@@ -21,7 +22,7 @@ export class UpdateCoordinator {
      */
     registerHooks() {
         if (this._hookIds) {
-            console.warn('[bg3-hud-core] UpdateCoordinator hooks already registered, skipping');
+            Logger.warn('UpdateCoordinator hooks already registered, skipping');
             return;
         }
 
@@ -69,91 +70,50 @@ export class UpdateCoordinator {
      * @param {boolean} controlled
      * @private
      */
-    async _onControlToken(token, controlled) {
+    async _onControlToken(_token, controlled) {
+        const hud = this.hotbarApp.hudOnScreen;
+        const selected = hud.controlled();
+        const play = hud.playSheetToken();
 
-        // Check if GM hotbar override is active
-        if (this.hotbarApp.overrideGMHotbar && game.settings.get('bg3-hud-core', 'enableGMHotbar')) {
-            return; // Don't switch away from GM hotbar if override is set
+        // Deselect-lock keeps the play sheet only when the canvas selection is empty.
+        // Two or more Tokens (any kind) still follow the zero-or-several rule.
+        if (!controlled
+            && ControlsManager.isSettingLocked('deselect')
+            && this.hotbarApp.currentToken
+            && selected.length === 0) {
+            return;
         }
 
-        // Filter out group actors from controlled tokens
-        const controlledTokens = canvas.tokens.controlled.filter(t => {
-            const adapter = BG3HUD_REGISTRY.activeAdapter;
-            return adapter && typeof adapter.isCompatible === 'function' ? adapter.isCompatible(t.actor) : t.actor?.type !== 'group';
-        });
-        const multipleTokensControlled = controlledTokens.length > 1;
-
-        // If the current token being controlled/uncontrolled is not compatible, 
-        // ignore the event unless it changes our valid selection count
-        const adapter = BG3HUD_REGISTRY.activeAdapter;
-        const isCompatible = adapter && typeof adapter.isCompatible === 'function' ? adapter.isCompatible(token.actor) : token.actor?.type !== 'group';
-        
-        if (!isCompatible) {
-            // Only proceed if we still need to evaluate the remaining valid tokens
-            if (controlledTokens.length === 1 && this.hotbarApp.currentToken !== controlledTokens[0]) {
-                // Another valid token is selected, show it
-                this.hotbarApp.overrideGMHotbar = false;
-                this.hotbarApp.currentToken = controlledTokens[0];
-                this.hotbarApp.currentActor = controlledTokens[0].actor;
-                await this.hotbarApp.refresh({ tokenSwap: true });
-            } else if (controlledTokens.length !== 1 && this.hotbarApp.currentToken) {
-                // We lost our single valid selection
-                this.hotbarApp.currentToken = null;
-                this.hotbarApp.currentActor = null;
-                await this.hotbarApp.refresh({ tokenSwap: true });
+        // GM Hotbar override stays until selection is exactly one creature Token.
+        if (this.hotbarApp.overrideGMHotbar && game.settings.get('bg3-hud-core', 'enableGMHotbar')) {
+            if (play) {
+                await hud.showToken(play);
             }
             return;
         }
 
-        if (controlled) {
-            if (multipleTokensControlled) {
-                // Multiple tokens selected - show GM hotbar if enabled, otherwise hide
-                console.debug('[bg3-hud-core] Multiple tokens controlled');
-                this.hotbarApp.currentToken = null;
-                this.hotbarApp.currentActor = null;
-                await this.hotbarApp.refresh({ tokenSwap: true });
-            } else if (controlledTokens.length === 1) {
-                // Single token controlled - show UI normally
-                const t = token;
-                if (this.hotbarApp.currentToken?.id === t.id
-                    && this.hotbarApp.currentActor?.id === t.actor?.id
-                    && this.hotbarApp.components?.hotbar
-                    && this.hotbarApp.rendered) {
-                    this.hotbarApp.currentToken = t;
-                    this.hotbarApp.currentActor = t.actor;
-                    return;
-                }
-                this.hotbarApp.overrideGMHotbar = false; // Clear override when selecting token
-                this.hotbarApp.currentToken = t;
-                this.hotbarApp.currentActor = t.actor;
-                await this.hotbarApp.refresh({ tokenSwap: true });
-            }
-        } else {
-            // Check if deselect lock is enabled - if so, keep the current token
-            if (ControlsManager.isSettingLocked('deselect') && this.hotbarApp.currentToken) {
-                // Deselect lock active - don't change the current token
+        if (play) {
+            if (this.hotbarApp.currentToken?.id === play.id
+                && this.hotbarApp.currentActor?.id === play.actor?.id
+                && this.hotbarApp.components?.hotbar
+                && this.hotbarApp.rendered
+                && !this.hotbarApp.overrideGMHotbar) {
+                this.hotbarApp.currentToken = play;
+                this.hotbarApp.currentActor = play.actor;
                 return;
             }
-
-            // When deselecting, check if we still have a single token selected
-            if (controlledTokens.length === 1) {
-                // Another token is still selected, show it
-                this.hotbarApp.overrideGMHotbar = false; // Clear override when selecting token
-                const remainingToken = controlledTokens[0];
-                this.hotbarApp.currentToken = remainingToken;
-                this.hotbarApp.currentActor = remainingToken.actor;
-                await this.hotbarApp.refresh({ tokenSwap: true });
-            } else {
-                // No tokens selected or multiple tokens selected
-                // Show GM hotbar if enabled, otherwise hide
-                this.hotbarApp.currentToken = null;
-                this.hotbarApp.currentActor = null;
-                await this.hotbarApp.refresh({ tokenSwap: true });
-            }
-
-            // DON'T clear _lastSaveWasLocal here - let the updateActor hook handle it
-            // This ensures that if an actor update is pending, it will be properly skipped
+            await hud.showToken(play);
+            return;
         }
+
+        if (!this.hotbarApp.currentToken && !this.hotbarApp.overrideGMHotbar) {
+            return;
+        }
+
+        if (selected.length > 1) {
+            Logger.debug('Multiple Tokens controlled');
+        }
+        await hud.showNotOneToken();
     }
 
     /**
@@ -163,43 +123,29 @@ export class UpdateCoordinator {
      * @private
      */
     async _onCanvasReady() {
-        // Brief delay to ensure canvas.tokens.controlled is fully populated
         await new Promise(resolve => setTimeout(resolve, 50));
 
-        // Filter out incompatible actors (like groups/vehicles)
-        const controlledTokens = (canvas.tokens?.controlled || []).filter(t => {
-            const adapter = BG3HUD_REGISTRY.activeAdapter;
-            return adapter && typeof adapter.isCompatible === 'function' ? adapter.isCompatible(t.actor) : t.actor?.type !== 'group';
-        });
+        const hud = this.hotbarApp.hudOnScreen;
+        const next = hud.playSheetToken();
 
         const prevTokenId = this.hotbarApp.currentToken?.id ?? null;
         const prevActorId = this.hotbarApp.currentActor?.id ?? null;
-
-        if (controlledTokens.length === 1) {
-            // Single token selected - show HUD for it
-            const token = controlledTokens[0];
-            this.hotbarApp.currentToken = token;
-            this.hotbarApp.currentActor = token.actor;
-        } else {
-            // No tokens or multiple tokens - clear HUD (show GM hotbar if enabled)
-            this.hotbarApp.currentToken = null;
-            this.hotbarApp.currentActor = null;
-        }
-
-        const nextTokenId = this.hotbarApp.currentToken?.id ?? null;
-        const nextActorId = this.hotbarApp.currentActor?.id ?? null;
+        const nextTokenId = next?.id ?? null;
+        const nextActorId = next?.actor?.id ?? null;
         const contextUnchanged = prevTokenId === nextTokenId && prevActorId === nextActorId;
 
-        // ready() may have already rendered this exact context; avoid a second refresh
-        // (soft swap still re-hydrates all grids — visible flash — and can fall through to
-        // full rebuild if canSoftTokenRefresh is briefly false).
+        // ready() may have already rendered this exact context; skip a second apply.
         if (contextUnchanged
             && this.hotbarApp.rendered
             && this.hotbarApp.components?.hotbar) {
             return;
         }
 
-        await this.hotbarApp.refresh({ tokenSwap: true });
+        if (next) {
+            await hud.showToken(next);
+        } else {
+            await hud.showNotOneToken();
+        }
     }
 
     /**
@@ -214,12 +160,16 @@ export class UpdateCoordinator {
         // Token tweaks and control changes often emit updateToken with fields that do not
         // require a HUD rebuild. A bare refresh() runs the fade + full teardown, which
         // visibly flashes right after soft token swap (controlToken).
+        //
+        // IMPORTANT: do NOT ignore `delta` - dnd5e wild shape / polymorph writes the
+        // transformed actor through ActorDelta on the TokenDocument. Ignoring it leaves
+        // the HUD stuck on the pre-transform sheet until a manual token reselect.
         const ignoredProperties = [
             'x', 'y', 'rotation', 'hidden', 'elevation',
             'alpha', 'sort', 'width', 'height', 'scale',
             'lockRotation', 'mirrorX', 'mirrorY', 'tint',
             'displayName', 'displayBars', 'bar1', 'bar2', 'disposition',
-            'flags', 'actor', 'actorId', 'delta', 'effects', 'ring', 'ovrl', 'subject'
+            'flags', 'actor', 'actorId', 'effects', 'ring', 'ovrl', 'subject'
         ];
         const changedKeys = Object.keys(changes || {});
         const shouldIgnore = changedKeys.length === 0
@@ -229,7 +179,9 @@ export class UpdateCoordinator {
             return;
         }
 
-        await this.hotbarApp.refresh({ tokenSwap: true });
+        // Same Token, new creature identity (e.g. wild shape delta): still this Token's play sheet.
+        // updateToken receives a TokenDocument; keep the canvas Token as currentToken.
+        await this.hotbarApp.hudOnScreen.showToken(this.hotbarApp.currentToken);
     }
 
     /**
@@ -262,8 +214,8 @@ export class UpdateCoordinator {
         // Actor flag deltas keyed by adapter module (`flags[adapter.MODULE_ID]`)
         const adapter = BG3HUD_REGISTRY.activeAdapter;
 
-        // NOTE: Depletion states are now updated AFTER all handlers complete
-        // to avoid race conditions with grid re-renders. See end of method.
+        // NOTE: Depletion states are applied after handlers (or when the plan requests them)
+        // to avoid race conditions with grid re-renders.
 
         if (adapter && adapter.MODULE_ID) {
             const adapterFlags = changes?.flags?.[adapter.MODULE_ID];
@@ -274,78 +226,117 @@ export class UpdateCoordinator {
             }
         }
 
-        // Check for HP or death save changes (common case)
-        const hpChanged = changes?.system?.attributes?.hp;
-        const deathChanged = changes?.system?.attributes?.death;
+        // System document paths are adapter-owned (e.g. dnd5e system.spells).
+        const plan = this._resolveActorUpdatePlan(adapter, changes);
+        await this._applyActorUpdatePlan(actor, changes, plan);
+    }
 
+    /**
+     * Ask the adapter how to refresh the HUD for an actor update, with a system-agnostic fallback.
+     * @param {Object|null} adapter
+     * @param {Object} changes
+     * @returns {import('../utils/registry.js').BG3HudActorUpdatePlan}
+     * @private
+     */
+    _resolveActorUpdatePlan(adapter, changes) {
+        if (adapter && typeof adapter.resolveActorUpdatePlan === 'function') {
+            try {
+                return adapter.resolveActorUpdatePlan(changes) || {};
+            } catch (e) {
+                Logger.error('resolveActorUpdatePlan failed:', e);
+            }
+        }
+        return this._defaultActorUpdatePlan(changes);
+    }
+
+    /**
+     * Generic Foundry-shaped plan (no system.spells / other system-specific paths).
+     * @param {Object} changes
+     * @returns {Object}
+     * @private
+     */
+    _defaultActorUpdatePlan(changes) {
+        const hpChanged = changes?.system?.attributes?.hp !== undefined;
+        const deathChanged = changes?.system?.attributes?.death !== undefined;
         if (hpChanged || deathChanged) {
+            return { health: true, stop: true };
+        }
+
+        if (changes?.items !== undefined) {
+            return { items: true, stop: true };
+        }
+
+        if (changes?.system?.resources !== undefined) {
+            return { resources: true, attributes: true, depletion: true, stop: true };
+        }
+
+        if (changes?.system?.abilities !== undefined || changes?.system?.skills !== undefined) {
+            return { abilities: true, stop: true };
+        }
+
+        const plan = { lateDepletion: true };
+        if (changes?.system?.attributes !== undefined) {
+            plan.attributes = true;
+        }
+        return plan;
+    }
+
+    /**
+     * Execute a targeted actor-update plan from the adapter / default mapper.
+     * @param {Actor} actor
+     * @param {Object} changes
+     * @param {Object} plan
+     * @private
+     */
+    async _applyActorUpdatePlan(actor, changes, plan = {}) {
+        let didWork = false;
+
+        if (plan.health) {
             if (await this._handleHealthChange()) {
-                return;
+                didWork = true;
+                if (plan.stop) {
+                    if (plan.depletion) this._updateDepletionStatesDeferred(actor, changes);
+                    return;
+                }
             }
         }
 
-        // Check for other attribute changes (AC, Speed, etc.) that affect portrait data
-        const attributesChanged = changes?.system?.attributes;
-        if (attributesChanged && !hpChanged && !deathChanged) {
-            await this._handleAttributeChange();
-            // Don't return early - other handlers might also need to run
+        if (plan.attributes) {
+            didWork = (await this._handleAttributeChange()) || didWork;
         }
 
-        // Check for spell slot changes (common on many systems)
-        const spellsChanged = changes?.system?.spells;
-        if (spellsChanged) {
-            if (await this._handleResourceChange()) {
-                // LATE: Update depletion states after resource change handling
-                this._updateDepletionStatesDeferred(actor, changes);
-                return;
+        if (plan.resources) {
+            didWork = (await this._handleResourceChange()) || didWork;
+        }
+
+        if (plan.abilities) {
+            didWork = (await this._handleAbilityChange()) || didWork;
+        }
+
+        if (plan.items) {
+            if (await this._handleItemsChange(changes.items)) {
+                didWork = true;
+                if (plan.stop) {
+                    if (plan.depletion) this._updateDepletionStatesDeferred(actor, changes);
+                    return;
+                }
             }
         }
 
-        // Check for item changes (uses, quantity, etc.)
-        // Foundry provides item updates via embedded document hooks; here we detect shallow indicators
-        const itemsChanged = changes?.items;
-        if (itemsChanged) {
-            if (await this._handleItemsChange(itemsChanged)) {
-                return;
-            }
-        }
-
-        // Item hooks are already registered in registerHooks() method
-        // No need to register them again here
-
-        // Check for resource changes (ki, rage, etc.)
-        const resourcesChanged = changes?.system?.resources;
-        if (resourcesChanged) {
-            await this._handleResourceChange();
-            // Also update portrait data in case it displays resources
-            await this._handleAttributeChange();
-            // LATE: Update depletion states after resource change handling
+        if (plan.depletion) {
             this._updateDepletionStatesDeferred(actor, changes);
-            return;
         }
 
-        // Check for ability score changes (affects info container)
-        const abilitiesChanged = changes?.system?.abilities;
-        if (abilitiesChanged) {
-            if (await this._handleAbilityChange()) {
-                return;
-            }
+        if (plan.stop) return;
+
+        // Match prior behavior: attempt depletion for non-stopping plans
+        if (plan.lateDepletion !== false) {
+            this._updateDepletionStatesDeferred(actor, changes);
         }
 
-        // Check for skill proficiency/value changes (affects info container)
-        const skillsChanged = changes?.system?.skills;
-        if (skillsChanged) {
-            if (await this._handleAbilityChange()) {
-                return;
-            }
+        if (!didWork && !plan.attributes && !plan.resources && !plan.abilities && !plan.health && !plan.items) {
+            Logger.debug('UpdateCoordinator: Unhandled actor change (no refresh):', changes);
         }
-
-        // LATE: Always call depletion update at the end if no early return occurred
-        this._updateDepletionStatesDeferred(actor, changes);
-
-        // No full refresh fallback - only update elements that have explicit handlers
-        // Unhandled changes are logged for debugging but don't trigger expensive re-renders
-        console.debug('[bg3-hud-core] UpdateCoordinator: Unhandled actor change (no refresh):', changes);
     }
 
     /**
@@ -425,7 +416,7 @@ export class UpdateCoordinator {
             try {
                 return !!(await adapter.onAdapterFlagsChanged(adapterFlags, this.hotbarApp));
             } catch (e) {
-                console.error('[bg3-hud-core] onAdapterFlagsChanged failed:', e);
+                Logger.error('onAdapterFlagsChanged failed:', e);
                 return false;
             }
         }
@@ -454,7 +445,7 @@ export class UpdateCoordinator {
     }
 
     /**
-     * Handle resource changes (spell slots, ki, rage, etc.)
+     * Handle resource changes (filters strip: slots, focus, ki, etc.)
      * Targeted update: only update filter container
      * @returns {Promise<boolean>} True if handled
      * @private
@@ -601,7 +592,7 @@ export class UpdateCoordinator {
         // Check if item exists in hotbar before refreshing
         const existingLocation = this.persistenceManager.findUuidInHud(item.uuid);
         if (!existingLocation) {
-            // Item not in hotbar, ItemUpdateManager will handle adding it if needed
+            // Not in HUD yet — ItemUpdateManager.updateItem may add via adapter membership policy
             return;
         }
 
@@ -610,7 +601,7 @@ export class UpdateCoordinator {
             const adapter = BG3HUD_REGISTRY.activeAdapter;
             const transformedData = adapter?.transformItemToCellData
                 ? await adapter.transformItemToCellData(item)
-                : { uuid: item.uuid, name: item.name, img: item.img };
+                : { uuid: item.uuid, name: item.name, img: item.img, type: 'Item' };
             const changed = await this._refreshCellsByUuid(item.uuid, transformedData);
 
             // AFTER all renders complete, update depletion states
@@ -619,8 +610,12 @@ export class UpdateCoordinator {
                 this._updateDepletionStatesDeferred(item.parent, changes);
             }
         } catch (e) {
-            console.error('[bg3-hud-core] UpdateCoordinator: Failed to handle embedded item change', e);
-            await this.hotbarApp.refresh({ tokenSwap: true });
+            Logger.error('UpdateCoordinator: Failed to handle embedded item change', e);
+            if (this.hotbarApp.currentToken) {
+                await this.hotbarApp.hudOnScreen.showToken(this.hotbarApp.currentToken);
+            } else {
+                await this.hotbarApp.refresh();
+            }
         }
     }
 
@@ -705,14 +700,21 @@ export class UpdateCoordinator {
         const serverState = actor.getFlag(this.moduleId, this.flagName);
         if (!serverState) return;
 
+        // Clone then hydrate so legacy cell types (e.g. type: 'spell') and stale
+        // uses/quantity are normalized before applying to the live UI.
+        let state = foundry.utils.deepClone(serverState);
+        if (typeof this.persistenceManager.hydrateState === 'function') {
+            state = await this.persistenceManager.hydrateState(state);
+        }
+
         // Update persistence manager's cached state
-        this.persistenceManager.state = foundry.utils.deepClone(serverState);
+        this.persistenceManager.state = state;
 
         // Compare and update UI components to match server state
         // This is a lightweight reconciliation - only update what differs
-        await this._reconcileHotbarGrids(serverState);
-        await this._reconcileWeaponSets(serverState);
-        await this._reconcileQuickAccess(serverState);
+        await this._reconcileHotbarGrids(state);
+        await this._reconcileWeaponSets(state);
+        await this._reconcileQuickAccess(state);
     }
 
     /**

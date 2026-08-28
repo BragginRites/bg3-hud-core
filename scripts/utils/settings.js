@@ -100,6 +100,21 @@ export const BASE_THEME = {
     "--bg3-tooltip-border-size": "var(--bg3-border-size)",
     "--bg3-tooltip-border-radius": "var(--bg3-border-radius)",
 
+    // Rest / End Turn column (legacy inspired-hotbar restturn theme vars)
+    "--bg3-rest-border-color": "var(--bg3-border-color)",
+    "--bg3-rest-border-color-hover": "var(--bg3-border-color-hover)",
+    "--bg3-rest-background-color": "var(--bg3-background-color)",
+    "--bg3-rest-background-color-hover": "var(--bg3-background-color-hover)",
+    "--bg3-rest-text-color": "var(--bg3-text-color)",
+    "--bg3-rest-text-color-hover": "var(--bg3-text-color-hover)",
+    "--bg3-turn-border-color": "var(--bg3-border-color)",
+    "--bg3-turn-border-color-hover": "var(--bg3-border-color-hover)",
+    "--bg3-turn-background-color": "var(--bg3-background-color)",
+    "--bg3-turn-background-color-hover": "var(--bg3-background-color-hover)",
+    "--bg3-turn-text-color": "var(--bg3-text-color)",
+    "--bg3-turn-text-color-hover": "var(--bg3-text-color-hover)",
+    "--bg3-rest-border-size": "var(--bg3-border-size)",
+
     // Legacy/internal aliases that many components still consume
     "--bg3-background": "var(--bg3-background-color)",
     "--bg3-border": "var(--bg3-border-color)",
@@ -130,7 +145,7 @@ export function registerSettings() {
             },
             {
                 legend: 'bg3-hud-core.Settings.LayoutAppearance.ContainerConfigurationLegend',
-                keys: ['showPortrait', 'showFilters', 'passivesContainerIconsPerRow', 'activeEffectsContainerIconsPerRow', 'showPassiveActiveEffects']
+                keys: ['showPortrait', 'borderPortraitPreferences', 'showFilters', 'minimalistView', 'passivesContainerIconsPerRow', 'activeEffectsContainerIconsPerRow', 'showPassiveActiveEffects']
             }
         ]
     });
@@ -157,7 +172,7 @@ export function registerSettings() {
         sections: [
             {
                 legend: 'bg3-hud-core.Settings.TargetSelector.Legend',
-                keys: ['enableTargetSelector', 'skipSelectorWithValidTarget', 'enableRangeChecking', 'autoTargetSelf']
+                keys: ['enableTargetSelector', 'skipSelectorWithValidTarget', 'enableRangeChecking', 'ignoreTargetTypeRestrictions', 'autoTargetSelf']
             },
             {
                 legend: 'bg3-hud-core.Settings.TargetSelector.RangeIndicatorLegend',
@@ -180,6 +195,15 @@ export function registerSettings() {
         onChange: (value) => {
             ui.BG3HUD_APP?.updateVisibility(value);
         }
+    });
+
+    game.settings.register(MODULE_ID, 'debugLogging', {
+        name: 'Debug Logging',
+        hint: 'Print verbose diagnostic messages from the BG3 HUD (and its system adapters) to the browser console. Warnings and errors always show regardless of this setting.',
+        scope: 'client',
+        config: true,
+        type: Boolean,
+        default: false
     });
 
     game.keybindings.register(MODULE_ID, "toggleUI", {
@@ -473,11 +497,9 @@ export function registerSettings() {
         config: false,
         type: Number,
         default: 10,
-        onChange: value => {
-            if (ui.BG3HUD_APP?.element) {
-                const container = ui.BG3HUD_APP.element.querySelector('#bg3-hotbar-container');
-                if (container) container.style.setProperty('--position-bottom', `${value}px`);
-            }
+        onChange: () => {
+            // Restores user padding when Minimalist View is off; keeps flush when on
+            applyMinimalistView();
         }
     });
 
@@ -735,6 +757,15 @@ export function registerSettings() {
         default: false
     });
 
+    game.settings.register(MODULE_ID, 'ignoreTargetTypeRestrictions', {
+        name: 'bg3-hud-core.Settings.TargetSelector.IgnoreTypeName',
+        hint: 'bg3-hud-core.Settings.TargetSelector.IgnoreTypeHint',
+        scope: 'client',
+        config: false,
+        type: Boolean,
+        default: false
+    });
+
     game.settings.register(MODULE_ID, 'autoTargetSelf', {
         name: 'bg3-hud-core.Settings.TargetSelector.AutoSelfName',
         hint: 'bg3-hud-core.Settings.TargetSelector.AutoSelfHint',
@@ -857,6 +888,25 @@ export function registerSettings() {
         }
     });
 
+    game.settings.register(MODULE_ID, 'borderPortraitPreferences', {
+        name: 'bg3-hud-core.Settings.BorderPortraitPreferences.Name',
+        hint: 'bg3-hud-core.Settings.BorderPortraitPreferences.Hint',
+        scope: 'client',
+        config: false,
+        type: String,
+        choices: {
+            none: 'bg3-hud-core.Settings.BorderPortraitPreferences.None',
+            simple: 'bg3-hud-core.Settings.BorderPortraitPreferences.Simple',
+            styled: 'bg3-hud-core.Settings.BorderPortraitPreferences.Styled'
+        },
+        default: 'none',
+        onChange: value => {
+            import('../components/containers/PortraitContainer.js').then(({ PortraitContainer }) => {
+                PortraitContainer.applyBorderToLivePortrait(value);
+            });
+        }
+    });
+
     // Show portrait image and related portrait UI (info button always shown)
     game.settings.register(MODULE_ID, 'showPortrait', {
         name: 'bg3-hud-core.Settings.ShowPortrait.Name',
@@ -886,8 +936,49 @@ export function registerSettings() {
         }
     });
 
+    // Optional edge-docked layout: hide view tabs and sit flush with the screen bottom.
+    // Default remains the floating HUD with view tabs (#34 is opt-in, not a global rewrite).
+    game.settings.register(MODULE_ID, 'minimalistView', {
+        name: 'bg3-hud-core.Settings.MinimalistView.Name',
+        hint: 'bg3-hud-core.Settings.MinimalistView.Hint',
+        scope: 'client',
+        config: false,
+        type: Boolean,
+        default: false,
+        onChange: () => {
+            applyMinimalistView();
+            if (ui.BG3HUD_APP?.rendered) {
+                ui.BG3HUD_APP.refresh();
+            }
+        }
+    });
+
     // Note: Display settings (showItemNames, showItemUses) are now registered
     // by system adapters, as they are system-specific in their implementation
+}
+
+/**
+ * Apply or clear the Minimalist View layout overrides on the live HUD container.
+ * When enabled: dock flush to the bottom edge and ignore bottom padding.
+ * When disabled: restore the normal floating offset and the user's bottom padding.
+ * @param {boolean} [enabled]
+ */
+export function applyMinimalistView(enabled) {
+    const MODULE_ID = 'bg3-hud-core';
+    const container = ui.BG3HUD_APP?.element?.querySelector?.('#bg3-hotbar-container');
+    if (!container) return;
+
+    const isMinimalist = enabled ?? game.settings.get(MODULE_ID, 'minimalistView');
+    if (isMinimalist) {
+        container.style.setProperty('--bg3-hud-bottom', '0px');
+        container.style.setProperty('--position-bottom', '0px');
+        container.dataset.minimalistView = 'true';
+    } else {
+        container.style.setProperty('--bg3-hud-bottom', '30px');
+        const posPaddingBottom = game.settings.get(MODULE_ID, 'posPaddingBottom') ?? 10;
+        container.style.setProperty('--position-bottom', `${posPaddingBottom}px`);
+        delete container.dataset.minimalistView;
+    }
 }
 
 /**
@@ -932,20 +1023,11 @@ export function applyMacrobarCollapseSetting(hudVisible) {
         return;
     }
 
-    // Apply visibility
-    if (shouldHide) {
-        // Prefer Foundry API first, then enforce class state as backup.
-        if (typeof ui.hotbar.collapse === 'function') {
-            ui.hotbar.collapse();
-        }
-        if (hotbarElement?.classList) {
+    // Apply visibility via CSS only (Hotbar#collapse / #expand are deprecated since V13)
+    if (hotbarElement?.classList) {
+        if (shouldHide) {
             hotbarElement.classList.add('hidden', 'collapsed');
-        }
-    } else {
-        if (typeof ui.hotbar.expand === 'function') {
-            ui.hotbar.expand();
-        }
-        if (hotbarElement?.classList) {
+        } else {
             hotbarElement.classList.remove('hidden', 'collapsed');
         }
     }
@@ -1083,9 +1165,8 @@ export function applyAppearanceSettings() {
     const position = game.settings.get(MODULE_ID, 'uiPosition');
     container.dataset.position = position;
 
-    // Apply padding
+    // Apply horizontal padding always; bottom offset respects Minimalist View
     const posPadding = game.settings.get(MODULE_ID, 'posPadding');
-    const posPaddingBottom = game.settings.get(MODULE_ID, 'posPaddingBottom');
     container.style.setProperty('--position-padding', `${posPadding}px`);
-    container.style.setProperty('--position-bottom', `${posPaddingBottom}px`);
+    applyMinimalistView();
 }

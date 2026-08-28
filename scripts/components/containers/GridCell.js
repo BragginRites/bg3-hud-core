@@ -1,5 +1,6 @@
 import { BG3Component } from '../BG3Component.js';
 import { ControlsManager } from '../../managers/ControlsManager.js';
+import { Logger } from '../../utils/logger.js';
 
 /**
  * Grid Cell Component
@@ -73,7 +74,7 @@ export class GridCell extends BG3Component {
                 try {
                     await this.options.decorateCellElement(this.element, this.data);
                 } catch (e) {
-                    console.warn('BG3 HUD | Cell decoration failed:', e);
+                    Logger.warn('BG3 HUD | Cell decoration failed:', e);
                 }
             }
         }
@@ -340,7 +341,7 @@ export class GridCell extends BG3Component {
                     try {
                         await this.options.decorateCellElement(this.element, this.data);
                     } catch (e) {
-                        console.warn('BG3 HUD | Cell decoration failed:', e);
+                        Logger.warn('BG3 HUD | Cell decoration failed:', e);
                     }
                 }
             }

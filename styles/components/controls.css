@@ -25,6 +25,20 @@
     pointer-events: auto;
 }
 
+/* Minimalist View: HUD sits flush to the screen edge, so the normal horizontal
+   strip under the hotbar is clipped. Stack controls vertically on the
+   bottom-right, growing upward along the hotbar's right edge. */
+#bg3-hotbar-container[data-minimalist-view="true"] .bg3-control-container {
+    top: auto;
+    bottom: 0;
+    right: 0;
+    left: auto;
+    transform: translateX(50%);
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+}
+
 
 
 .hotbar-control-button {

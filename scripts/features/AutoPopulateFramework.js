@@ -1,9 +1,22 @@
+import { Logger } from '../utils/logger.js';
+
+/** Foundry document cell types resolved via fromUuid during populate. */
+const DOCUMENT_CELL_TYPES = new Set(['Item', 'Macro', 'Activity', 'PreparedSpell']);
+
 /**
  * Auto Populate Framework
  * System-agnostic framework for populating containers with items
  * Adapters must extend this to provide system-specific logic
  */
 export class AutoPopulateFramework {
+    /**
+     * Whether a populate entry is a pre-built adapter cell (e.g. CrucibleAction, Strike).
+     * @param {object} item
+     * @returns {boolean}
+     */
+    static isAdapterCellEntry(item) {
+        return Boolean(item?.type && !DOCUMENT_CELL_TYPES.has(item.type));
+    }
     /**
      * Show dialog and populate container based on user selection
      * @param {GridContainer} container - The container to populate
@@ -49,7 +62,7 @@ export class AutoPopulateFramework {
             const addedCount = await this.addItemsToContainer(sortedItems, container, persistenceManager);
 
         } catch (error) {
-            console.error('[bg3-hud-core] AutoPopulate error:', error);
+            Logger.error('AutoPopulate error:', error);
             ui.notifications.error(game.i18n.localize('bg3-hud-core.Notifications.AutoPopulateFailed'));
         }
     }
@@ -112,12 +125,21 @@ export class AutoPopulateFramework {
      * @returns {Promise<Array<{uuid: string}>>}
      */
     async sortItems(items) {
-        // If adapter has autoSort, use its sortUuidEntries helper
+        // Adapters with full cell data (CrucibleAction, Strike, etc.) use sortItems
+        if (this.autoSort && typeof this.autoSort.sortItems === 'function') {
+            const hasAdapterCells = items.some(i => AutoPopulateFramework.isAdapterCellEntry(i));
+            if (hasAdapterCells) {
+                await this.autoSort.enrichItemsForSort?.(items);
+                await this.autoSort.sortItems(items);
+                return items;
+            }
+        }
+
+        // UUID-only entries use sortUuidEntries
         if (this.autoSort && typeof this.autoSort.sortUuidEntries === 'function') {
             return await this.autoSort.sortUuidEntries(items);
         }
 
-        // Otherwise, return unsorted
         return items;
     }
 
@@ -136,33 +158,28 @@ export class AutoPopulateFramework {
         const customCellData = [];
 
         for (const item of items) {
+            if (AutoPopulateFramework.isAdapterCellEntry(item)) {
+                if (persistenceManager?.findUuidInHud?.(item.uuid)) continue;
+                customCellData.push(item);
+                continue;
+            }
+
             if (item.uuid) {
-                // UUID-based item - check for duplicates
-                if (persistenceManager && typeof persistenceManager.findUuidInHud === 'function') {
-                    const existingLocation = persistenceManager.findUuidInHud(item.uuid);
-                    if (existingLocation) {
-                        continue; // Skip duplicates
-                    }
-                } else {
-                    // Fallback: only check current container
-                    let existsInContainer = false;
-                    for (const [key, existingItem] of Object.entries(container.items)) {
-                        if (existingItem?.uuid === item.uuid) {
-                            existsInContainer = true;
-                            break;
-                        }
-                    }
-                    if (existsInContainer) {
-                        continue;
+                if (persistenceManager?.findUuidInHud?.(item.uuid)) continue;
+
+                let existsInContainer = false;
+                for (const existingItem of Object.values(container.items)) {
+                    if (existingItem?.uuid === item.uuid) {
+                        existsInContainer = true;
+                        break;
                     }
                 }
+                if (existsInContainer) continue;
+
                 uuidItems.push(item);
             } else if (item.type) {
-                // Adapter-specific cell data (e.g., Strike, Activity)
-                // Already enriched by adapter, pass through directly
                 customCellData.push(item);
             }
-            // Skip items with neither uuid nor type
         }
 
         const allNewItems = [...uuidItems, ...customCellData];
@@ -185,12 +202,12 @@ export class AutoPopulateFramework {
                 if (adapter && typeof adapter.transformItemToCellData === 'function') {
                     cellData = await adapter.transformItemToCellData(itemData);
                 } else {
-                    // Fallback: basic transformation
+                    // Fallback: canonical cell type (never system subtypes like 'spell')
                     cellData = {
                         uuid: item.uuid,
                         name: itemData.name,
                         img: itemData.img,
-                        type: itemData.type
+                        type: 'Item'
                     };
                 }
 
@@ -255,7 +272,7 @@ export class AutoPopulateFramework {
             // Build initial HUD state with populated items per grid
             await this._populateInitialStateByGrid(configuration, actor, persistenceManager);
         } catch (error) {
-            console.error('[bg3-hud-core] Error auto-populating on token creation:', error);
+            Logger.error('Error auto-populating on token creation:', error);
         }
     }
 
@@ -272,6 +289,12 @@ export class AutoPopulateFramework {
         persistenceManager.setToken(actor);
         const state = await persistenceManager.loadState();
 
+        if (persistenceManager.isAutoPopulateComplete(state)) {
+            return;
+        }
+
+        let itemsAdded = 0;
+
         // Process each configured grid
         for (let gridIndex = 0; gridIndex < 3; gridIndex++) {
             const gridKey = `grid${gridIndex}`;
@@ -283,7 +306,7 @@ export class AutoPopulateFramework {
 
             // Ensure grid exists
             if (!state.hotbar.grids[gridIndex]) {
-                console.warn(`[bg3-hud-core] Grid ${gridIndex} does not exist, skipping`);
+                Logger.warn(`Grid ${gridIndex} does not exist, skipping`);
                 continue;
             }
 
@@ -305,12 +328,11 @@ export class AutoPopulateFramework {
             const customCellData = [];
 
             for (const item of sortedItems) {
-                if (item.uuid) {
-                    // UUID-based item - check for duplicates
-                    const exists = persistenceManager?.findUuidInHud?.(item.uuid);
-                    if (!exists) uuidItems.push(item);
+                if (AutoPopulateFramework.isAdapterCellEntry(item)) {
+                    if (!persistenceManager?.findUuidInHud?.(item.uuid)) customCellData.push(item);
+                } else if (item.uuid) {
+                    if (!persistenceManager?.findUuidInHud?.(item.uuid)) uuidItems.push(item);
                 } else if (item.type) {
-                    // Adapter-specific cell data (e.g., Strike)
                     customCellData.push(item);
                 }
             }
@@ -332,12 +354,12 @@ export class AutoPopulateFramework {
                 } else if (adapter?.transformItemToCellData) {
                     cellData = await adapter.transformItemToCellData(itemData);
                 } else {
-                    // Fallback: basic transformation
+                    // Fallback: canonical cell type (never system subtypes like 'spell')
                     cellData = {
                         uuid: item.uuid,
                         name: itemData.name,
                         img: itemData.img,
-                        type: itemData.type
+                        type: 'Item'
                     };
                 }
 
@@ -360,8 +382,13 @@ export class AutoPopulateFramework {
                     if (!grid.items[slotKey]) {
                         grid.items[slotKey] = enrichedItems[itemIndex];
                         itemIndex++;
+                        itemsAdded++;
                     }
                 }
+            }
+
+            if (itemsAdded > 0) {
+                persistenceManager.markAutoPopulateComplete(state);
             }
 
             // Save state after each grid

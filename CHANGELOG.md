@@ -1,3 +1,69 @@
+## [Unreleased]
+
+### Changed
+- **Selecting more than one token**: The HUD follows the one token you have selected. If you select two or more (a group plus a creature still counts as two), it behaves like nothing is selected: GMs see the GM Hotbar if that setting is on, players see nothing.
+
+### Fixed
+- **GM Hotbar toggle**: You can still switch to the GM Hotbar while a token is selected. Clicking a token brings that creature's HUD back instead of leaving you on the GM bar.
+- **Deselecting Token lock**: With that lock on, clicking empty canvas still keeps the HUD. Selecting a second token hides it.
+- **Minimalist View**: Picking a token when nothing was selected no longer flashes the floating layout before the docked HUD shows.
+- **HUD flicker**: The HUD no longer flashes half-drawn when it appears.
+
+
+## [0.6.0] - 2026-08-25
+
+A bigger update after a long gap. New layout options, smoother targeting, player-friendly settings, and several reliability fixes so your existing hotbar keeps working.
+
+### Added
+- **Minimalist View**: Optional setting that hides hotbar view tabs and docks the HUD along the bottom edge. The normal floating layout is unchanged if you leave this off.
+- **Rest / End Turn + dock toggle**: Clearer rest and end-turn buttons (with labels), plus a caret to tuck the HUD away and bring it back. Works in every layout, not only Minimalist View.
+- **Simpler Target Selector**: Using an ability pauses until you confirm targets, then continues. It checks how many targets you need (you can nudge the count), self vs enemy when that matters, and range. Optional setting to ignore the self/enemy check.
+- **Debug Logging toggle**: Client setting under BG3 Inspired HUD - Core. Off by default so normal play stays quiet; turn it on when troubleshooting. Warnings and errors always show.
+
+### Fixed
+- **Player settings menus**: Players can open the settings menus and only see options they are allowed to change. Saving no longer fails when a menu also lists GM-only options.
+- **Spells already on the bar**: Older saved layouts sometimes stored spells in a way the HUD stopped recognizing. Existing spells work again when you click them. You should not need to clear and refill the hotbar.
+- **Prepare / unprepare staying in sync**: Preparing or unpreparing a spell updates the bar correctly, and use counters / grayed-out slots survive that refresh.
+- **Canvas pan beside the HUD**: Empty space left and right of the hotbar no longer blocks panning the map (Foundry v14).
+- **Tall tooltips**: Long tooltips stay on screen and scroll instead of running off the edge.
+- **Unlinked token Save Layout**: Saving a layout for an unlinked NPC writes to the right actor and remembers that auto-populate already ran.
+- **pt-BR Name-only tooltips label**: Correction from Kharmans.
+
+### Changed
+- **Quieter console**: Routine chatter is hidden unless Debug Logging is on.
+- **Clearer setting wording**: Hints and messages talk about actions and resources in plain language instead of leaning on "spell slot" wording everywhere.
+- **Smoother HUD updates**: Spending slots, taking damage, and similar changes refresh the parts of the HUD that need it, with less full-screen flicker.
+- **Character vs NPC chrome**: View tabs and related player-character UI follow each game system's idea of a player character (for example owned NPCs can still count when appropriate).
+- **Extra side panels**: Optional rails (like Advantage buttons or CPR actions in D&D) register cleanly per system, so other games are not stuck with D&D-only panels.
+- **Under-the-hood cleanup**: Game-specific rules live in the companion modules; core stays shared. Same HUD for you, easier to maintain going forward.
+
+
+## [0.4.3] - 2026-07-13
+
+### Changed
+- **Foundry v14 ready**: Verified and working on Foundry v14, and still fully supported on v13. Updated an internal template call so it keeps working on the new version.
+
+## [0.4.2] - 2026-06-17
+
+### Added
+- **Portrait border**: Restored HUD portrait frame options from the legacy hotbar — none, simple (theme border), or styled (round ring asset). Configure under Layout & Appearance → Container Configuration.
+
+### Fixed
+- **NPC auto-populate after compendium round-trip**: Token-creation auto-populate now runs only once per actor (`autoPopulateComplete` on `hudState`). Existing populated hotbars are recognised without re-filling.
+- **Stale hotbar UUIDs after re-import**: When an actor returns from a compendium with new item IDs, saved layout slots remap to matching items by name (and type) instead of leaving ghost entries or duplicating on the next populate.
+
+## [0.4.1] - 2026-06-17
+
+### Added
+- **Adapter-supplied cell data**: Drag-and-drop and auto-populate can now persist pre-built hotbar cells from system adapters (e.g. Crucible actions) that do not have a backing Foundry document UUID.
+- **External cell drag path**: Adapters can return `cellData` from drag resolution instead of a document; core validates ownership, blocks duplicates via synthetic UUIDs, and persists the slot like any other cell.
+
+### Changed
+- **Auto-populate sorting for adapter cells**: Adapter cells (e.g. `CrucibleAction`, strikes) use adapter `sortItems()` and `enrichItemsForSort()` while UUID-only entries still use `sortUuidEntries()`.
+- **Crucible action hydration**: Saved `CrucibleAction` cells refresh from live `actor.actions` on load when the adapter provides `transformActionToCellData`.
+- **Tooltip handoff**: Core tooltip manager skips elements marked with `[data-crucible-tooltip]` so adapter modules can render and lock their own tooltips.
+- **Foundry v14 verified**: Module manifest updated to verified Foundry v14.
+
 ## [0.4.0] - 2026-05-23
 
 ### Added

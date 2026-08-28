@@ -35,6 +35,7 @@
     width: 100%;
     height: 100%;
     position: relative;
+    transform-origin: center center;
 }
 
 #bg3-hotbar-container .portrait-image {
@@ -46,6 +47,44 @@
     border: none;
     outline: none;
     box-shadow: none;
+}
+
+/* ==========================================================================
+   Health Overlay + Alpha Mask (shared across systems)
+   Adapters create `.health-overlay` / `.damage-overlay`; core owns the mask.
+   ========================================================================== */
+
+#bg3-hotbar-container .health-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+#bg3-hotbar-container .health-overlay .damage-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    transition: height 0.3s ease-out, opacity 0.3s ease-out;
+    background: rgba(255, 0, 0, 0.4);
+}
+
+#bg3-hotbar-container .portrait-image-subcontainer[data-bend-mode="true"] {
+    mask-image: var(--bend-img);
+    -webkit-mask-image: var(--bend-img);
+    mask-mode: alpha;
+    -webkit-mask-mode: alpha;
+    mask-repeat: no-repeat;
+    -webkit-mask-repeat: no-repeat;
+    mask-size: 100% 100%;
+}
+
+#bg3-hotbar-container .bg3-portrait-container.use-bend-mask .portrait-image-container {
+    overflow: visible;
 }
 
 /* Portrait hidden — keep info button only */
@@ -60,4 +99,58 @@
 #bg3-hotbar-container .bg3-portrait-container.portrait-hidden .hp-text,
 #bg3-hotbar-container .bg3-portrait-container.portrait-hidden .bg3-death-saves-container {
     display: none !important;
+}
+
+/* ==========================================================================
+   Portrait border (none / simple / styled)
+   ========================================================================== */
+
+#bg3-hotbar-container .bg3-portrait-container .portrait-image-container::before,
+#bg3-hotbar-container .bg3-portrait-container .portrait-image-container::after {
+    pointer-events: none;
+}
+
+#bg3-hotbar-container .bg3-portrait-container:not([data-border="none"]) .portrait-image-container::before {
+    content: '';
+    position: absolute;
+    -webkit-box-shadow: inset 0 0 10px 5px #000000;
+    box-shadow: inset 0 0 10px 5px #000000;
+}
+
+#bg3-hotbar-container .bg3-portrait-container[data-border="simple"] .portrait-image-container::before {
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
+#bg3-hotbar-container .bg3-portrait-container[data-border="styled"] .portrait-image-container::before {
+    top: 10px;
+    bottom: 10px;
+    left: 10px;
+    right: 10px;
+}
+
+#bg3-hotbar-container .bg3-portrait-container:not([data-border="none"]) .portrait-image-container::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
+#bg3-hotbar-container .bg3-portrait-container[data-border="styled"] .portrait-image-container::after {
+    background-image: url(../../img/token_border_styled.png);
+    background-size: contain;
+}
+
+#bg3-hotbar-container .bg3-portrait-container[data-border="simple"] .portrait-image-container::after {
+    border: calc(var(--bg3-border-size) * 2) solid var(--bg3-border-color);
+}
+
+#bg3-hotbar-container .bg3-portrait-container[data-border="styled"] .portrait-image-container,
+#bg3-hotbar-container .bg3-portrait-container[data-border="styled"] .portrait-image-container::before,
+#bg3-hotbar-container .bg3-portrait-container[data-border="styled"] .portrait-image-container::after {
+    border-radius: 50%;
 }

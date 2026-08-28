@@ -22,6 +22,7 @@ export class BaseButton extends BG3Component {
         this.onRightClick = options.onRightClick || null;
         this.classes = options.classes || [];
         this.tooltip = options.tooltip || '';
+        this.tooltipDirection = options.tooltipDirection || 'UP';
     }
 
     /**

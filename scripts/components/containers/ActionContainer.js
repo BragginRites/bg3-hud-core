@@ -1,4 +1,5 @@
 import { BG3Component } from '../BG3Component.js';
+import { Logger } from '../../utils/logger.js';
 
 /**
  * Action Container - Abstract Base Class
@@ -85,6 +86,6 @@ export class ActionContainer extends BG3Component {
      * @param {Object} action - The action to use
      */
     async useAction(action) {
-        console.warn('ActionContainer.useAction() not implemented');
+        Logger.warn('ActionContainer.useAction() not implemented');
     }
 }

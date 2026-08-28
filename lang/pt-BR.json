@@ -91,11 +91,18 @@
       },
       "ShowFilters": {
         "Name": "Mostrar Ícones de Filtros",
-        "Hint": "Exibe os ícones de filtro de espaço de magia e tipo de ação acima da hotbar"
+        "Hint": "Exibe os ícones de filtro de recursos e tipos de ação acima da hotbar"
       },
       "ShowPortrait": {
         "Name": "Mostrar Retrato",
         "Hint": "Exibe o retrato do personagem, sobreposição de PV e emblemas de dados do retrato. Quando desativado, o botão de informações do personagem (d20) permanece disponível."
+      },
+      "BorderPortraitPreferences": {
+        "Name": "Borda do Retrato",
+        "Hint": "Moldura decorativa em torno da imagem do retrato na HUD.",
+        "None": "Nenhuma",
+        "Simple": "Simples",
+        "Styled": "Estilizada (anel redondo)"
       },
       "ShowPortraitHPControls": {
         "Name": "Mostrar Controles de PV no Retrato",
@@ -130,7 +137,7 @@
         "MenuLabel": "Configurações da Interface do Foundry",
         "MenuHint": "Controle a visibilidade da barra de macros e tempo de dica",
         "Legend": "Interface do Foundry",
-        "NameOnlyTooltipsName": "Dicas de Apenas Nomes",
+        "NameOnlyTooltipsName": "Apenas Nomes de Dicas",
         "NameOnlyTooltipsHint": "Use dicas simples e nativas para itens, magias e características, ao invés de dicas de ferramentas complexas do sistema."
       },
       "GMHotbar": {
@@ -172,7 +179,9 @@
         "RangeLineWidthThick": "Grossa (3px)",
         "RangeLineWidthExtraThick": "Muito Grossa (4px)",
         "RangeColorName": "Cor do Indicador",
-        "RangeColorHint": "Cor do indicador de alcance (formato hexadecimal)"
+        "RangeColorHint": "Cor do indicador de alcance (formato hexadecimal)",
+        "IgnoreTypeName": "Ignorar restrições de alvo (eu / inimigo)",
+        "IgnoreTypeHint": "Permite selecionar qualquer token independentemente das regras de alvo próprio/inimigo. Contagem de alvos e alcance ainda se aplicam quando ativados."
       },
       "PortraitData": {
         "Title": "Configuração de Dados do Retrato",
@@ -221,6 +230,11 @@
         "SaveLayout": "Salvar Layout como Padrão do Ator",
         "ExportLayout": "Exportar Layout",
         "ImportLayout": "Importar Layout"
+      },
+      "DockToggle": {
+        "Tooltip": "Mostrar / ocultar doca do HUD",
+        "Hide": "Ocultar doca do HUD",
+        "Show": "Mostrar doca do HUD"
       }
     },
     "ContextMenu": {
@@ -271,7 +285,7 @@
       "ClearContainerFailed": "Falha ao limpar o contêiner",
       "CrossContainerMoveBlocked": "Não é possível mover itens entre o contêiner e a hotbar",
       "DuplicateItem": "Este item já existe em outro lugar na HUD",
-      "DuplicateSpellSlot": "Este espaço de magia já está na HUD",
+      "DuplicateSpellSlot": "Esta entrada de recurso já está na HUD",
       "DuplicateInHud": "Este(a) {label} já está no HUD",
       "NoActorSelected": "Nenhum ator selecionado",
       "ItemOwnerMismatch": "Este(a) {type} pertence a {owner}, não a {current}",

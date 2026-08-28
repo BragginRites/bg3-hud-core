@@ -77,12 +77,4 @@ export class BG3Component {
         }
         this.element = null;
     }
-
-    /**
-     * Get the component's DOM element
-     * @returns {HTMLElement|null}
-     */
-    get domElement() {
-        return this.element;
-    }
 }

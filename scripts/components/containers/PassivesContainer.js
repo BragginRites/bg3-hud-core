@@ -1,4 +1,5 @@
 import { BG3Component } from '../BG3Component.js';
+import { Logger } from '../../utils/logger.js';
 
 /**
  * Passives Container - Abstract Base Class
@@ -36,7 +37,7 @@ export class PassivesContainer extends BG3Component {
     getPassiveItems() {
         // Base implementation returns empty array
         // Adapters should override this
-        console.warn('PassivesContainer.getPassiveItems() should be overridden by system adapter');
+        Logger.warn('PassivesContainer.getPassiveItems() should be overridden by system adapter');
         return [];
     }
 

@@ -249,7 +249,7 @@ export class FilterContainer extends BG3Component {
 
     /**
      * Update filters (useful when actor data changes)
-     * Only updates filter values (like spell slots) without rebuilding the entire container
+     * Only updates filter values (resource counters) without rebuilding the entire container
      */
     async update() {
         // Get fresh filter definitions from adapter

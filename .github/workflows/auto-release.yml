@@ -6,7 +6,6 @@ on:
       - main
     paths:
       - module.json
-      - CHANGELOG.md
   workflow_dispatch:
 
 jobs:
@@ -62,15 +61,18 @@ jobs:
         run: |
           TAG="${{ env.VERSION }}"
           if git ls-remote --tags origin "refs/tags/${TAG}" | grep -q .; then
-            echo "Tag ${TAG} already exists on remote, skipping tag push"
+            echo "Tag ${TAG} already exists; skipping GitHub and Foundry publish"
+            echo "exists=true" >> "$GITHUB_OUTPUT"
           else
             echo "Creating tag: ${TAG}"
             git tag "${TAG}"
             git push origin "${TAG}"
+            echo "exists=false" >> "$GITHUB_OUTPUT"
           fi
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
 
       - name: Create Module ZIP
+        if: steps.tag.outputs.exists != 'true'
         run: |
           zip -r bg3-hud-core.zip . \
             -x "*.git*" \
@@ -78,6 +80,7 @@ jobs:
                "*.vscode*"
 
       - name: Create GitHub Release
+        if: steps.tag.outputs.exists != 'true'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.tag.outputs.tag }}
@@ -88,6 +91,7 @@ jobs:
             module.json
 
       - name: Publish to Foundry VTT
+        if: steps.tag.outputs.exists != 'true'
         run: |
           MANIFEST_URL="https://github.com/${{ github.repository }}/releases/download/${{ env.VERSION }}/module.json"
           NOTES_URL="https://github.com/${{ github.repository }}/releases/tag/${{ env.VERSION }}"
