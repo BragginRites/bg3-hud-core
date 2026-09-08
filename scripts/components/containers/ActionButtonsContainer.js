@@ -1,9 +1,8 @@
 import { BG3Component } from '../BG3Component.js';
 
 /**
- * Action Buttons Container
- * Rest / End Turn column + dock caret toggle.
- * DOM and interaction match bg3-inspired-hotbar RestTurnContainer 1:1.
+ * Housing for Rest and End turn + dock caret toggle.
+ * Core fills End turn. The Adapter fills which rests exist via getRests.
  */
 export class ActionButtonsContainer extends BG3Component {
     /**
@@ -11,16 +10,52 @@ export class ActionButtonsContainer extends BG3Component {
      * @param {Actor} options.actor
      * @param {Token} options.token
      * @param {import('../../BG3Hotbar.js').BG3Hotbar} [options.hotbarApp]
-     * @param {Function} options.getButtons
+     * @param {Function} [options.getRests] `() => rest button defs[]`
+     * @param {Function} [options.getButtons] Full column override (housing class)
      */
     constructor(options = {}) {
         super(options);
         this.actor = options.actor;
         this.token = options.token;
         this.hotbarApp = options.hotbarApp || ui.BG3HUD_APP || null;
-        this.getButtons = options.getButtons || (() => []);
+        this.getRests = options.getRests || (() => []);
+        this.getButtons = options.getButtons || (() => this._defaultButtons());
         this.buttonElements = [];
         this._dockToggle = null;
+    }
+
+    /**
+     * End turn (Core) then Adapter rests.
+     * @returns {Array<Object>}
+     * @private
+     */
+    _defaultButtons() {
+        if (!this.actor) return [];
+        return [this._endTurnButton(), ...(this.getRests() || [])];
+    }
+
+    /**
+     * @returns {Object}
+     * @private
+     */
+    _endTurnButton() {
+        const label = game.i18n.localize('bg3-hud-core.EndTurn');
+        return {
+            key: 'end-turn',
+            classes: ['end-turn-button'],
+            icon: 'fas fa-clock-rotate-left',
+            label,
+            tooltip: label,
+            tooltipDirection: 'LEFT',
+            visible: () => {
+                if (!game.combat?.started || !this.actor) return false;
+                if (game.combat.combatant?.actor?.id === this.actor.id) return true;
+                return this.actor.myTurnActive === true;
+            },
+            onClick: async () => {
+                if (game.combat) await game.combat.nextTurn();
+            }
+        };
     }
 
     /**

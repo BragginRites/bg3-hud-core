@@ -2,8 +2,10 @@
 
 ### Changed
 - **Selecting more than one token**: The HUD follows the one token you have selected. If you select two or more (a group plus a creature still counts as two), it behaves like nothing is selected: GMs see the GM Hotbar if that setting is on, players see nothing.
+- **Rest and End turn**: End turn is the same in every game. Rest buttons still come from that game (short and long rest in D&D, and so on).
 
 ### Fixed
+- **Empty passives strip**: Games that do not put passives on the HUD no longer show an empty passives row.
 - **GM Hotbar toggle**: You can still switch to the GM Hotbar while a token is selected. Clicking a token brings that creature's HUD back instead of leaving you on the GM bar.
 - **Deselecting Token lock**: With that lock on, clicking empty canvas still keeps the HUD. Selecting a second token hides it.
 - **Minimalist View**: Picking a token when nothing was selected no longer flashes the floating layout before the docked HUD shows.

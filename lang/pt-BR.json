@@ -333,6 +333,7 @@
       "ContextDuplicate": "Duplicar Visualização",
       "ContextDelete": "Excluir Visualização"
     },
+    "EndTurn": "Encerrar Turno",
     "MaxSelectionsReached": "Máximo de {max} seleções alcançado"
   }
 }

@@ -4,16 +4,38 @@ import { Logger } from './logger.js';
  * BG3 HUD Component Registry
  * Central storage for system adapter registrations
  */
+/** Named HUD parts an Adapter may fill. Core-filled parts (Hotbar, Quick Access, End turn, Views) are not in this set. */
+export const NAMED_HUD_PART_KEYS = Object.freeze([
+    'portrait',
+    'passives',
+    'weaponSet',
+    'filter',
+    'characterInfo',
+    'activeEffects',
+    'rest'
+]);
+
+const NAMED_PART_CLASS_SLOT = Object.freeze({
+    portrait: 'portraitContainer',
+    passives: 'passivesContainer',
+    weaponSet: 'weaponSetContainer',
+    filter: 'filterContainer',
+    characterInfo: 'infoContainer',
+    activeEffects: 'activeEffectsContainer'
+});
+
 export const BG3HUD_REGISTRY = {
-    // Main container classes registered by adapters
+    // Fills from registerNamedHudParts (and the old per-part wrappers)
+    namedHudParts: {},
+
+    // Class slots mirrored from named fills (internal; extras stay on containers)
     portraitContainer: null,
     passivesContainer: null,
-    actionContainer: null,
-    abilityContainer: null,
     actionButtonsContainer: null,
     filterContainer: null,
     weaponSetContainer: null,
     infoContainer: null,
+    activeEffectsContainer: null,
 
     // Additional containers registered by adapters (id → { ContainerClass, region, order })
     containers: {},
@@ -86,75 +108,100 @@ export const BG3HUD_REGISTRY = {
  */
 export const BG3HUD_API = {
     /**
-     * Register a portrait container class
-     * @param {Class} containerClass - Class that extends PortraitContainer
+     * Fill named HUD parts for this game. One call; omit a key when the game has no such concept.
+     * Class swap stays inside. Adapter extras use registerContainer (second list).
+     * @param {Object} fills
+     * @param {Class} [fills.portrait]
+     * @param {Class} [fills.passives]
+     * @param {Class} [fills.weaponSet]
+     * @param {Class} [fills.filter]
+     * @param {Class} [fills.characterInfo]
+     * @param {Class} [fills.activeEffects]
+     * @param {Function} [fills.rest] `({ actor, token }) => rest button defs[]`
+     */
+    registerNamedHudParts(fills = {}) {
+        if (!fills || typeof fills !== 'object') {
+            Logger.error('registerNamedHudParts requires an object of fills');
+            return;
+        }
+
+        for (const [key, fill] of Object.entries(fills)) {
+            if (!NAMED_HUD_PART_KEYS.includes(key)) {
+                Logger.warn(`registerNamedHudParts: ignoring unknown named HUD part '${key}'`);
+                continue;
+            }
+            if (fill == null) continue;
+
+            if (key === 'rest') {
+                if (typeof fill !== 'function') {
+                    Logger.error('registerNamedHudParts: rest fill must be a function ({ actor, token }) => defs');
+                    continue;
+                }
+                BG3HUD_REGISTRY.namedHudParts.rest = fill;
+                Logger.info('Registered rest fill');
+                continue;
+            }
+
+            if (typeof fill !== 'function') {
+                Logger.error(`registerNamedHudParts: '${key}' fill must be a class`);
+                continue;
+            }
+            BG3HUD_REGISTRY.namedHudParts[key] = fill;
+            const slot = NAMED_PART_CLASS_SLOT[key];
+            if (slot) BG3HUD_REGISTRY[slot] = fill;
+            Logger.info(`Registered named HUD part '${key}':`, fill.name);
+        }
+    },
+
+    /**
+     * Fill for a named HUD part, or null if the Adapter omitted it.
+     * @param {string} key
+     * @returns {Class|Function|null}
+     */
+    getNamedHudPart(key) {
+        return BG3HUD_REGISTRY.namedHudParts[key] ?? null;
+    },
+
+    /**
+     * @deprecated Use registerNamedHudParts({ portrait })
      */
     registerPortraitContainer(containerClass) {
-        Logger.info('Registering portrait container:', containerClass.name);
-        BG3HUD_REGISTRY.portraitContainer = containerClass;
+        this.registerNamedHudParts({ portrait: containerClass });
     },
 
     /**
-     * Register a passives container class
-     * @param {Class} containerClass - Class that extends PassivesContainer
+     * @deprecated Use registerNamedHudParts({ passives })
      */
     registerPassivesContainer(containerClass) {
-        Logger.info('Registering passives container:', containerClass.name);
-        BG3HUD_REGISTRY.passivesContainer = containerClass;
+        this.registerNamedHudParts({ passives: containerClass });
     },
 
     /**
-     * Register an action container class
-     * @param {Class} containerClass - Class that extends ActionContainer
+     * @deprecated Use registerNamedHudParts({ rest }). Core owns End turn housing.
      */
-    registerActionContainer(containerClass) {
-        Logger.info('Registering action container:', containerClass.name);
-        BG3HUD_REGISTRY.actionContainer = containerClass;
+    registerActionButtonsContainer() {
+        Logger.warn('registerActionButtonsContainer is ignored. Use registerNamedHudParts({ rest }).');
     },
 
     /**
-     * Register an ability container class
-     * @param {Class} containerClass - Class that extends AbilityContainer
-     */
-    registerAbilityContainer(containerClass) {
-        Logger.info('Registering ability container:', containerClass.name);
-        BG3HUD_REGISTRY.abilityContainer = containerClass;
-    },
-
-    /**
-     * Register an action buttons container class
-     * @param {Class} containerClass - Class that extends ActionButtonsContainer
-     */
-    registerActionButtonsContainer(containerClass) {
-        Logger.info('Registering action buttons container:', containerClass.name);
-        BG3HUD_REGISTRY.actionButtonsContainer = containerClass;
-    },
-
-    /**
-     * Register a filter container class
-     * @param {Class} containerClass - Class that extends FilterContainer
+     * @deprecated Use registerNamedHudParts({ filter })
      */
     registerFilterContainer(containerClass) {
-        Logger.info('Registering filter container:', containerClass.name);
-        BG3HUD_REGISTRY.filterContainer = containerClass;
+        this.registerNamedHudParts({ filter: containerClass });
     },
 
     /**
-     * Register a weapon set container class
-     * @param {Class} containerClass - Class that extends WeaponSetContainer
+     * @deprecated Use registerNamedHudParts({ weaponSet })
      */
     registerWeaponSetContainer(containerClass) {
-        Logger.info('Registering weapon set container:', containerClass.name);
-        BG3HUD_REGISTRY.weaponSetContainer = containerClass;
+        this.registerNamedHudParts({ weaponSet: containerClass });
     },
 
     /**
-     * Register an info container class
-     * @param {Class} containerClass - Class that extends InfoContainer
+     * @deprecated Use registerNamedHudParts({ characterInfo })
      */
     registerInfoContainer(containerClass) {
-        Logger.info('Registering info container:', containerClass.name);
-        BG3HUD_REGISTRY.infoContainer = containerClass;
+        this.registerNamedHudParts({ characterInfo: containerClass });
     },
 
     /**

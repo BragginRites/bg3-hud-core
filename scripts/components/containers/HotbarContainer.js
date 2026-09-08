@@ -1,9 +1,6 @@
 import { BG3Component } from '../BG3Component.js';
 import { GridContainer } from './GridContainer.js';
 import { DragBar } from '../ui/DragBar.js';
-import { ActiveEffectsContainer } from './ActiveEffectsContainer.js';
-import { PassivesContainer } from './PassivesContainer.js';
-import { BG3HUD_REGISTRY } from '../../utils/registry.js';
 
 /**
  * Hotbar Container
@@ -27,8 +24,8 @@ export class HotbarContainer extends BG3Component {
         this.token = options.token;
         this.gridContainers = [];
         this.dragBars = [];
-        this.activeEffectsContainer = null;
-        this.passivesContainer = null;
+        this.activeEffectsContainer = options.activeEffectsContainer || null;
+        this.passivesContainer = options.passivesContainer || null;
         this._dragPreviewFrame = null;
         this._pendingDragPreview = null;
         this._dragRenderInFlight = false;
@@ -99,25 +96,11 @@ export class HotbarContainer extends BG3Component {
             this.gridContainers = [];
             this.dragBars = [];
 
-            // Create active effects container if actor exists
-            if (this.actor) {
-                this.activeEffectsContainer = new ActiveEffectsContainer({
-                    actor: this.actor,
-                    token: this.token
-                });
-                const activeEffectsElement = await this.activeEffectsContainer.render();
-                this.element.appendChild(activeEffectsElement);
+            if (this.activeEffectsContainer) {
+                this.element.appendChild(await this.activeEffectsContainer.render());
             }
-
-            // Create passives container if actor exists and adapter registered one
-            if (this.actor) {
-                const PassivesClass = BG3HUD_REGISTRY.passivesContainer || PassivesContainer;
-                this.passivesContainer = new PassivesClass({
-                    actor: this.actor,
-                    token: this.token
-                });
-                const passivesElement = await this.passivesContainer.render();
-                this.element.appendChild(passivesElement);
+            if (this.passivesContainer) {
+                this.element.appendChild(await this.passivesContainer.render());
             }
 
             // Create new grid containers and drag bars

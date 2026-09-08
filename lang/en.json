@@ -337,6 +337,7 @@
       "ContextDuplicate": "Duplicate View",
       "ContextDelete": "Delete View"
     },
+    "EndTurn": "End Turn",
     "MaxSelectionsReached": "Maximum of {max} selections reached"
   }
 }
