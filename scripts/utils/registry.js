@@ -77,6 +77,12 @@ export const BG3HUD_REGISTRY = {
  * @property {Function} [isPlayerCharacter] Whether actor should get PC-only HUD chrome (views, etc.).
  *   @param {Actor} actor
  *   @returns {boolean}
+ * @property {Function} [isHeldItem] Whether cell data is a held item for a Weapon set Slot.
+ *   @param {Object} cell
+ *   @returns {boolean}
+ * @property {Function} [isTwoHanded] Whether a held item occupies both hands (off-hand reserved).
+ *   @param {Object} cell
+ *   @returns {boolean}
  */
 
 /**
@@ -86,7 +92,7 @@ export const BG3HUD_REGISTRY = {
  * @property {'Item'|'Macro'|'Activity'} [type]
  * @property {Record<string, unknown>} [augment] Merged onto cell data after adapter `transform*` (e.g. strike metadata).
  * @property {Object} [cellData] Pre-built cell data for entries with no backing document (e.g. system actions).
- *   Include `actorUuid` for ownership validation and a stable `uuid` for duplicate detection.
+ *   Include `actorUuid` for ownership validation and a stable `uuid` for occupancy identity.
  */
 
 /**

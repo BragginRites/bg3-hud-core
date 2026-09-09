@@ -1,7 +1,13 @@
 import { Logger } from '../utils/logger.js';
+import { alreadyOnUseGrids, occupy, parkMapFromState, writeParkMap } from '../occupancy/occupancy.js';
 
 /** Foundry document cell types resolved via fromUuid during populate. */
 const DOCUMENT_CELL_TYPES = new Set(['Item', 'Macro', 'Activity', 'PreparedSpell']);
+
+function alreadyOnUse(persistenceManager, uuid) {
+    if (!uuid || !persistenceManager?.state) return false;
+    return alreadyOnUseGrids(parkMapFromState(persistenceManager.state), { uuid });
+}
 
 /**
  * Auto Populate Framework
@@ -17,6 +23,7 @@ export class AutoPopulateFramework {
     static isAdapterCellEntry(item) {
         return Boolean(item?.type && !DOCUMENT_CELL_TYPES.has(item.type));
     }
+
     /**
      * Show dialog and populate container based on user selection
      * @param {GridContainer} container - The container to populate
@@ -145,11 +152,11 @@ export class AutoPopulateFramework {
 
     /**
      * Add items to container in grid order
-     * Skips items that already exist in the HUD (across ALL containers)
+     * Skips items that already occupy a Hotbar or Quick Access Slot.
      * Supports both uuid-based items and adapter-specific cell data (like Strikes)
      * @param {Array<Object>} items - Sorted items to add (uuid-based or custom cell data)
      * @param {GridContainer} container - Target container
-     * @param {PersistenceManager} persistenceManager - Optional persistence manager for global UUID checking
+     * @param {PersistenceManager} persistenceManager - Optional persistence manager so skip can consult the park map
      * @returns {Promise<number>} Number of items added
      */
     async addItemsToContainer(items, container, persistenceManager = null) {
@@ -159,13 +166,13 @@ export class AutoPopulateFramework {
 
         for (const item of items) {
             if (AutoPopulateFramework.isAdapterCellEntry(item)) {
-                if (persistenceManager?.findUuidInHud?.(item.uuid)) continue;
+                if (alreadyOnUse(persistenceManager, item.uuid)) continue;
                 customCellData.push(item);
                 continue;
             }
 
             if (item.uuid) {
-                if (persistenceManager?.findUuidInHud?.(item.uuid)) continue;
+                if (alreadyOnUse(persistenceManager, item.uuid)) continue;
 
                 let existsInContainer = false;
                 for (const existingItem of Object.values(container.items)) {
@@ -220,24 +227,36 @@ export class AutoPopulateFramework {
         // Add custom cell data directly (already enriched by adapter)
         enrichedItems.push(...customCellData);
 
-        // Find empty slots and add items
+        // Occupy empty slots. Skip is alreadyOnUseGrids above, not a uniqueness lock in occupy.
         let addedCount = 0;
         let itemIndex = 0;
         const cols = container.cols || 5;
         const rows = container.rows || 3;
+        const containerType = container.containerType || 'hotbar';
+        const containerIndex = container.containerIndex ?? 0;
+        let map = persistenceManager?.state
+            ? parkMapFromState(persistenceManager.state)
+            : parkMapFromState({
+                hotbar: { grids: containerType === 'hotbar' ? [{ items: { ...(container.items || {}) } }] : [] },
+                weaponSets: { sets: [] },
+                quickAccess: { grids: containerType === 'quickAccess' ? [{ items: { ...(container.items || {}) } }] : [] }
+            });
 
         for (let r = 0; r < rows && itemIndex < enrichedItems.length; r++) {
             for (let c = 0; c < cols && itemIndex < enrichedItems.length; c++) {
                 const slotKey = `${c}-${r}`;
+                if (container.items[slotKey]) continue;
 
-                // If slot is empty, add item
-                if (!container.items[slotKey]) {
-                    container.items[slotKey] = enrichedItems[itemIndex];
-                    addedCount++;
-                    itemIndex++;
-                }
+                const result = occupy(map, { container: containerType, containerIndex, slotKey }, enrichedItems[itemIndex]);
+                if (!result.ok) continue;
+                map = result.map;
+                container.items[slotKey] = enrichedItems[itemIndex];
+                addedCount++;
+                itemIndex++;
             }
         }
+
+        if (persistenceManager?.state) writeParkMap(persistenceManager.state, map);
 
         // Re-render container
         if (container.render) {
@@ -329,9 +348,9 @@ export class AutoPopulateFramework {
 
             for (const item of sortedItems) {
                 if (AutoPopulateFramework.isAdapterCellEntry(item)) {
-                    if (!persistenceManager?.findUuidInHud?.(item.uuid)) customCellData.push(item);
+                    if (!alreadyOnUse(persistenceManager, item.uuid)) customCellData.push(item);
                 } else if (item.uuid) {
-                    if (!persistenceManager?.findUuidInHud?.(item.uuid)) uuidItems.push(item);
+                    if (!alreadyOnUse(persistenceManager, item.uuid)) uuidItems.push(item);
                 } else if (item.type) {
                     customCellData.push(item);
                 }
@@ -369,23 +388,28 @@ export class AutoPopulateFramework {
             // Add custom cell data directly (already enriched by adapter)
             enrichedItems.push(...customCellData);
 
-            // Populate this grid with items
+            // Occupy empty slots on this use-grid. Skip already happened via alreadyOnUseGrids.
             const cols = grid.cols || 5;
             const rows = grid.rows || 1;
             let itemIndex = 0;
+            let map = parkMapFromState(state);
 
             for (let r = 0; r < rows && itemIndex < enrichedItems.length; r++) {
                 for (let c = 0; c < cols && itemIndex < enrichedItems.length; c++) {
                     const slotKey = `${c}-${r}`;
-
-                    // Only populate empty slots
-                    if (!grid.items[slotKey]) {
-                        grid.items[slotKey] = enrichedItems[itemIndex];
-                        itemIndex++;
-                        itemsAdded++;
-                    }
+                    const result = occupy(map, {
+                        container: 'hotbar',
+                        containerIndex: gridIndex,
+                        slotKey
+                    }, enrichedItems[itemIndex]);
+                    if (!result.ok) continue;
+                    map = result.map;
+                    itemIndex++;
+                    itemsAdded++;
                 }
             }
+
+            writeParkMap(state, map);
 
             if (itemsAdded > 0) {
                 persistenceManager.markAutoPopulateComplete(state);

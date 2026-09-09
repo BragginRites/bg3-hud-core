@@ -2,6 +2,15 @@ import { ContainerTypeDetector } from './ContainerTypeDetector.js';
 import { SlotContextMenu } from '../components/ui/SlotContextMenu.js';
 import { ContainerPopover } from '../components/ui/ContainerPopover.js';
 import { Logger } from '../utils/logger.js';
+import {
+    occupy,
+    move,
+    clear as clearPark,
+    parkMapFromState,
+    slotOf,
+    cellAt,
+    OCCUPANCY_REFUSE
+} from '../occupancy/occupancy.js';
 
 /**
  * Interaction Coordinator
@@ -35,6 +44,57 @@ export class InteractionCoordinator {
     setAdapter(adapter) {
         this.adapter = adapter;
         this.contextMenu.adapter = adapter;
+    }
+
+    _occupancyOpts() {
+        const adapter = this.adapter;
+        return {
+            isHeldItem: (cell) => adapter?.isHeldItem?.(cell) === true,
+            isTwoHanded: (cell) => adapter?.isTwoHanded?.(cell) === true
+        };
+    }
+
+    _notifyOccupancyRefuse(reason) {
+        const keys = {
+            [OCCUPANCY_REFUSE.WRONG_KIND]: 'bg3-hud-core.Notifications.OccupancyWrongKind',
+            [OCCUPANCY_REFUSE.SAME_SET]: 'bg3-hud-core.Notifications.OccupancySameSet',
+            [OCCUPANCY_REFUSE.RESERVED]: 'bg3-hud-core.Notifications.OccupancyReserved',
+            [OCCUPANCY_REFUSE.OCCUPIED]: 'bg3-hud-core.Notifications.OccupancyOccupied'
+        };
+        const key = keys[reason];
+        if (key) ui.notifications.warn(game.i18n.localize(key));
+    }
+
+    async _commitParkedSlots(map, gridCells) {
+        const patches = [];
+        for (const cell of gridCells) {
+            const slot = slotOf(cell);
+            const data = cellAt(map, slot);
+            await cell.setData(data, { skipSave: true });
+            this._updateRuntimeGridItem(cell, data);
+            patches.push({
+                container: slot.container,
+                containerIndex: slot.containerIndex,
+                slotKey: slot.slotKey,
+                data,
+                parentCell: cell.parentCell
+            });
+        }
+
+        const weaponContainer = this.hotbarApp.components?.weaponSets;
+        if (weaponContainer?.onCellUpdated) {
+            const updates = [];
+            for (const cell of gridCells) {
+                if (ContainerTypeDetector.isWeaponSet(cell)) {
+                    updates.push(weaponContainer.onCellUpdated(cell.containerIndex, cell.getSlotKey()));
+                }
+            }
+            if (updates.length) await Promise.all(updates);
+        }
+
+        if (this.persistenceManager && patches.length) {
+            await this.persistenceManager.updateCells(patches);
+        }
     }
 
     /**
@@ -195,6 +255,10 @@ export class InteractionCoordinator {
             return;
         }
 
+        if (container?.containerType === 'weaponSet') {
+            return;
+        }
+
         // Get actor from hotbar app
         const actor = this.hotbarApp?.currentActor;
         if (!actor) {
@@ -202,7 +266,7 @@ export class InteractionCoordinator {
         }
 
         try {
-            // Pass persistence manager for global UUID duplicate checking
+            // Pass persistence so auto-fill can consult the park map before occupy
             await this.adapter.autoPopulate.populateContainer(container, actor, this.persistenceManager);
 
             // Persist the changes
@@ -251,28 +315,24 @@ export class InteractionCoordinator {
      * @param {GridCell} cell
      */
     async removeCell(cell) {
-        // STEP 1: Update visual state
-        await cell.setData(null, { skipSave: true });
-        this._updateRuntimeGridItem(cell, null);
-
-        // Update two-handed weapon display immediately (parallel with visual update)
-        if (ContainerTypeDetector.isWeaponSet(cell)) {
-            const weaponContainer = this.hotbarApp.components.weaponSets;
-            if (weaponContainer?.onCellUpdated) {
-                await weaponContainer.onCellUpdated(cell.containerIndex, cell.getSlotKey());
+        if (cell.containerType === 'containerPopover') {
+            await cell.setData(null, { skipSave: true });
+            this._updateRuntimeGridItem(cell, null);
+            if (this.persistenceManager) {
+                await this.persistenceManager.updateCell({
+                    container: cell.containerType,
+                    containerIndex: cell.containerIndex,
+                    slotKey: cell.getSlotKey(),
+                    data: null,
+                    parentCell: cell.parentCell
+                });
             }
+            return;
         }
 
-        // STEP 2: Persist the removal
-        if (this.persistenceManager) {
-            await this.persistenceManager.updateCell({
-                container: cell.containerType,
-                containerIndex: cell.containerIndex,
-                slotKey: cell.getSlotKey(),
-                data: null,
-                parentCell: cell.parentCell // For containerPopover
-            });
-        }
+        const map = parkMapFromState(this.persistenceManager?.state);
+        const result = clearPark(map, slotOf(cell));
+        await this._commitParkedSlots(result.map, [cell]);
     }
 
     /**
@@ -363,70 +423,15 @@ export class InteractionCoordinator {
             return;
         }
 
-        // STEP 1: Extract data (capture current state before any changes)
-        const sourceData = sourceCell.data;
-        const targetData = targetCell.data;
-        const sourceSlotKey = sourceCell.getSlotKey();
-        const targetSlotKey = targetCell.getSlotKey();
-        const sourceIsWeaponSet = ContainerTypeDetector.isWeaponSet(sourceCell);
-        const targetIsWeaponSet = ContainerTypeDetector.isWeaponSet(targetCell);
-
-        // STEP 2: Validate UUID uniqueness for swaps
-        // When swapping, check if the target item's UUID would conflict at source location
-        if (targetData?.uuid && !sourceIsWeaponSet && !targetIsWeaponSet) {
-            const existingLocation = this.persistenceManager.findUuidInHud(targetData.uuid, {
-                excludeContainer: targetCell.containerType,
-                excludeContainerIndex: targetCell.containerIndex,
-                excludeSlotKey: targetSlotKey
-            });
-
-            if (existingLocation) {
-                ui.notifications.warn(game.i18n.localize('bg3-hud-core.Notifications.DuplicateItem'));
-                return;
-            }
-        }
-
-        // Check if same container or cross-container
-        const sameContainer = ContainerTypeDetector.areSameContainer(sourceCell, targetCell);
-
-        // STEP 3: Check for UUID conflicts in moves (not swaps)
-        if (!sameContainer && sourceData?.uuid && !targetData && !sourceIsWeaponSet && !targetIsWeaponSet) {
-            // Moving item to empty slot in different container - check for duplicates
-            const existingLocation = this.persistenceManager.findUuidInHud(sourceData.uuid, {
-                excludeContainer: sourceCell.containerType,
-                excludeContainerIndex: sourceCell.containerIndex,
-                excludeSlotKey: sourceSlotKey
-            });
-
-            if (existingLocation) {
-                ui.notifications.warn(game.i18n.localize('bg3-hud-core.Notifications.DuplicateItem'));
-                return;
-            }
-        }
-
-        if (sameContainer) {
-            // SAME CONTAINER: Swap items
-
-            // STEP 2: Update visual state (both cells in parallel)
+        if (sourceIsPopover && targetIsPopover) {
+            const sourceData = sourceCell.data;
+            const targetData = targetCell.data;
+            const sourceSlotKey = sourceCell.getSlotKey();
+            const targetSlotKey = targetCell.getSlotKey();
             await Promise.all([
                 sourceCell.setData(targetData, { skipSave: true }),
                 targetCell.setData(sourceData, { skipSave: true })
             ]);
-            this._updateRuntimeGridItem(sourceCell, targetData);
-            this._updateRuntimeGridItem(targetCell, sourceData);
-
-            // STEP 3: Update two-handed weapon display BEFORE persisting (for immediate visual feedback)
-            if (ContainerTypeDetector.isWeaponSet(sourceCell)) {
-                const weaponContainer = this.hotbarApp.components.weaponSets;
-                if (weaponContainer?.onCellUpdated) {
-                    await Promise.all([
-                        weaponContainer.onCellUpdated(sourceCell.containerIndex, sourceSlotKey),
-                        weaponContainer.onCellUpdated(targetCell.containerIndex, targetSlotKey)
-                    ]);
-                }
-            }
-
-            // STEP 4: Persist both changes
             if (this.persistenceManager) {
                 await this.persistenceManager.updateCells([
                     {
@@ -434,63 +439,27 @@ export class InteractionCoordinator {
                         containerIndex: sourceCell.containerIndex,
                         slotKey: sourceSlotKey,
                         data: targetData,
-                        parentCell: sourceCell.parentCell // For containerPopover
+                        parentCell: sourceCell.parentCell
                     },
                     {
                         container: targetCell.containerType,
                         containerIndex: targetCell.containerIndex,
                         slotKey: targetSlotKey,
                         data: sourceData,
-                        parentCell: targetCell.parentCell // For containerPopover
+                        parentCell: targetCell.parentCell
                     }
                 ]);
             }
-        } else {
-            // CROSS-CONTAINER: Move item (clear source)
-
-            // STEP 2: Update visual state (both cells in parallel)
-            await Promise.all([
-                sourceCell.setData(null, { skipSave: true }),
-                targetCell.setData(sourceData, { skipSave: true })
-            ]);
-            this._updateRuntimeGridItem(sourceCell, null);
-            this._updateRuntimeGridItem(targetCell, sourceData);
-
-            // STEP 3: Update two-handed weapon display BEFORE persisting (for immediate visual feedback)
-            const weaponContainer = this.hotbarApp.components.weaponSets;
-            if (weaponContainer?.onCellUpdated) {
-                const updates = [];
-                if (ContainerTypeDetector.isWeaponSet(sourceCell)) {
-                    updates.push(weaponContainer.onCellUpdated(sourceCell.containerIndex, sourceSlotKey));
-                }
-                if (ContainerTypeDetector.isWeaponSet(targetCell)) {
-                    updates.push(weaponContainer.onCellUpdated(targetCell.containerIndex, targetSlotKey));
-                }
-                if (updates.length > 0) {
-                    await Promise.all(updates);
-                }
-            }
-
-            // STEP 4: Persist both changes (clear source, set target)
-            if (this.persistenceManager) {
-                await this.persistenceManager.updateCells([
-                    {
-                        container: sourceCell.containerType,
-                        containerIndex: sourceCell.containerIndex,
-                        slotKey: sourceSlotKey,
-                        data: null,
-                        parentCell: sourceCell.parentCell // For containerPopover
-                    },
-                    {
-                        container: targetCell.containerType,
-                        containerIndex: targetCell.containerIndex,
-                        slotKey: targetSlotKey,
-                        data: sourceData,
-                        parentCell: targetCell.parentCell // For containerPopover
-                    }
-                ]);
-            }
+            return;
         }
+
+        const map = parkMapFromState(this.persistenceManager?.state);
+        const result = move(map, slotOf(sourceCell), slotOf(targetCell), this._occupancyOpts());
+        if (!result.ok) {
+            this._notifyOccupancyRefuse(result.reason);
+            return;
+        }
+        await this._commitParkedSlots(result.map, [sourceCell, targetCell]);
     }
 
 
@@ -575,59 +544,32 @@ export class InteractionCoordinator {
             return;
         }
 
-        // STEP 5: Check for duplicates
-        // For PreparedSpell cells: allow same UUID in different slots
-        // For other cells: block duplicate UUIDs
-        if (cellData.uuid && !ContainerTypeDetector.isWeaponSet(targetCell)) {
-            if (cellData.type === 'PreparedSpell') {
-                // For PreparedSpell, check for exact slot match
-                const existingLocation = this.persistenceManager.findPreparedSpellSlot(
-                    cellData.entryId,
-                    cellData.groupId,
-                    cellData.slotId
-                );
-                if (existingLocation) {
-                    ui.notifications.warn(game.i18n.localize('bg3-hud-core.Notifications.DuplicateSpellSlot'));
-                    return;
-                }
-            } else {
-                // For other types, block duplicate UUIDs
-                const existingLocation = this.persistenceManager.findUuidInHud(cellData.uuid);
-                if (existingLocation) {
-                    const label = isMacro ? 'macro' : isActivity ? 'activity' : 'item';
-                    ui.notifications.warn(game.i18n.format('bg3-hud-core.Notifications.DuplicateInHud', { label }));
-                    return;
-                }
+        if (targetCell.containerType === 'containerPopover') {
+            await targetCell.setData(cellData, { skipSave: true });
+            if (this.persistenceManager) {
+                await this.persistenceManager.updateCell({
+                    container: targetCell.containerType,
+                    containerIndex: targetCell.containerIndex,
+                    slotKey: targetCell.getSlotKey(),
+                    data: cellData,
+                    parentCell: targetCell.parentCell
+                });
             }
+            return;
         }
 
-        // STEP 6: Update visual state and two-handed weapon display simultaneously
-        await targetCell.setData(cellData, { skipSave: true });
-        this._updateRuntimeGridItem(targetCell, cellData);
-
-        // Update two-handed weapon display immediately (parallel with visual update)
-        if (ContainerTypeDetector.isWeaponSet(targetCell)) {
-            const weaponContainer = this.hotbarApp.components.weaponSets;
-            if (weaponContainer?.onCellUpdated) {
-                await weaponContainer.onCellUpdated(targetCell.containerIndex, targetCell.getSlotKey());
-            }
+        const map = parkMapFromState(this.persistenceManager?.state);
+        const result = occupy(map, slotOf(targetCell), cellData, this._occupancyOpts());
+        if (!result.ok) {
+            this._notifyOccupancyRefuse(result.reason);
+            return;
         }
-
-        // STEP 7: Persist the change
-        if (this.persistenceManager) {
-            await this.persistenceManager.updateCell({
-                container: targetCell.containerType,
-                containerIndex: targetCell.containerIndex,
-                slotKey: targetCell.getSlotKey(),
-                data: cellData,
-                parentCell: targetCell.parentCell // For containerPopover
-            });
-        }
+        await this._commitParkedSlots(result.map, [targetCell]);
     }
 
     /**
      * Persist adapter-supplied cell data that has no backing document (e.g. system actions).
-     * Mirrors the document path: validate ownership, block duplicates, then update and persist.
+     * Mirrors the document path: validate ownership, occupy, then persist.
      * @param {GridCell} targetCell
      * @param {Object} cellData
      * @private
@@ -645,27 +587,27 @@ export class InteractionCoordinator {
             return;
         }
 
-        // Block duplicate entries by synthetic uuid
-        if (cellData.uuid && !ContainerTypeDetector.isWeaponSet(targetCell)) {
-            const existingLocation = this.persistenceManager?.findUuidInHud(cellData.uuid);
-            if (existingLocation) {
-                ui.notifications.warn(game.i18n.format('bg3-hud-core.Notifications.DuplicateInHud', { label: 'action' }));
-                return;
+        if (targetCell.containerType === 'containerPopover') {
+            await targetCell.setData(cellData, { skipSave: true });
+            if (this.persistenceManager) {
+                await this.persistenceManager.updateCell({
+                    container: targetCell.containerType,
+                    containerIndex: targetCell.containerIndex,
+                    slotKey: targetCell.getSlotKey(),
+                    data: cellData,
+                    parentCell: targetCell.parentCell
+                });
             }
+            return;
         }
 
-        await targetCell.setData(cellData, { skipSave: true });
-        this._updateRuntimeGridItem(targetCell, cellData);
-
-        if (this.persistenceManager) {
-            await this.persistenceManager.updateCell({
-                container: targetCell.containerType,
-                containerIndex: targetCell.containerIndex,
-                slotKey: targetCell.getSlotKey(),
-                data: cellData,
-                parentCell: targetCell.parentCell
-            });
+        const map = parkMapFromState(this.persistenceManager?.state);
+        const result = occupy(map, slotOf(targetCell), cellData, this._occupancyOpts());
+        if (!result.ok) {
+            this._notifyOccupancyRefuse(result.reason);
+            return;
         }
+        await this._commitParkedSlots(result.map, [targetCell]);
     }
 
     /**

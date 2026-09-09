@@ -6,6 +6,7 @@
 import { BG3HUD_REGISTRY } from '../utils/registry.js';
 import { PersistenceManager } from './PersistenceManager.js';
 import { Logger } from '../utils/logger.js';
+import { alreadyOnUseGrids, occupy, parkMapFromState, writeParkMap } from '../occupancy/occupancy.js';
 
 export class ItemUpdateManager {
     constructor(options = {}) {
@@ -129,9 +130,8 @@ export class ItemUpdateManager {
      */
     async _addItemToActorHotbar(persistenceManager, state, item, actor) {
         // Check if the item already exists in any grid
-        const existingLocation = persistenceManager.findUuidInHud(item.uuid);
-        if (existingLocation) {
-            Logger.debug(`Skipping "${item.name}" - already exists in ${existingLocation.container} grid ${existingLocation.containerIndex}`);
+        if (alreadyOnUseGrids(parkMapFromState(state), { uuid: item.uuid })) {
+            Logger.debug(`Skipping "${item.name}" - already on the Hotbar or Quick Access`);
             return;
         }
 
@@ -169,8 +169,13 @@ export class ItemUpdateManager {
             }
 
             if (cellData) {
-                // Add the item to the hotbar data
-                grid.items[slotKey] = cellData;
+                const result = occupy(parkMapFromState(state), {
+                    container: 'hotbar',
+                    containerIndex: gridIndex,
+                    slotKey
+                }, cellData);
+                if (!result.ok) return;
+                writeParkMap(state, result.map);
 
                 Logger.debug(`Auto-added item "${item.name}" (${item.type}) to actor "${actor.name}" grid ${gridIndex + 1} at slot ${slotKey}`);
             }
@@ -250,8 +255,7 @@ export class ItemUpdateManager {
             }
 
             if (membership === 'add') {
-                const existingLocation = persistenceManager.findUuidInHud(item.uuid);
-                if (!existingLocation) {
+                if (!alreadyOnUseGrids(parkMapFromState(state), { uuid: item.uuid })) {
                     await this._addItemToActorHotbar(persistenceManager, state, item, actor);
                     return;
                 }
