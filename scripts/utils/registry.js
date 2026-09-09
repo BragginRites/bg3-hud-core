@@ -63,8 +63,11 @@ export const BG3HUD_REGISTRY = {
  * @property {Function} [resolveExternalDragData] Parsed drag payload from `JSON.parse(transfer)`. Return a
  *   result to consume the drop; return `null` to let core handle Item/Macro/Activity only.
  *   @returns {Promise<null|BG3HudDragResolution>}
- * @property {Function} [onAdapterFlagsChanged] Respond to Foundry deltas under `changes.flags[MODULE_ID]` for the active actor.
- *   @returns {Promise<boolean>} `true` if the adapter handled targeted UI updates for this delta.
+ * @property {Function} [resolveNotice] Map an `updateActor` changes object to a play-sheet notice.
+ *   Core unions this with a system-agnostic default. Do not walk the HUD tree.
+ *   @param {Object} changes
+ *   @param {Actor} [actor]
+ *   @returns {{ fills?: string[], extras?: string[], cells?: 'all' | { parked: string[] } }}
  * @property {Function} [resolveHotbarMembershipOnItemUpdate] Decide whether an item update should add/remove
  *   the item from hotbar membership. System-specific (e.g. spell preparation). Return `'add'`, `'remove'`,
  *   or `null` for no membership change (core still refreshes cell data when present).
@@ -74,22 +77,6 @@ export const BG3HUD_REGISTRY = {
  * @property {Function} [isPlayerCharacter] Whether actor should get PC-only HUD chrome (views, etc.).
  *   @param {Actor} actor
  *   @returns {boolean}
- * @property {Function} [resolveActorUpdatePlan] Map an `updateActor` changes object to targeted HUD refresh
- *   actions. Core executes the plan; adapters own system document paths (e.g. `system.spells`).
- *   @param {Object} changes
- *   @returns {BG3HudActorUpdatePlan}
- */
-
-/**
- * @typedef {Object} BG3HudActorUpdatePlan
- * @property {boolean} [health] Refresh portrait health / death UI
- * @property {boolean} [attributes] Refresh portrait data badges (AC, speed, etc.)
- * @property {boolean} [resources] Refresh filter / resource strip
- * @property {boolean} [abilities] Refresh info panel (abilities / skills)
- * @property {boolean} [items] Handle shallow `changes.items` indicator
- * @property {boolean} [depletion] Run adapter.updateCellDepletionStates after handlers
- * @property {boolean} [stop] Stop after applying this plan (no further default fallthrough)
- * @property {boolean} [lateDepletion] Run depletion at end when stop was not set
  */
 
 /**

@@ -7,6 +7,7 @@
 import { BG3HUD_REGISTRY } from '../utils/registry.js';
 import { ControlsManager } from './ControlsManager.js';
 import { Logger } from '../utils/logger.js';
+import { NOTICE_FILLS, isEmptyNotice, resolveNotice } from '../notice/resolveNotice.js';
 
 export class UpdateCoordinator {
     constructor(options = {}) {
@@ -212,131 +213,158 @@ export class UpdateCoordinator {
         }
 
         // Actor flag deltas keyed by adapter module (`flags[adapter.MODULE_ID]`)
+        // live on the same notice as system paths. Do not short-circuit.
         const adapter = BG3HUD_REGISTRY.activeAdapter;
-
-        // NOTE: Depletion states are applied after handlers (or when the plan requests them)
-        // to avoid race conditions with grid re-renders.
-
-        if (adapter && adapter.MODULE_ID) {
-            const adapterFlags = changes?.flags?.[adapter.MODULE_ID];
-            if (adapterFlags) {
-                if (await this._handleAdapterFlags(adapterFlags)) {
-                    return; // Handled with targeted update
-                }
-            }
+        let notice;
+        try {
+            notice = resolveNotice(adapter, changes, actor);
+        } catch (e) {
+            Logger.error('resolveNotice failed:', e);
+            notice = resolveNotice(null, changes, actor);
         }
-
-        // System document paths are adapter-owned (e.g. dnd5e system.spells).
-        const plan = this._resolveActorUpdatePlan(adapter, changes);
-        await this._applyActorUpdatePlan(actor, changes, plan);
+        await this.applyNotice(actor, notice);
     }
 
     /**
-     * Ask the adapter how to refresh the HUD for an actor update, with a system-agnostic fallback.
-     * @param {Object|null} adapter
-     * @param {Object} changes
-     * @returns {import('../utils/registry.js').BG3HudActorUpdatePlan}
-     * @private
-     */
-    _resolveActorUpdatePlan(adapter, changes) {
-        if (adapter && typeof adapter.resolveActorUpdatePlan === 'function') {
-            try {
-                return adapter.resolveActorUpdatePlan(changes) || {};
-            } catch (e) {
-                Logger.error('resolveActorUpdatePlan failed:', e);
-            }
-        }
-        return this._defaultActorUpdatePlan(changes);
-    }
-
-    /**
-     * Generic Foundry-shaped plan (no system.spells / other system-specific paths).
-     * @param {Object} changes
-     * @returns {Object}
-     * @private
-     */
-    _defaultActorUpdatePlan(changes) {
-        const hpChanged = changes?.system?.attributes?.hp !== undefined;
-        const deathChanged = changes?.system?.attributes?.death !== undefined;
-        if (hpChanged || deathChanged) {
-            return { health: true, stop: true };
-        }
-
-        if (changes?.items !== undefined) {
-            return { items: true, stop: true };
-        }
-
-        if (changes?.system?.resources !== undefined) {
-            return { resources: true, attributes: true, depletion: true, stop: true };
-        }
-
-        if (changes?.system?.abilities !== undefined || changes?.system?.skills !== undefined) {
-            return { abilities: true, stop: true };
-        }
-
-        const plan = { lateDepletion: true };
-        if (changes?.system?.attributes !== undefined) {
-            plan.attributes = true;
-        }
-        return plan;
-    }
-
-    /**
-     * Execute a targeted actor-update plan from the adapter / default mapper.
+     * Apply a play-sheet notice as targeted visual updates. Not a HUD rebuild.
      * @param {Actor} actor
-     * @param {Object} changes
-     * @param {Object} plan
-     * @private
+     * @param {{ fills?: string[], extras?: string[], cells?: 'all' | { parked: string[] } }} notice
      */
-    async _applyActorUpdatePlan(actor, changes, plan = {}) {
-        let didWork = false;
+    async applyNotice(actor, notice) {
+        if (isEmptyNotice(notice)) {
+            Logger.debug('UpdateCoordinator: Unhandled actor change (no notice):', notice);
+            return;
+        }
 
-        if (plan.health) {
-            if (await this._handleHealthChange()) {
-                didWork = true;
-                if (plan.stop) {
-                    if (plan.depletion) this._updateDepletionStatesDeferred(actor, changes);
-                    return;
-                }
+        const fills = new Set(notice.fills || []);
+        const extras = notice.extras || [];
+
+        if (fills.has(NOTICE_FILLS.FACE)) {
+            const portrait = this.hotbarApp.components?.portrait;
+            if (portrait && typeof portrait.render === 'function') {
+                await portrait.render();
+            }
+        }
+        if (fills.has(NOTICE_FILLS.VITALS) && !fills.has(NOTICE_FILLS.FACE)) {
+            await this._handleHealthChange();
+        }
+
+        if (fills.has(NOTICE_FILLS.FILTER)) {
+            await this._handleResourceChange();
+        }
+        if (fills.has(NOTICE_FILLS.CHARACTER_INFO)) {
+            await this._handleAbilityChange();
+        }
+        if (fills.has(NOTICE_FILLS.PASSIVES)) {
+            const passives = this.hotbarApp.components?.hotbar?.passivesContainer;
+            if (passives && typeof passives.render === 'function') {
+                await passives.render();
+            }
+        }
+        if (fills.has(NOTICE_FILLS.WEAPON_SET)) {
+            const weaponSets = this.hotbarApp.components?.weaponSets;
+            if (weaponSets && typeof weaponSets.render === 'function') {
+                await weaponSets.render();
+            }
+        }
+        if (fills.has(NOTICE_FILLS.ACTIVE_EFFECTS)) {
+            const effects = this.hotbarApp.components?.hotbar?.activeEffectsContainer;
+            if (effects && typeof effects.render === 'function') {
+                await effects.render();
+            }
+        }
+        if (fills.has(NOTICE_FILLS.REST)) {
+            const actionButtons = this.hotbarApp.components?.actionButtons;
+            if (actionButtons && typeof actionButtons.render === 'function') {
+                await actionButtons.render();
             }
         }
 
-        if (plan.attributes) {
-            didWork = (await this._handleAttributeChange()) || didWork;
-        }
-
-        if (plan.resources) {
-            didWork = (await this._handleResourceChange()) || didWork;
-        }
-
-        if (plan.abilities) {
-            didWork = (await this._handleAbilityChange()) || didWork;
-        }
-
-        if (plan.items) {
-            if (await this._handleItemsChange(changes.items)) {
-                didWork = true;
-                if (plan.stop) {
-                    if (plan.depletion) this._updateDepletionStatesDeferred(actor, changes);
-                    return;
-                }
+        for (const extraId of extras) {
+            const extra = this.hotbarApp.components?.[extraId];
+            if (!extra) continue;
+            if (typeof extra.updateButtons === 'function') {
+                extra.updateButtons();
+            } else if (typeof extra.render === 'function') {
+                await extra.render();
             }
         }
 
-        if (plan.depletion) {
-            this._updateDepletionStatesDeferred(actor, changes);
+        if (notice.cells) {
+            this._applyCellPlayStateDeferred(notice.cells);
         }
+    }
 
-        if (plan.stop) return;
+    /**
+     * Re-transform parked Cells (or every Cell) so uses, quantity, and Spent match the actor.
+     * @param {'all' | { parked: string[] }} cells
+     */
+    applyCellPlayState(cells) {
+        this._applyCellPlayStateDeferred(cells);
+    }
 
-        // Match prior behavior: attempt depletion for non-stopping plans
-        if (plan.lateDepletion !== false) {
-            this._updateDepletionStatesDeferred(actor, changes);
+    _applyCellPlayStateDeferred(cells) {
+        queueMicrotask(() => {
+            this._applyCellPlayState(cells).catch((e) => {
+                Logger.error('applyCellPlayState failed:', e);
+            });
+        });
+    }
+
+    async _applyCellPlayState(cells) {
+        if (!cells) return;
+        if (cells === 'all') {
+            const seen = new Set();
+            const jobs = [];
+            for (const cell of this._iterAllCells()) {
+                const uuid = cell?.data?.uuid;
+                if (!uuid || seen.has(uuid)) continue;
+                seen.add(uuid);
+                jobs.push(this._refreshPlayStateForCell(cell));
+            }
+            await Promise.all(jobs);
+            return;
         }
+        const parked = cells.parked || [];
+        await Promise.all(parked.map((uuid) => this._refreshPlayStateForUuid(uuid)));
+    }
 
-        if (!didWork && !plan.attributes && !plan.resources && !plan.abilities && !plan.health && !plan.items) {
-            Logger.debug('UpdateCoordinator: Unhandled actor change (no refresh):', changes);
+    async _refreshPlayStateForCell(cell) {
+        const adapter = BG3HUD_REGISTRY.activeAdapter;
+        const data = cell?.data;
+        if (!data) return;
+        if (data.type === 'Macro') return;
+        if (data.type === 'CrucibleAction' && typeof adapter?.transformActionToCellData === 'function') {
+            const actor = data.actorUuid
+                ? await fromUuid(data.actorUuid)
+                : this.hotbarApp.currentActor;
+            const action = actor?.actions?.[data.actionId];
+            if (!action) return;
+            const fresh = await adapter.transformActionToCellData(action, actor);
+            if (fresh && data.uuid) await this._refreshCellsByUuid(data.uuid, fresh);
+            return;
         }
+        if (data.uuid) await this._refreshPlayStateForUuid(data.uuid);
+    }
+
+    async _refreshPlayStateForUuid(uuid) {
+        if (!uuid) return;
+        const adapter = BG3HUD_REGISTRY.activeAdapter;
+        let doc = null;
+        try {
+            doc = await fromUuid(uuid);
+        } catch (e) {
+            Logger.debug('applyCellPlayState: fromUuid failed', uuid, e);
+            return;
+        }
+        if (!doc) return;
+        let fresh = null;
+        if (typeof adapter?.transformActivityToCellData === 'function' && doc.item) {
+            fresh = await adapter.transformActivityToCellData(doc);
+        } else if (typeof adapter?.transformItemToCellData === 'function' && doc.documentName !== 'Macro') {
+            fresh = await adapter.transformItemToCellData(doc);
+        }
+        if (fresh) await this._refreshCellsByUuid(uuid, fresh);
     }
 
     /**
@@ -405,25 +433,6 @@ export class UpdateCoordinator {
     }
 
     /**
-     * Delegate `flags[adapter.MODULE_ID]` deltas to the active adapter.
-     * @param {Object} adapterFlags
-     * @returns {Promise<boolean>} True if handled
-     * @private
-     */
-    async _handleAdapterFlags(adapterFlags) {
-        const adapter = BG3HUD_REGISTRY.activeAdapter;
-        if (adapter && typeof adapter.onAdapterFlagsChanged === 'function') {
-            try {
-                return !!(await adapter.onAdapterFlagsChanged(adapterFlags, this.hotbarApp));
-            } catch (e) {
-                Logger.error('onAdapterFlagsChanged failed:', e);
-                return false;
-            }
-        }
-        return false;
-    }
-
-    /**
      * Handle health/death save changes
      * Targeted update: only update portrait container
      * @returns {Promise<boolean>} True if handled
@@ -460,21 +469,6 @@ export class UpdateCoordinator {
     }
 
     /**
-     * Handle attribute changes (AC, Speed, etc.)
-     * Targeted update: only update portrait data badges
-     * @returns {Promise<boolean>} True if handled
-     * @private
-     */
-    async _handleAttributeChange() {
-        const portraitContainer = this.hotbarApp.components?.portrait;
-        if (portraitContainer && typeof portraitContainer.updatePortraitData === 'function') {
-            await portraitContainer.updatePortraitData();
-            return true;
-        }
-        return false;
-    }
-
-    /**
      * Handle ability score changes
      * Targeted update: only update info container
      * @returns {Promise<boolean>} True if handled
@@ -486,19 +480,6 @@ export class UpdateCoordinator {
             await infoContainer.update();
             return true;
         }
-        return false;
-    }
-
-    /**
-     * Handle item changes (uses, quantity, etc.)
-     * Targeted update: update cells that display the changed items
-     * @param {Array} changedItems - Array of changed item data
-     * @returns {Promise<boolean>} True if handled
-     * @private
-     */
-    async _handleItemsChange(changedItems) {
-        // Embedded item hooks handle most item updates with UUID-targeted refresh.
-        // Actor-level `changes.items` is often noisy and incomplete, so avoid broad fan-out here.
         return false;
     }
 
@@ -552,24 +533,6 @@ export class UpdateCoordinator {
     }
 
     /**
-     * Update cell depletion states after a deferred microtask
-     * This ensures depletion visual updates happen AFTER grid renders complete,
-     * preventing flash effects where cells momentarily appear available
-     * @param {Actor} actor - The actor that changed
-     * @param {Object} changes - The changes object from updateActor hook
-     * @private
-     */
-    _updateDepletionStatesDeferred(actor, changes) {
-        const adapter = BG3HUD_REGISTRY.activeAdapter;
-        if (!adapter?.updateCellDepletionStates) return;
-
-        // Use queueMicrotask to defer until after current render cycle completes
-        queueMicrotask(() => {
-            adapter.updateCellDepletionStates(actor, changes);
-        });
-    }
-
-    /**
      * React to embedded Item changes (uses, quantity, etc.)
      * Focused on UI refresh for items already in the hotbar
      * Item creation/deletion and hotbar data updates are handled by ItemUpdateManager
@@ -602,13 +565,7 @@ export class UpdateCoordinator {
             const transformedData = adapter?.transformItemToCellData
                 ? await adapter.transformItemToCellData(item)
                 : { uuid: item.uuid, name: item.name, img: item.img, type: 'Item' };
-            const changed = await this._refreshCellsByUuid(item.uuid, transformedData);
-
-            // AFTER all renders complete, update depletion states
-            // This ensures visual depletion is applied after cells have fresh data
-            if (changed) {
-                this._updateDepletionStatesDeferred(item.parent, changes);
-            }
+            await this._refreshCellsByUuid(item.uuid, transformedData);
         } catch (e) {
             Logger.error('UpdateCoordinator: Failed to handle embedded item change', e);
             if (this.hotbarApp.currentToken) {
@@ -636,7 +593,27 @@ export class UpdateCoordinator {
         if (updates.length) {
             await Promise.all(updates);
         }
+        this._patchPersistedPlayState(uuid, freshData);
         return anyChanged;
+    }
+
+    _patchPersistedPlayState(uuid, freshData) {
+        const state = this.persistenceManager?.state;
+        if (!state || !uuid || !freshData) return;
+        const patchItems = (items) => {
+            if (!items) return;
+            for (const [slotKey, data] of Object.entries(items)) {
+                if (data?.uuid === uuid) {
+                    items[slotKey] = { ...data, ...freshData };
+                }
+            }
+        };
+        for (const grid of state.hotbar?.grids || []) patchItems(grid.items);
+        for (const set of state.weaponSets?.sets || []) patchItems(set.items);
+        for (const grid of state.quickAccess?.grids || []) patchItems(grid.items);
+        for (const view of state.views?.list || []) {
+            for (const grid of view.hotbarState?.hotbar?.grids || []) patchItems(grid.items);
+        }
     }
 
     *_iterAllCells() {

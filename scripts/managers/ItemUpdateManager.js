@@ -402,30 +402,11 @@ export class ItemUpdateManager {
                 gridContainer.items = gridData.items;
                 await gridContainer.render();
 
-                // Slot/focus gray-out that is not always stored on cell data
-                this._refreshDepletionStates();
+                this.hotbarApp.updateCoordinator?.applyCellPlayState?.('all');
             }
         } catch (e) {
             Logger.warn(`Failed to update grid container ${gridIndex}:`, e);
         }
-    }
-
-    /**
-     * Ask the active adapter to recompute depleted/grayed cell visuals.
-     * @private
-     */
-    _refreshDepletionStates() {
-        const adapter = this._getAdapter();
-        const actor = this.hotbarApp?.currentActor;
-        if (!adapter?.updateCellDepletionStates || !actor) return;
-
-        queueMicrotask(() => {
-            try {
-                adapter.updateCellDepletionStates(actor, { _force: true });
-            } catch (e) {
-                Logger.warn('updateCellDepletionStates after grid refresh failed:', e);
-            }
-        });
     }
 
     /**

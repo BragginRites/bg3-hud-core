@@ -1,6 +1,7 @@
 ## [Unreleased]
 
 ### Changed
+- **Play-sheet updates**: Taking damage, spending slots, and similar changes update only the parts that changed (health, filters, grayed-out abilities). The HUD does not rebuild itself each time.
 - **Selecting more than one token**: The HUD follows the one token you have selected. If you select two or more (a group plus a creature still counts as two), it behaves like nothing is selected: GMs see the GM Hotbar if that setting is on, players see nothing.
 - **Rest and End turn**: End turn is the same in every game. Rest buttons still come from that game (short and long rest in D&D, and so on).
 

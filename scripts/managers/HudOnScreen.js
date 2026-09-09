@@ -1,7 +1,6 @@
 import { BG3HUD_API, BG3HUD_REGISTRY } from '../utils/registry.js';
 import { applyAppearanceSettings, applyMacrobarCollapseSetting } from '../utils/settings.js';
 import { HotbarViewsContainer } from '../components/containers/HotbarViewsContainer.js';
-import { Logger } from '../utils/logger.js';
 
 /**
  * Switch unit: what the HUD is on screen for (ADR-0002).
@@ -272,15 +271,8 @@ export class HudOnScreen {
         applyMacrobarCollapseSetting(app.isVisible);
         applyAppearanceSettings();
 
-        const adapter = BG3HUD_API.getActiveAdapter();
-        if (adapter?.updateCellDepletionStates && app.currentActor) {
-            queueMicrotask(() => {
-                try {
-                    adapter.updateCellDepletionStates(app.currentActor, { _force: true });
-                } catch (e) {
-                    Logger.warn('updateCellDepletionStates after Token switch failed:', e);
-                }
-            });
+        if (app.updateCoordinator && typeof app.updateCoordinator.applyCellPlayState === 'function') {
+            app.updateCoordinator.applyCellPlayState('all');
         }
     }
 }
