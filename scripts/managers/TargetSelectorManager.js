@@ -121,7 +121,7 @@ export class TargetSelectorManager {
 
     /**
      * Validate if a token is a valid target.
-     * Only: exists, target type (self/enemy unless overridden), and range (if enabled).
+     * Exists, the game's own target rule (unless overridden), and range (if enabled).
      * @param {Token} token - The token to validate
      * @returns {{valid: boolean, reason: string|null}} Validation result
      */
@@ -130,7 +130,7 @@ export class TargetSelectorManager {
             return { valid: false, reason: game.i18n.localize('bg3-hud-core.TargetSelector.InvalidTarget') };
         }
 
-        // Target type: self / enemy (skippable via override setting)
+        // Who is legal is decided by the system adapter.
         const ignoreType = game.settings.get('bg3-hud-core', 'ignoreTargetTypeRestrictions') ?? false;
         if (!ignoreType && this.adapter?.targetingRules?.isValidTargetType) {
             const adapterValidation = this.adapter.targetingRules.isValidTargetType({

@@ -10,7 +10,7 @@ The HUD follows the creature you have selected, keeps up during a fight without 
 - **One creature at a time**: The HUD follows the single token you have selected. Select more than one and it steps aside. GMs then see the GM Hotbar when that option is on. Players see nothing.
 - **Updates during play**: Damage, spell slots, potions, and similar changes move the numbers and icons that changed. The rest of the bar stays where it is.
 - **What you can place**: The Hotbar can hold as many copies of an ability as you like. Weapon sets are for what that creature is holding. Dragging on the HUD moves or swaps. Auto-fill will not add another copy of something already placed, and it will not fill a weapon set.
-- **Choosing targets**: With Target Select on, you pick creatures yourself, and an area spell places with one click. A spell attack no longer starts with you already selected ([#40](https://github.com/BragginRites/bg3-hud-core/issues/40)). Who an ability can target comes from that game. With the setting off, Foundry's own targeting is unchanged.
+- **Choosing targets**: With Target Select on, you pick creatures yourself, and an area spell places with one click. A spell attack no longer starts with you already selected ([#40](https://github.com/BragginRites/bg3-hud-core/issues/40)). Which tokens are legal is decided by that game. D&D and Pathfinder now use their own target types for this. With the setting off, Foundry's own targeting is unchanged.
 - **End turn**: End turn works the same in every game. Rest buttons still come from that game.
 
 ### Fixed
