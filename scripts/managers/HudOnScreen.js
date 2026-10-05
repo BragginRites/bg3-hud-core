@@ -4,7 +4,7 @@ import { HotbarViewsContainer } from '../components/containers/HotbarViewsContai
 import { Logger } from '../utils/logger.js';
 
 /**
- * Switch unit: what the HUD is on screen for (ADR-0002).
+ * What the HUD is on screen for.
  * Callers say show this Token, or not exactly one Token, or GM Hotbar override.
  * Soft vs full rebuild stays inside.
  */
