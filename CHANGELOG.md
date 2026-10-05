@@ -1,4 +1,4 @@
-## [Unreleased]
+## [0.7.0] - 2026-10-05
 
 The HUD follows the creature you have selected, keeps up during a fight without rebuilding itself, and lets you choose targets yourself when that option is on.
 
