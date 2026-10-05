@@ -1,3 +1,8 @@
+## [0.7.1] - 2026-10-05
+
+### Fixed
+- **Item hover cards**: The card that appears when you hover an item on the HUD keeps its own layout. Another module's tooltip style no longer changes how that card is built.
+
 ## [0.7.0] - 2026-10-05
 
 The HUD follows the creature you have selected, keeps up during a fight without rebuilding itself, and lets you choose targets yourself when that option is on.

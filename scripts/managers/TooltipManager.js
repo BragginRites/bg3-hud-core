@@ -47,9 +47,7 @@ export class TooltipManager {
      * @private
      */
     _init() {
-        // Create tooltip container
-        // Use our own ID to avoid interfering with system tooltips
-        // System adapters may set a different element ID to match system tooltip CSS
+        // Own id. Adapters must not reuse Foundry's #tooltip, or other modules restyle this card.
         this.tooltipElement = document.createElement('div');
         this.tooltipElement.id = 'bg3-tooltip';
         this.tooltipElement.classList.add('bg3-tooltip');
@@ -221,7 +219,7 @@ export class TooltipManager {
 
             if (nameOnly) {
                 // Find and remove description elements to show only structure
-                const descElements = this.tooltipElement.querySelectorAll('.description, .tooltip-description');
+                const descElements = this.tooltipElement.querySelectorAll('.bg3-tt-description, .description, .tooltip-description');
                 descElements.forEach(el => el.remove());
             }
 
