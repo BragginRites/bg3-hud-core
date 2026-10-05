@@ -3,7 +3,7 @@
 The HUD follows the creature you have selected, keeps up during a fight without rebuilding itself, and lets you choose targets yourself when that option is on.
 
 ### Added
-- **Polish**: A Polish translation is included, as far as the last translation pass. Phrases added since then still show in English.
+- **Polish**: Thanks to @Lioheart. A Polish translation is included, as far as their last pass. Phrases added since then still show in English.
 
 ### Changed
 - **Selecting a token**: The HUD appears when that creature is ready. It fades only after it has been up and the pointer is off it. A right-click menu from the HUD keeps it on screen.
@@ -17,7 +17,7 @@ The HUD follows the creature you have selected, keeps up during a fight without 
 - **A steadier HUD**: It no longer waits invisible after you click a token, flashes half-drawn, or fades while one of its menus is open.
 - **GM Hotbar and Minimalist View**: Switching to the GM Hotbar and back, and selecting a token in Minimalist View, no longer leave you on the wrong layout.
 - **Games without passives**: Those games no longer show an empty passives row.
-- **Brazilian Portuguese**: Includes the latest translation pass, including Minimalist View. Phrases added since that pass still show in English.
+- **Brazilian Portuguese**: Thanks to @Kharmans. Includes their latest pass, including Minimalist View. Phrases added since that pass still show in English.
 
 
 ## [0.6.0] - 2026-08-25
