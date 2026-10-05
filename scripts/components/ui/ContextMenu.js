@@ -7,6 +7,20 @@ import { Logger } from '../../utils/logger.js';
  * System-agnostic - adapters can add custom menu items
  */
 export class ContextMenu extends BG3Component {
+    /** Open HUD menus. The menu is portaled to document.body, so it is not a hover of the hotbar. */
+    static _hudFadeHolds = 0;
+
+    static _holdHudFade() {
+        this._hudFadeHolds += 1;
+        document.getElementById('bg3-hotbar-container')?.classList.add('bg3-hud-menu-open');
+    }
+
+    static _releaseHudFade() {
+        this._hudFadeHolds = Math.max(0, this._hudFadeHolds - 1);
+        if (this._hudFadeHolds === 0) {
+            document.getElementById('bg3-hotbar-container')?.classList.remove('bg3-hud-menu-open');
+        }
+    }
     /**
      * Create a context menu
      * @param {Object} options - Menu configuration
@@ -102,6 +116,8 @@ export class ContextMenu extends BG3Component {
 
         // Append to parent
         this.parent.appendChild(this.element);
+        this._holdsHudFade = true;
+        ContextMenu._holdHudFade();
 
         // Close on click outside
         setTimeout(() => {
@@ -164,6 +180,10 @@ export class ContextMenu extends BG3Component {
     destroy() {
         document.removeEventListener('click', this._onClickOutside);
         document.removeEventListener('contextmenu', this._onClickOutside);
+        if (this._holdsHudFade) {
+            this._holdsHudFade = false;
+            ContextMenu._releaseHudFade();
+        }
         super.destroy();
     }
 }

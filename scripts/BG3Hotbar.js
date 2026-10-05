@@ -151,7 +151,7 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
     /**
      * Refresh the hotbar (re-render)
      * Debounced: rapid calls within 50ms are coalesced into a single render.
-     * Uses CSS transitionend instead of hard setTimeout for fade-out.
+     * Token show does not wait on idle fade-out. That delay is hover-out only.
      * Callers that change what is on screen should use hudOnScreen, not this.
      * @param {Object} [options]
      * @param {boolean} [options.forceFull] Skip soft Token path (used when soft swap falls back).
@@ -167,9 +167,7 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
             return;
         }
 
-        // First time building token/GM HUD shell (no hotbar yet): skip debounce and
-        // fade-out. Avoids ~250ms of artificial delay and a teardown flash after load
-        // or first selection when nothing is on screen to transition from.
+        // First time building token/GM HUD shell (no hotbar yet): skip debounce.
         const coldHudBuild = !this.components?.hotbar
             && !!(this.currentToken
                 || this.overrideGMHotbar
@@ -194,32 +192,15 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
             if (generation !== this._refreshGeneration) return;
         }
 
-        // Add fade-out transition before re-rendering (not for cold first build)
-        if (!coldHudBuild
-            && this.element
-            && !this.element.classList.contains('bg3-hud-building')) {
-            this.element.classList.remove('bg3-hud-visible');
-            this.element.classList.add('bg3-hud-fading-out');
-
-            // Wait for CSS transition to finish, with safety cap at 200ms
-            await new Promise(resolve => {
-                const safetyTimeout = setTimeout(resolve, 200);
-                this.element?.addEventListener('transitionend', function handler() {
-                    clearTimeout(safetyTimeout);
-                    resolve();
-                }, { once: true });
-            });
-
-            // Check again after waiting — a newer call may have superseded us
-            if (generation !== this._refreshGeneration) return;
-        }
-
         if (this.element) {
             this.element.classList.add('bg3-hud-building');
-            this.element.classList.remove('bg3-hud-visible');
+            this.element.classList.remove('bg3-hud-visible', 'bg3-hud-fading-out');
         }
 
-        if (generation !== this._refreshGeneration) return;
+        if (generation !== this._refreshGeneration) {
+            this._finalizeRenderVisibility();
+            return;
+        }
         await this.render(false);
     }
 
@@ -396,13 +377,9 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
 
         if (visible) {
             this.element.classList.remove('bg3-hud-user-hidden');
-            // If we are unhiding, ensure we aren't stuck in hidden state
-            if (!this.element.classList.contains('bg3-hud-hidden')) {
-                this.element.style.display = '';
-            }
+            this._finalizeRenderVisibility();
         } else {
             this.element.classList.add('bg3-hud-user-hidden');
-            // Force hide
             this.element.style.display = 'none';
         }
 
@@ -424,6 +401,7 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
      * @private
      */
     async _initializeComponents() {
+        const startedAt = performance.now();
         // Clear existing components
         this._destroyComponents();
 
@@ -491,6 +469,8 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
         if (!isGMHotbarMode) {
             state = await this.persistenceManager.hydrateState(state);
         }
+
+        Logger.info(`HUD load+hydrate ${Math.round(performance.now() - startedAt)}ms`);
 
         // Create shared interaction handlers (delegates to InteractionCoordinator)
         const handlers = {
@@ -581,6 +561,7 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
             this.components.hotbar.element.appendChild(await this.components.controls.render());
         }
 
+        Logger.info(`HUD components ready ${Math.round(performance.now() - startedAt)}ms`);
     }
 
     /**
@@ -598,12 +579,17 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
             return;
         }
 
-        this.element.classList.remove('bg3-hud-hidden', 'bg3-hud-fading-out');
+        // Reveal in this turn. Leaving `bg3-hud-building` on until a later rAF
+        // keeps opacity at 0 (!important), and that paint can stick until a
+        // hide/show toggle forces a style recalc.
+        this.element.classList.remove(
+            'bg3-hud-hidden',
+            'bg3-hud-fading-out',
+            'bg3-hud-building',
+            'bg3-hud-user-hidden'
+        );
+        this.element.style.display = '';
         this.element.classList.add('bg3-hud-visible');
-        const reveal = () => {
-            this.element?.classList.remove('bg3-hud-building');
-        };
-        requestAnimationFrame(() => requestAnimationFrame(reveal));
     }
 
     /**

@@ -43,11 +43,11 @@ export function createLogger(moduleId = CORE_MODULE_ID) {
     return {
         /** Verbose trace — only prints when debug logging is enabled. */
         debug(...args) {
-            if (isVerbose()) console.debug(prefix, ...args);
+            if (isVerbose()) console.log(prefix, ...args);
         },
         /** Informational milestone — only prints when debug logging is enabled. */
         info(...args) {
-            if (isVerbose()) console.info(prefix, ...args);
+            if (isVerbose()) console.log(prefix, ...args);
         },
         /** Warning — always prints. */
         warn(...args) {

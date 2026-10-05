@@ -11,6 +11,75 @@
  */
 import { Logger } from '../utils/logger.js';
 
+/**
+ * Resolve a UUID from documents already in memory (actor items, loaded packs).
+ * Returns null when the pack is not loaded or the UUID is gone.
+ * @param {string} uuid
+ * @returns {Document|null}
+ */
+function resolveUuidSync(uuid) {
+    if (!uuid || typeof fromUuidSync !== 'function') return null;
+    try {
+        return fromUuidSync(uuid) || null;
+    } catch {
+        return null;
+    }
+}
+
+/**
+ * Resolve a parked Cell's document from the current Actor without fromUuid.
+ * Actor-owned Items and Activities are already in memory; fromUuid on every
+ * Slot is what made Token-select wait several seconds.
+ * @param {string} uuid
+ * @param {Actor|null} actor
+ * @returns {Document|null}
+ */
+function resolveHudDocument(uuid, actor = null) {
+    if (!uuid) return null;
+
+    if (actor) {
+        const itemMarker = '.Item.';
+        const itemIdx = uuid.lastIndexOf(itemMarker);
+        if (itemIdx !== -1) {
+            const rest = uuid.slice(itemIdx + itemMarker.length);
+            const activityMarker = '.Activity.';
+            const activityIdx = rest.indexOf(activityMarker);
+            const itemId = activityIdx === -1 ? rest : rest.slice(0, activityIdx);
+            const item = actor.items.get(itemId);
+            if (item) {
+                if (activityIdx === -1) return item;
+                const activityId = rest.slice(activityIdx + activityMarker.length);
+                const activities = item.system?.activities;
+                if (activities?.get) return activities.get(activityId) || null;
+                if (Array.isArray(activities?.contents)) {
+                    return activities.contents.find((a) => a.id === activityId) || null;
+                }
+                return null;
+            }
+        }
+    }
+
+    return resolveUuidSync(uuid);
+}
+
+/**
+ * Prefer a document already on the Actor, then a cached lookup, then Foundry's
+ * async pack load only when the UUID is not in memory.
+ * @param {string} uuid
+ * @param {Actor|null} actor
+ * @returns {Promise<Document|null>}
+ */
+async function resolveUuid(uuid, actor = null) {
+    if (!uuid) return null;
+    const cached = resolveHudDocument(uuid, actor);
+    if (cached) return cached;
+    try {
+        return await fromUuid(uuid);
+    } catch {
+        return null;
+    }
+}
+
 export class PersistenceManager {
     /**
      * @param {Object} [options]
@@ -243,7 +312,7 @@ export class PersistenceManager {
                         return;
                     }
 
-                    const doc = await fromUuid(cellData.uuid);
+                    const doc = await resolveUuid(cellData.uuid, this.currentActor);
                     if (!doc) {
                         Logger.warn(`✗ Could not resolve UUID for ${containerPath}[${slotKey}]:`, cellData.uuid);
                         return;
@@ -315,6 +384,7 @@ export class PersistenceManager {
             Logger.error('PersistenceManager: Error saving state:', error);
             throw error;
         } finally {
+            this._lastSaveTimestamp = Date.now();
             this._saveInProgress = false;
         }
     }
@@ -894,7 +964,7 @@ export class PersistenceManager {
      * @returns {boolean} True if we should skip reload
      */
     shouldSkipReload() {
-        // Skip if we saved in the last 500ms (generous window for Foundry's async hooks)
+        if (this._saveInProgress) return true;
         const timeSinceLastSave = Date.now() - this._lastSaveTimestamp;
         return timeSinceLastSave < 500;
     }
@@ -1204,9 +1274,14 @@ export class PersistenceManager {
         const itemMaps = this._collectAllItemMaps(state);
         let changed = false;
 
-        for (const items of itemMaps) {
-            for (const [slotKey, cellData] of Object.entries(items)) {
-                const result = await this._reconcileCellData(cellData, adapter);
+        await Promise.all(itemMaps.map(async (items) => {
+            const results = await Promise.all(
+                Object.entries(items).map(async ([slotKey, cellData]) => {
+                    const result = await this._reconcileCellData(cellData, adapter);
+                    return [slotKey, result];
+                })
+            );
+            for (const [slotKey, result] of results) {
                 if (result.action === 'update') {
                     items[slotKey] = result.data;
                     changed = true;
@@ -1215,7 +1290,7 @@ export class PersistenceManager {
                     changed = true;
                 }
             }
-        }
+        }));
 
         return changed;
     }
@@ -1262,7 +1337,7 @@ export class PersistenceManager {
 
         if (!cellData.uuid) return { action: 'keep' };
 
-        const resolved = await fromUuid(cellData.uuid);
+        const resolved = resolveHudDocument(cellData.uuid, this.currentActor);
         if (resolved) return { action: 'keep' };
 
         const actor = this.currentActor;
@@ -1309,13 +1384,14 @@ export class PersistenceManager {
             changed = true;
         }
 
-        if (await this.reconcileStaleItemUuids(state)) {
-            changed = true;
-        }
+        const reconciled = await this.reconcileStaleItemUuids(state);
+        if (reconciled) changed = true;
 
         if (changed) {
             this._syncCurrentStateToActiveView(state);
-            await this.saveState(state);
+            // Never setFlag during Token-select load. A large hudState write
+            // stalls the main thread and the updateActor hook can rebuild the
+            // HUD after Foundry's skip window expires.
         }
     }
 

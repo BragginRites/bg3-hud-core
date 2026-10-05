@@ -1,6 +1,7 @@
 import { BG3HUD_API, BG3HUD_REGISTRY } from '../utils/registry.js';
 import { applyAppearanceSettings, applyMacrobarCollapseSetting } from '../utils/settings.js';
 import { HotbarViewsContainer } from '../components/containers/HotbarViewsContainer.js';
+import { Logger } from '../utils/logger.js';
 
 /**
  * Switch unit: what the HUD is on screen for (ADR-0002).
@@ -88,9 +89,11 @@ export class HudOnScreen {
      * @private
      */
     async _apply() {
+        const startedAt = performance.now();
         const app = this.app;
         if (!app.rendered) {
             await app.refresh();
+            Logger.info(`HUD show (first render) ${Math.round(performance.now() - startedAt)}ms`);
             return;
         }
 
@@ -101,10 +104,12 @@ export class HudOnScreen {
             } finally {
                 app._refreshGeneration++;
             }
+            Logger.info(`HUD show (soft swap) ${Math.round(performance.now() - startedAt)}ms`);
             return;
         }
 
         await app.refresh();
+        Logger.info(`HUD show (full refresh) ${Math.round(performance.now() - startedAt)}ms`);
     }
 
     /**
@@ -270,9 +275,6 @@ export class HudOnScreen {
         app.updateDisplaySettings();
         applyMacrobarCollapseSetting(app.isVisible);
         applyAppearanceSettings();
-
-        if (app.updateCoordinator && typeof app.updateCoordinator.applyCellPlayState === 'function') {
-            app.updateCoordinator.applyCellPlayState('all');
-        }
+        app._finalizeRenderVisibility();
     }
 }

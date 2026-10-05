@@ -52,7 +52,7 @@
       },
       "FadeOutDelay": {
         "Name": "Fade Out Delay (seconds)",
-        "Hint": "How long to wait before fading out the HUD (1 to 30 seconds)"
+        "Hint": "How long after the HUD is shown (and the pointer is not over it) before it fades to Faded Opacity"
       },
       "AutoScale": {
         "Name": "Auto Scale",

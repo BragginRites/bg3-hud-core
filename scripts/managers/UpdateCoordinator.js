@@ -101,6 +101,7 @@ export class UpdateCoordinator {
                 && !this.hotbarApp.overrideGMHotbar) {
                 this.hotbarApp.currentToken = play;
                 this.hotbarApp.currentActor = play.actor;
+                this.hotbarApp._finalizeRenderVisibility();
                 return;
             }
             await hud.showToken(play);

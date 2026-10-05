@@ -103,39 +103,33 @@ export class HotbarContainer extends BG3Component {
                 this.element.appendChild(await this.passivesContainer.render());
             }
 
-            // Create new grid containers and drag bars
-            for (let i = 0; i < this.grids.length; i++) {
-                const gridData = this.grids[i];
-                
-                // Create GridContainer
-                const gridContainer = new GridContainer({
-                    rows: gridData.rows,
-                    cols: gridData.cols,
-                    items: gridData.items || {},
-                    id: 'hotbar',
-                    index: i,
-                    containerType: 'hotbar',
-                    containerIndex: i,
-                    persistenceManager: this.options.hotbarApp?.persistenceManager,
-                    onCellClick: this.options.onCellClick,
-                    onCellRightClick: this.options.onCellRightClick,
-                    onCellDragStart: this.options.onCellDragStart,
-                    onCellDragEnd: this.options.onCellDragEnd,
-                    onCellDrop: this.options.onCellDrop,
-                    decorateCellElement: this.options.decorateCellElement
-                });
+            // Create every grid first, render them together, then append in order.
+            const created = this.grids.map((gridData, i) => new GridContainer({
+                rows: gridData.rows,
+                cols: gridData.cols,
+                items: gridData.items || {},
+                id: 'hotbar',
+                index: i,
+                containerType: 'hotbar',
+                containerIndex: i,
+                persistenceManager: this.options.hotbarApp?.persistenceManager,
+                onCellClick: this.options.onCellClick,
+                onCellRightClick: this.options.onCellRightClick,
+                onCellDragStart: this.options.onCellDragStart,
+                onCellDragEnd: this.options.onCellDragEnd,
+                onCellDrop: this.options.onCellDrop,
+                decorateCellElement: this.options.decorateCellElement
+            }));
+            this.gridContainers.push(...created);
+            const gridElements = await Promise.all(created.map((gridContainer) => gridContainer.render()));
 
-                this.gridContainers.push(gridContainer);
-                const gridElement = await gridContainer.render();
-                
-                // Hide container if cols is 0
-                if (gridData.cols === 0) {
+            for (let i = 0; i < this.grids.length; i++) {
+                const gridElement = gridElements[i];
+                if (this.grids[i].cols === 0) {
                     gridElement.style.display = 'none';
                 }
-                
                 this.element.appendChild(gridElement);
 
-                // Add DragBar between grids (except after last grid)
                 if (i < this.grids.length - 1) {
                     const dragBar = new DragBar({
                         index: i,
@@ -143,8 +137,7 @@ export class HotbarContainer extends BG3Component {
                         onDragEnd: (bar, deltaX) => this._onDragBarEnd(bar, deltaX)
                     });
                     this.dragBars.push(dragBar);
-                    const dragBarElement = await dragBar.render();
-                    this.element.appendChild(dragBarElement);
+                    this.element.appendChild(await dragBar.render());
                 }
             }
         } else {

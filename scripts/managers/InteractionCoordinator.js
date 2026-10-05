@@ -559,12 +559,12 @@ export class InteractionCoordinator {
         }
 
         const map = parkMapFromState(this.persistenceManager?.state);
-        const result = occupy(map, slotOf(targetCell), cellData, this._occupancyOpts());
-        if (!result.ok) {
-            this._notifyOccupancyRefuse(result.reason);
+        const parked = occupy(map, slotOf(targetCell), cellData, this._occupancyOpts());
+        if (!parked.ok) {
+            this._notifyOccupancyRefuse(parked.reason);
             return;
         }
-        await this._commitParkedSlots(result.map, [targetCell]);
+        await this._commitParkedSlots(parked.map, [targetCell]);
     }
 
     /**

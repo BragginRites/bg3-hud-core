@@ -133,11 +133,22 @@ export class TargetSelectorEvents {
             return;
         }
 
+        if (!canvas?.stage?.worldTransform) return;
+
         // Check if we hit a token
         // Using worldTransform to account for pan and zoom
         const t = canvas.stage.worldTransform;
         const worldX = (event.clientX - t.tx) / t.a;
         const worldY = (event.clientY - t.ty) / t.d;
+
+        if (this.manager.requirements?.hasTemplate) {
+            if (event.target.closest?.('#bg3-hotbar, #bg3-target-list, .bg3-hud')) return;
+            event.preventDefault();
+            event.stopPropagation();
+            event.stopImmediatePropagation();
+            this.manager.placeArea({ x: worldX, y: worldY });
+            return;
+        }
 
         const token = this._getTokenAtPosition({ x: worldX, y: worldY });
 

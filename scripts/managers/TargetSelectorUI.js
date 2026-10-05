@@ -39,8 +39,10 @@ export class TargetSelectorUI {
         this._createMouseDisplay(requirements);
         this._setTargetingCursor();
 
-        // Show the target list dialog immediately
-        this.showTargetList();
+        // Show the creature-pick list. Area-fill is a canvas click, not that list.
+        if (!requirements.hasTemplate) {
+            this.showTargetList();
+        }
 
         if (requirements.range && this.manager.sourceToken) {
             Logger.warn('UI: Attempting to show range indicator', { range: requirements.range, token: this.manager.sourceToken.name });
