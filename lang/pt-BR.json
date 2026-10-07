@@ -52,7 +52,7 @@
       },
       "FadeOutDelay": {
         "Name": "Atraso para Desaparecer (segundos)",
-        "Hint": "Tempo de espera antes da HUD desaparecer (1 a 30 segundos)"
+        "Hint": "Quanto tempo após a HUD ser exibida (e enquanto o ponteiro não estiver sobre ela) leva para ela esmaecer até a Opacidade Esmaecida"
       },
       "AutoScale": {
         "Name": "Escala Automática",
@@ -75,7 +75,7 @@
       },
       "PosPaddingBottom": {
         "Name": "Espaçamento Inferior",
-        "Hint": "Espaçamento em relação à parte inferior da tela (pixels). Ignorado enquanto a Visualização Minimalista estiver ativada."
+        "Hint": "Espaçamento em relação à parte inferior da tela (em pixels). Ignorado enquanto a Visualização Minimalista estiver ativada."
       },
       "PassivesContainerIconsPerRow": {
         "Name": "Ícones de Características Passivas por Linha",
@@ -91,7 +91,7 @@
       },
       "ShowFilters": {
         "Name": "Mostrar Ícones de Filtros",
-        "Hint": "Exibe os ícones de filtro de espaço de magia e tipo de ação acima da hotbar"
+        "Hint": "Exibe os ícones de filtro de recursos e ações acima da hotbar"
       },
       "MinimalistView": {
         "Name": "Visualização Minimalista",
@@ -291,6 +291,10 @@
       "DuplicateItem": "Este item já existe em outro lugar na HUD",
       "DuplicateSpellSlot": "Esta entrada de recurso já está na HUD",
       "DuplicateInHud": "Este(a) {label} já está no HUD",
+      "OccupancyWrongKind": "Apenas itens empunhados podem fazer parte de um conjunto de armas.",
+      "OccupancySameSet": "Esse item já está neste conjunto de armas.",
+      "OccupancyReserved": "Este espaço é ocupado por uma arma de duas mãos.",
+      "OccupancyOccupied": "Esse espaço já está ocupado.",
       "NoActorSelected": "Nenhum ator selecionado",
       "ItemOwnerMismatch": "Este(a) {type} pertence a {owner}, não a {current}",
       "MacroNotFound": "Macro não encontrada",
@@ -337,6 +341,7 @@
       "ContextDuplicate": "Duplicar Visualização",
       "ContextDelete": "Excluir Visualização"
     },
+    "EndTurn": "Finalizar Turno",
     "MaxSelectionsReached": "Máximo de {max} seleções alcançado"
   }
 }
