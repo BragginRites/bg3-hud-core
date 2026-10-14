@@ -79,7 +79,7 @@ export class TargetSelectorEvents {
      * @private
      */
     _onKeyDown(event) {
-        if (!this.manager.isActive) {
+        if (!this.manager.isSelectionActive()) {
             return;
         }
 
@@ -119,7 +119,7 @@ export class TargetSelectorEvents {
      * @private
      */
     _onPointerDown(event) {
-        if (!this.manager.isActive) {
+        if (!this.manager.isSelectionActive()) {
             return;
         }
 
@@ -141,7 +141,8 @@ export class TargetSelectorEvents {
         const worldX = (event.clientX - t.tx) / t.a;
         const worldY = (event.clientY - t.ty) / t.d;
 
-        if (this.manager.requirements?.hasTemplate) {
+        const { requirements } = this.manager.getSelectionState();
+        if (requirements?.hasTemplate) {
             if (event.target.closest?.('#bg3-hotbar, #bg3-target-list, .bg3-hud')) return;
             event.preventDefault();
             event.stopPropagation();
@@ -177,7 +178,7 @@ export class TargetSelectorEvents {
      * @private
      */
     _onClick(event) {
-        if (!this.manager.isActive) {
+        if (!this.manager.isSelectionActive()) {
             return;
         }
 
@@ -285,7 +286,7 @@ export class TargetSelectorEvents {
      * @private
      */
     _onMouseMove(event) {
-        if (!this.manager.isActive || !this.manager.ui) {
+        if (!this.manager.isSelectionActive()) {
             return;
         }
 
@@ -295,7 +296,7 @@ export class TargetSelectorEvents {
         }
 
         this._mouseMoveFrame = requestAnimationFrame(() => {
-            this.manager.ui.updateMousePosition(event.clientX, event.clientY);
+            this.manager.updateMousePosition(event.clientX, event.clientY);
         });
     }
 
@@ -307,7 +308,7 @@ export class TargetSelectorEvents {
      * @private
      */
     _onTargetToken(user, token, targeted) {
-        if (!this.manager.isActive) {
+        if (!this.manager.isSelectionActive()) {
             return;
         }
 

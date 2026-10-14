@@ -3,7 +3,7 @@
  * Handles automatic hotbar population when items are created/updated/deleted on actors
  * Works with any actor (not just currently selected), updating their hotbar data in flags
  */
-import { BG3HUD_REGISTRY } from '../utils/registry.js';
+import { BG3HUD_API } from '../utils/registry.js';
 import { PersistenceManager } from './PersistenceManager.js';
 import { Logger } from '../utils/logger.js';
 import { alreadyOnUseGrids, occupy, parkMapFromState, writeParkMap } from '../occupancy/occupancy.js';
@@ -58,7 +58,7 @@ export class ItemUpdateManager {
      * @private
      */
     _getAdapter() {
-        return BG3HUD_REGISTRY.activeAdapter;
+        return BG3HUD_API.getActiveAdapter();
     }
 
     /**

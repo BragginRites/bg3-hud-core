@@ -1,4 +1,4 @@
-import { BG3HUD_API, BG3HUD_REGISTRY } from '../utils/registry.js';
+import { BG3HUD_API } from '../utils/registry.js';
 
 /**
  * Component Factory
@@ -18,6 +18,19 @@ export class ComponentFactory {
      */
     getRegisteredContainerIds(region = 'left') {
         return BG3HUD_API.getRegisteredContainers(region).map((e) => e.id);
+    }
+
+    /**
+     * Resolve the active adapter's decorateCellElement, bound to maintain adapter context.
+     * Centralizes the lookup shared by every container that supports cell decoration.
+     * @returns {Function|undefined}
+     * @private
+     */
+    _resolveDecorateCellElement() {
+        const adapter = BG3HUD_API.getActiveAdapter();
+        return adapter?.decorateCellElement
+            ? adapter.decorateCellElement.bind(adapter)
+            : undefined;
     }
 
     /**
@@ -47,13 +60,9 @@ export class ComponentFactory {
         const { WeaponSetContainer } = await import('../components/containers/WeaponSetContainer.js');
         
         const WeaponSetClass = BG3HUD_API.getNamedHudPart('weaponSet') || WeaponSetContainer;
-        
-        // Bind decorateCellElement to maintain adapter context
-        const adapter = BG3HUD_REGISTRY.activeAdapter;
-        const decorateCellElement = adapter?.decorateCellElement 
-            ? adapter.decorateCellElement.bind(adapter) 
-            : undefined;
-        
+
+        const decorateCellElement = this._resolveDecorateCellElement();
+
         return new WeaponSetClass({
             actor: this.hotbarApp.currentActor,
             token: this.hotbarApp.currentToken,
@@ -73,13 +82,9 @@ export class ComponentFactory {
      */
     async createQuickAccessContainer(quickAccessData, handlers) {
         const { QuickAccessContainer } = await import('../components/containers/QuickAccessContainer.js');
-        
-        // Bind decorateCellElement to maintain adapter context
-        const adapter = BG3HUD_REGISTRY.activeAdapter;
-        const decorateCellElement = adapter?.decorateCellElement 
-            ? adapter.decorateCellElement.bind(adapter) 
-            : undefined;
-        
+
+        const decorateCellElement = this._resolveDecorateCellElement();
+
         return new QuickAccessContainer({
             actor: this.hotbarApp.currentActor,
             token: this.hotbarApp.currentToken,
@@ -98,12 +103,8 @@ export class ComponentFactory {
      */
     async createHotbarContainer(gridsData, handlers) {
         const { HotbarContainer } = await import('../components/containers/HotbarContainer.js');
-        
-        // Bind decorateCellElement to maintain adapter context
-        const adapter = BG3HUD_REGISTRY.activeAdapter;
-        const decorateCellElement = adapter?.decorateCellElement 
-            ? adapter.decorateCellElement.bind(adapter) 
-            : undefined;
+
+        const decorateCellElement = this._resolveDecorateCellElement();
 
         const actor = this.hotbarApp.currentActor;
         const token = this.hotbarApp.currentToken;

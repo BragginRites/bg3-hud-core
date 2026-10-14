@@ -24,7 +24,7 @@ const NAMED_PART_CLASS_SLOT = Object.freeze({
     activeEffects: 'activeEffectsContainer'
 });
 
-export const BG3HUD_REGISTRY = {
+const BG3HUD_REGISTRY = {
     // Fills from registerNamedHudParts (and the old per-part wrappers)
     namedHudParts: {},
 
@@ -230,10 +230,6 @@ export const BG3HUD_API = {
     getRegisteredContainers(region = 'left') {
         return Object.entries(BG3HUD_REGISTRY.containers)
             .map(([id, entry]) => {
-                // Back-compat: plain class registrations from older adapters
-                if (typeof entry === 'function') {
-                    return { id, ContainerClass: entry, region: 'left', order: 0 };
-                }
                 return {
                     id,
                     ContainerClass: entry?.ContainerClass,
@@ -301,6 +297,28 @@ export const BG3HUD_API = {
      */
     getActiveAdapter() {
         return BG3HUD_REGISTRY.activeAdapter;
+    },
+
+    /**
+     * Get the live WeaponSetContainer component instance for the on-screen HUD, if any.
+     * Pure redirection onto `ui.BG3HUD_APP?.components?.weaponSets` so adapters don't reach
+     * into the hotbar app's internal component tree directly.
+     * @returns {Object|null|undefined} The WeaponSetContainer instance, or null/undefined if unavailable
+     */
+    getWeaponSetComponent() {
+        return ui.BG3HUD_APP?.components?.weaponSets;
+    },
+
+    /**
+     * Get shared HUD display settings for a module.
+     * @param {string} moduleId - The module id to read settings from (`game.settings.get(moduleId, ...)`)
+     * @returns {{showItemNames: boolean, showItemUses: boolean}} The display settings
+     */
+    getDisplaySettings(moduleId) {
+        return {
+            showItemNames: game.settings.get(moduleId, 'showItemNames'),
+            showItemUses: game.settings.get(moduleId, 'showItemUses')
+        };
     },
 
     /**

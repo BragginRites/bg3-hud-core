@@ -1,5 +1,5 @@
 import { BG3Hotbar } from './BG3Hotbar.js';
-import { BG3HUD_API, BG3HUD_REGISTRY } from './utils/registry.js';
+import { BG3HUD_API } from './utils/registry.js';
 import { registerSettings, applyMacrobarCollapseSetting, applyContainerRowSettings, applyTheme } from './utils/settings.js';
 import { TooltipManager } from './managers/TooltipManager.js';
 import { TargetSelectorManager } from './managers/TargetSelectorManager.js';
@@ -37,9 +37,8 @@ Hooks.once('ready', async () => {
     const targetSelectorManager = new TargetSelectorManager();
     BG3HUD_API.setTargetSelectorManager(targetSelectorManager);
 
-    // Make registry and API globally accessible
+    // Make API globally accessible
     ui.BG3HOTBAR = ui.BG3HOTBAR || {};
-    ui.BG3HOTBAR.registry = BG3HUD_REGISTRY;
     ui.BG3HOTBAR.api = BG3HUD_API;
     ui.BG3HOTBAR.tooltipManager = tooltipManager;
     ui.BG3HOTBAR.targetSelectorManager = targetSelectorManager;
@@ -130,7 +129,7 @@ Hooks.on('createToken', async (tokenDocument, options, userId) => {
     const actor = tokenDocument.actor;
     if (!actor) return;
 
-    const adapter = BG3HUD_REGISTRY.activeAdapter;
+    const adapter = BG3HUD_API.getActiveAdapter();
     if (!adapter) return;
 
     // Only auto-populate for NPCs by default; PCs use right-click unless setting enabled.

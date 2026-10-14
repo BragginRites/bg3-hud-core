@@ -1,4 +1,4 @@
-import { BG3HUD_API, BG3HUD_REGISTRY } from './utils/registry.js';
+import { BG3HUD_API } from './utils/registry.js';
 import { applyMacrobarCollapseSetting, applyTheme, applyAppearanceSettings, applyMinimalistView } from './utils/settings.js';
 import { PersistenceManager } from './managers/PersistenceManager.js';
 import { InteractionCoordinator } from './managers/InteractionCoordinator.js';
@@ -69,7 +69,7 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
         this.interactionCoordinator = new InteractionCoordinator({
             hotbarApp: this,
             persistenceManager: this.persistenceManager,
-            get adapter() { return BG3HUD_REGISTRY.activeAdapter; }
+            get adapter() { return BG3HUD_API.getActiveAdapter(); }
         });
         this.updateCoordinator = new UpdateCoordinator({
             hotbarApp: this,
@@ -133,7 +133,7 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
         if (!this.element) return;
 
         // Get display settings from active adapter
-        const adapter = BG3HUD_REGISTRY.activeAdapter;
+        const adapter = BG3HUD_API.getActiveAdapter();
         let itemName = 'false';
         let itemUse = 'false';
         if (adapter && typeof adapter.getDisplaySettings === 'function') {
@@ -410,8 +410,9 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
 
         // Ensure interaction coordinator has the active adapter early
         // This is important for proper initialization even when no token is selected (Issue #8)
-        if (BG3HUD_REGISTRY?.activeAdapter && this.interactionCoordinator?.setAdapter) {
-            this.interactionCoordinator.setAdapter(BG3HUD_REGISTRY.activeAdapter);
+        const activeAdapter = BG3HUD_API.getActiveAdapter();
+        if (activeAdapter && this.interactionCoordinator?.setAdapter) {
+            this.interactionCoordinator.setAdapter(activeAdapter);
         }
 
         // Only initialize if we have a token OR we're in GM hotbar mode

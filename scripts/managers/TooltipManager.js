@@ -10,8 +10,61 @@
  * - Tooltip lifecycle (show/hide/dismiss)
  */
 
-import { BG3HUD_REGISTRY } from '../utils/registry.js';
+import { BG3HUD_API } from '../utils/registry.js';
 import { Logger } from '../utils/logger.js';
+
+/**
+ * Pure positioning math for the tooltip. Foundry-free so tests hit this seam
+ * without a live DOM: no `window.*`/`getBoundingClientRect()` reads here, just
+ * plain rect-shaped objects in and a position out.
+ *
+ * Always prefers anchoring above the target, flipping below only when there is
+ * not enough room above (the `direction` parameter is accepted for call-site
+ * symmetry with the renderers but does not currently steer placement — see
+ * `_positionTooltip`, which has always behaved this way).
+ *
+ * @param {{left: number, top: number, bottom: number, width: number}} targetRect - Target element's bounding rect
+ * @param {{width: number, height: number}} tooltipRect - Tooltip element's bounding rect
+ * @param {{width: number, height: number}} viewport - Viewport dimensions
+ * @param {string} [direction='UP'] - Preferred direction (UP, DOWN, LEFT, RIGHT) - unused, see above
+ * @returns {{left: number, top: number, maxHeight: number|null, placedBelow: boolean}}
+ */
+export function computeTooltipPosition(targetRect, tooltipRect, viewport, direction = 'UP') {
+    const gap = 10;
+    const edge = 8;
+
+    // Center to center horizontally
+    let left = Math.round(targetRect.left + targetRect.width / 2 - tooltipRect.width / 2);
+
+    // Prefer above the source; flip below if needed
+    let top = Math.round(targetRect.top - tooltipRect.height - gap);
+    let placedBelow = false;
+    if (top < edge) {
+        top = Math.round(targetRect.bottom + gap);
+        placedBelow = true;
+    }
+
+    // Clamp horizontally to viewport
+    left = Math.max(edge, Math.min(left, viewport.width - tooltipRect.width - edge));
+
+    // Keep tall tooltips inside the viewport and scroll when needed
+    const maxTop = edge;
+    const maxBottom = viewport.height - edge;
+    const available = placedBelow
+        ? Math.max(120, maxBottom - top)
+        : Math.max(120, targetRect.top - gap - maxTop);
+
+    let maxHeight = null;
+    if (tooltipRect.height > available) {
+        maxHeight = available;
+        if (!placedBelow) {
+            top = Math.max(maxTop, Math.round(targetRect.top - available - gap));
+        }
+    }
+    top = Math.max(maxTop, Math.min(top, maxBottom - Math.min(tooltipRect.height, available)));
+
+    return { left, top, maxHeight, placedBelow };
+}
 
 export class TooltipManager {
     /**
@@ -419,39 +472,17 @@ export class TooltipManager {
         const prevTransform = tt.style.transform;
         tt.style.transform = 'none';
         const ttr = tt.getBoundingClientRect();
-        const gap = 10;
 
-        // Center to center horizontally
-        let left = Math.round(el.left + el.width / 2 - ttr.width / 2);
+        const viewport = { width: window.innerWidth, height: window.innerHeight };
+        const { left, top, maxHeight } = computeTooltipPosition(el, ttr, viewport, direction);
 
-        // Prefer above the source; flip below if needed
-        let top = Math.round(el.top - ttr.height - gap);
-        let placedBelow = false;
-        if (top < 8) {
-            top = Math.round(el.bottom + gap);
-            placedBelow = true;
-        }
-
-        // Clamp horizontally to viewport
-        left = Math.max(8, Math.min(left, window.innerWidth - ttr.width - 8));
-
-        // Keep tall tooltips inside the viewport and scroll when needed
-        const maxTop = 8;
-        const maxBottom = window.innerHeight - 8;
-        const available = placedBelow
-            ? Math.max(120, maxBottom - top)
-            : Math.max(120, el.top - gap - maxTop);
-        if (ttr.height > available) {
-            tt.style.maxHeight = `${available}px`;
+        if (maxHeight != null) {
+            tt.style.maxHeight = `${maxHeight}px`;
             tt.style.overflowY = 'auto';
-            if (!placedBelow) {
-                top = Math.max(maxTop, Math.round(el.top - available - gap));
-            }
         } else {
             tt.style.maxHeight = '';
             tt.style.overflowY = '';
         }
-        top = Math.max(maxTop, Math.min(top, maxBottom - Math.min(ttr.height, available)));
 
         // Apply final position
         tt.style.position = 'fixed';
@@ -610,7 +641,7 @@ export class TooltipManager {
             // Filter out system-specific tooltip classes for UI elements (no uuid)
             // Blacklist comes from adapter config, keeping core system-agnostic
             if (tooltipClass && !uuid) {
-                const blacklist = BG3HUD_REGISTRY.activeAdapter?._bg3Config?.tooltipClassBlacklist || [];
+                const blacklist = BG3HUD_API.getActiveAdapter()?._bg3Config?.tooltipClassBlacklist || [];
                 if (blacklist.length > 0) {
                     const classes = tooltipClass.split(' ').filter(Boolean);
                     const filteredClasses = classes.filter(cls => !blacklist.includes(cls));

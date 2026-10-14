@@ -1,3 +1,8 @@
+## [0.8.0] - 2026-10-14
+
+### Changed
+- **Removed the public registry global**: `ui.BG3HOTBAR.registry` is gone. If anything you authored read it, use `ui.BG3HOTBAR.api.getActiveAdapter()` instead. `BG3HUD_API` (`ui.BG3HOTBAR.api`) is now the only supported interface onto adapter/registry state; the underlying `BG3HUD_REGISTRY` object is no longer exported, even internally.
+
 ## [0.7.1] - 2026-10-05
 
 ### Fixed

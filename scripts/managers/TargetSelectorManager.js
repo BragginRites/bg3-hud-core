@@ -75,6 +75,58 @@ export class TargetSelectorManager {
         });
     }
 
+    // ========== Interface for UI/Events Components ==========
+    //
+    // TargetSelectorUI and TargetSelectorEvents hold a reference to this
+    // manager, but they must not read or write its mutable properties
+    // directly. They go through the methods below (for state) and the
+    // existing action methods such as confirmSelection()/cancel()/
+    // adjustMaxTargets()/toggleTarget() (for behavior).
+
+    /**
+     * Get a read-only snapshot of the current selection state.
+     * @returns {{
+     *   sourceToken: Token|null,
+     *   item: Item|null,
+     *   activity: Object|null,
+     *   requirements: Object,
+     *   selectedTargets: Token[],
+     *   adapter: Object|null
+     * }}
+     */
+    getSelectionState() {
+        return {
+            sourceToken: this.sourceToken,
+            item: this.item,
+            activity: this.activity,
+            requirements: this.requirements,
+            selectedTargets: [...this.selectedTargets],
+            adapter: this.adapter
+        };
+    }
+
+    /**
+     * Check whether the target selector is currently active.
+     * Lightweight alternative to getSelectionState() for checks that run
+     * on every input event (mousemove, click, keydown).
+     * @returns {boolean}
+     */
+    isSelectionActive() {
+        return this.isActive;
+    }
+
+    /**
+     * Forward a mouse position update to the UI layer.
+     * Lets TargetSelectorEvents notify the UI without reaching into
+     * manager.ui directly.
+     * @param {number} x
+     * @param {number} y
+     */
+    updateMousePosition(x, y) {
+        if (!this.ui) return;
+        this.ui.updateMousePosition(x, y);
+    }
+
     /**
      * Check if an item/activity needs targeting.
      * @param {Item} item - The item to check
@@ -300,11 +352,6 @@ export class TargetSelectorManager {
         this._switchToTargetTool();
 
         // Activate UI
-        Logger.warn('Manager: Calling UI.activate with:', {
-            range: this.requirements.range,
-            sourceToken: this.sourceToken?.name,
-            requirements: this.requirements
-        });
         this.ui.activate(this.requirements);
 
         // Register events (includes targetToken hook for real-time sync)

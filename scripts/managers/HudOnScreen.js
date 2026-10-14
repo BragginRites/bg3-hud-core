@@ -1,4 +1,4 @@
-import { BG3HUD_API, BG3HUD_REGISTRY } from '../utils/registry.js';
+import { BG3HUD_API } from '../utils/registry.js';
 import { applyAppearanceSettings, applyMacrobarCollapseSetting } from '../utils/settings.js';
 import { HotbarViewsContainer } from '../components/containers/HotbarViewsContainer.js';
 import { Logger } from '../utils/logger.js';
@@ -23,7 +23,7 @@ export class HudOnScreen {
     static isCompatible(token) {
         const actor = token?.actor;
         if (!actor) return false;
-        const adapter = BG3HUD_REGISTRY.activeAdapter;
+        const adapter = BG3HUD_API.getActiveAdapter();
         if (adapter && typeof adapter.isCompatible === 'function') {
             return adapter.isCompatible(actor);
         }

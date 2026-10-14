@@ -65,6 +65,20 @@ export class InteractionCoordinator {
         if (key) ui.notifications.warn(game.i18n.localize(key));
     }
 
+    /**
+     * Whether a cell belongs to a weapon set container that isn't the currently active set.
+     * Shared guard for click/drag/drop handlers that block interaction with inactive weapon sets.
+     * @param {GridCell} cell
+     * @returns {boolean} True if the cell is in a weapon set and that set is not active
+     * @private
+     */
+    _isBlockedByInactiveWeaponSet(cell) {
+        if (!ContainerTypeDetector.isWeaponSet(cell)) return false;
+        const weaponContainer = this.hotbarApp.components.weaponSets;
+        const activeSet = weaponContainer ? weaponContainer.getActiveSet() : 0;
+        return !ContainerTypeDetector.isActiveWeaponSet(cell, activeSet);
+    }
+
     async _commitParkedSlots(map, gridCells) {
         const patches = [];
         for (const cell of gridCells) {
@@ -104,12 +118,8 @@ export class InteractionCoordinator {
      */
     async handleClick(cell, event) {
         // Block clicks on inactive weapon set cells
-        if (ContainerTypeDetector.isWeaponSet(cell)) {
-            const weaponContainer = this.hotbarApp.components.weaponSets;
-            const activeSet = weaponContainer ? weaponContainer.getActiveSet() : 0;
-            if (!ContainerTypeDetector.isActiveWeaponSet(cell, activeSet)) {
-                return;
-            }
+        if (this._isBlockedByInactiveWeaponSet(cell)) {
+            return;
         }
 
         // If no data in cell, do nothing
@@ -342,13 +352,9 @@ export class InteractionCoordinator {
      */
     handleDragStart(cell, event) {
         // Block drags from inactive weapon sets
-        if (ContainerTypeDetector.isWeaponSet(cell)) {
-            const weaponContainer = this.hotbarApp.components.weaponSets;
-            const activeSet = weaponContainer ? weaponContainer.getActiveSet() : 0;
-            if (!ContainerTypeDetector.isActiveWeaponSet(cell, activeSet)) {
-                event.preventDefault();
-                return;
-            }
+        if (this._isBlockedByInactiveWeaponSet(cell)) {
+            event.preventDefault();
+            return;
         }
 
         this.dragSourceCell = cell;
@@ -372,13 +378,12 @@ export class InteractionCoordinator {
      */
     async handleDrop(targetCell, event, dragData) {
         // Block drops on inactive weapon sets
+        if (this._isBlockedByInactiveWeaponSet(targetCell)) {
+            return;
+        }
+
         if (ContainerTypeDetector.isWeaponSet(targetCell)) {
             const weaponContainer = this.hotbarApp.components.weaponSets;
-            const activeSet = weaponContainer ? weaponContainer.getActiveSet() : 0;
-            if (!ContainerTypeDetector.isActiveWeaponSet(targetCell, activeSet)) {
-                return;
-            }
-
             // Check if weapon set container wants to prevent this drop (e.g., locked slots)
             if (weaponContainer?.shouldPreventDrop && weaponContainer.shouldPreventDrop(targetCell)) {
                 return; // Drop prevented
@@ -714,13 +719,7 @@ export class InteractionCoordinator {
     _updateRuntimeGridItem(cell, data) {
         if (!cell) return;
 
-        const containerMap = {
-            hotbar: this.hotbarApp?.components?.hotbar?.gridContainers,
-            weaponSet: this.hotbarApp?.components?.weaponSets?.gridContainers,
-            quickAccess: this.hotbarApp?.components?.quickAccess?.gridContainers
-        };
-
-        const grid = containerMap[cell.containerType]?.[cell.containerIndex];
+        const grid = ContainerTypeDetector.getGridContainer(this.hotbarApp, cell.containerType, cell.containerIndex);
         if (!grid) return;
 
         const slotKey = cell.getSlotKey();

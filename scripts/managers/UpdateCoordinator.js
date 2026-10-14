@@ -4,8 +4,9 @@
  * Monitors single hudState flag for simplified state management
  * Multi-user sync: updateActor hook triggers _reconcileWithServerState for remote clients
  */
-import { BG3HUD_REGISTRY } from '../utils/registry.js';
+import { BG3HUD_API } from '../utils/registry.js';
 import { ControlsManager } from './ControlsManager.js';
+import { ContainerTypeDetector } from './ContainerTypeDetector.js';
 import { Logger } from '../utils/logger.js';
 import { NOTICE_FILLS, isEmptyNotice, resolveNotice } from '../notice/resolveNotice.js';
 
@@ -215,7 +216,7 @@ export class UpdateCoordinator {
 
         // Actor flag deltas keyed by adapter module (`flags[adapter.MODULE_ID]`)
         // live on the same notice as system paths. Do not short-circuit.
-        const adapter = BG3HUD_REGISTRY.activeAdapter;
+        const adapter = BG3HUD_API.getActiveAdapter();
         let notice;
         try {
             notice = resolveNotice(adapter, changes, actor);
@@ -331,7 +332,7 @@ export class UpdateCoordinator {
     }
 
     async _refreshPlayStateForCell(cell) {
-        const adapter = BG3HUD_REGISTRY.activeAdapter;
+        const adapter = BG3HUD_API.getActiveAdapter();
         const data = cell?.data;
         if (!data) return;
         if (data.type === 'Macro') return;
@@ -350,7 +351,7 @@ export class UpdateCoordinator {
 
     async _refreshPlayStateForUuid(uuid) {
         if (!uuid) return;
-        const adapter = BG3HUD_REGISTRY.activeAdapter;
+        const adapter = BG3HUD_API.getActiveAdapter();
         let doc = null;
         try {
             doc = await fromUuid(uuid);
@@ -562,7 +563,7 @@ export class UpdateCoordinator {
 
         // Refresh only cells showing this UUID.
         try {
-            const adapter = BG3HUD_REGISTRY.activeAdapter;
+            const adapter = BG3HUD_API.getActiveAdapter();
             const transformedData = adapter?.transformItemToCellData
                 ? await adapter.transformItemToCellData(item)
                 : { uuid: item.uuid, name: item.name, img: item.img, type: 'Item' };
@@ -633,12 +634,7 @@ export class UpdateCoordinator {
     }
 
     _findGridForCell(cell) {
-        const containerMap = {
-            hotbar: this.hotbarApp.components?.hotbar?.gridContainers,
-            weaponSet: this.hotbarApp.components?.weaponSets?.gridContainers,
-            quickAccess: this.hotbarApp.components?.quickAccess?.gridContainers
-        };
-        return containerMap[cell.containerType]?.[cell.containerIndex] || null;
+        return ContainerTypeDetector.getGridContainer(this.hotbarApp, cell.containerType, cell.containerIndex);
     }
 
     /**

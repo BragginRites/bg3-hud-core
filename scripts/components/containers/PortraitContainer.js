@@ -69,8 +69,8 @@ export class PortraitContainer extends BG3Component {
         const imageContainer = this.createElement('div', ['portrait-image-container']);
         const imageSubContainer = this.createElement('div', ['portrait-image-subcontainer']);
 
-        // Get token image
-        const imageSrc = this.token.document.texture.src;
+        // Get portrait image (adapters override getPortraitImage() to customize)
+        const imageSrc = await this.getPortraitImage();
         const mediaElement = this._createMediaElement(imageSrc, this.actor?.name || 'Portrait');
 
         imageSubContainer.appendChild(mediaElement);
@@ -251,11 +251,14 @@ export class PortraitContainer extends BG3Component {
     }
 
     /**
-     * Render portrait data badges
-     * @param {HTMLElement} container - The portrait image container
+     * Resolve the effective portrait-data config (layered world/client hierarchy)
+     * and render badges into the given container.
+     * Shared by _renderPortraitData (initial render) and updatePortraitData
+     * (live update) so the config-resolution and badge-loop live in one place.
+     * @param {HTMLElement} container - Element to append the badges container to
      * @private
      */
-    async _renderPortraitData(container) {
+    async _renderBadges(container) {
         const MODULE_ID = 'bg3-hud-core';
 
         // Determine which config to use (layered hierarchy):
@@ -331,12 +334,19 @@ export class PortraitContainer extends BG3Component {
     }
 
     /**
+     * Render portrait data badges
+     * @param {HTMLElement} container - The portrait image container
+     * @private
+     */
+    async _renderPortraitData(container) {
+        await this._renderBadges(container);
+    }
+
+    /**
      * Update portrait data badges without full re-render
      * Called when actor data changes
      */
     async updatePortraitData() {
-        const MODULE_ID = 'bg3-hud-core';
-
         // Find the existing badges container
         const portraitImageContainer = this.element?.querySelector('.portrait-image-container');
         if (!portraitImageContainer) return;
@@ -347,76 +357,7 @@ export class PortraitContainer extends BG3Component {
             existingBadges.remove();
         }
 
-        // Determine which config to use (layered hierarchy):
-        // 1. Player opt-out (ignoreWorldPortraitData) → use client config
-        // 2. World override active → use world config
-        // 3. Otherwise → use client config
-        const useWorldConfig = game.settings.get(MODULE_ID, 'useWorldPortraitData');
-        const ignoreWorldConfig = game.settings.get(MODULE_ID, 'ignoreWorldPortraitData');
-
-        // Effective mode: use world config only if active AND player hasn't opted out
-        const effectivelyUsingWorld = useWorldConfig && !ignoreWorldConfig;
-
-        // Check if feature is enabled:
-        // - World config active (and not ignored) → always show
-        // - Otherwise → respect client's showPortraitData setting
-        if (!effectivelyUsingWorld && !game.settings.get(MODULE_ID, 'showPortraitData')) {
-            return;
-        }
-
-        // Get config based on effective mode
-        let config;
-        if (effectivelyUsingWorld) {
-            config = game.settings.get(MODULE_ID, 'portraitDataWorldConfig') || [];
-        } else {
-            config = game.settings.get(MODULE_ID, 'portraitDataConfig') || [];
-        }
-
-        // If user hasn't configured anything, try to get adapter defaults
-        if (!config.length || !config.some(c => c?.path)) {
-            const adapter = BG3HUD_API.getActiveAdapter?.();
-            if (adapter?.getPortraitDataDefaults) {
-                config = adapter.getPortraitDataDefaults();
-            }
-        }
-
-        if (!config.length || !this.actor) {
-            return;
-        }
-
-        const badgesContainer = this.createElement('div', ['portrait-data-badges']);
-
-        // Support 6 slots like bg3-inspired-hotbar
-        for (let i = 0; i < config.length && i < 6; i++) {
-            const slotConfig = config[i];
-            if (!slotConfig?.path) continue;
-
-            const result = await PortraitDataResolver.resolve(this.actor, slotConfig);
-            if (!result.value) continue;
-
-            const badge = this.createElement('div', ['portrait-data-badge', `position-${i}`]);
-
-            // Apply separate colors for icon and text (matching _renderPortraitData)
-            const iconColor = result.iconColor || result.color || '#ffffff';
-            const textColor = result.textColor || result.color || '#ffffff';
-
-            if (result.icon) {
-                const icon = this.createElement('i', result.icon.split(' '));
-                icon.style.color = iconColor;
-                badge.appendChild(icon);
-            }
-
-            const valueSpan = this.createElement('span', ['badge-value']);
-            valueSpan.textContent = result.value;
-            valueSpan.style.color = textColor;
-            badge.appendChild(valueSpan);
-
-            badgesContainer.appendChild(badge);
-        }
-
-        if (badgesContainer.children.length > 0) {
-            portraitImageContainer.appendChild(badgesContainer);
-        }
+        await this._renderBadges(portraitImageContainer);
     }
 
     /**

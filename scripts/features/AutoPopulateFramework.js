@@ -205,7 +205,7 @@ export class AutoPopulateFramework {
             if (itemData) {
                 // Try to use adapter's transformation if available
                 let cellData;
-                const adapter = ui.BG3HOTBAR?.registry?.activeAdapter;
+                const adapter = ui.BG3HOTBAR?.api?.getActiveAdapter();
                 if (adapter && typeof adapter.transformItemToCellData === 'function') {
                     cellData = await adapter.transformItemToCellData(itemData);
                 } else {
@@ -364,7 +364,7 @@ export class AutoPopulateFramework {
                 const itemData = await fromUuid(item.uuid);
                 if (!itemData) continue;
 
-                const adapter = ui.BG3HOTBAR?.registry?.activeAdapter;
+                const adapter = ui.BG3HOTBAR?.api?.getActiveAdapter();
                 let cellData;
 
                 // Check if this is an Activity (from getMatchingItems with includeActivities)
