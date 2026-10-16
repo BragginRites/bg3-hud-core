@@ -113,7 +113,7 @@ jobs:
           EOF
           )
 
-          curl -X POST \
+          curl -fsS -X POST \
             -H "Content-Type: application/json" \
             -H "Authorization: ${{ secrets.FOUNDRY_RELEASE_TOKEN }}" \
             -d "$payload" \
