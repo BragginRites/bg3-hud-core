@@ -1,7 +1,7 @@
 ## [0.8.0] - 2026-10-16
 
 ### Changed
-- **Area placement**: An emanation is drawn from the caster when the game says that shape is attached to them. A ring counts tokens in the band, not the hole. Other blasts still place where you click.
+- **Area placement**: An emanation is drawn from the caster when the game says that shape is attached to them. A ring counts tokens in the band, not the hole. A square counts the square. Other blasts still place where you click.
 - **Greyed settings**: A settings section can be shown turned off, with a hint, without wiping the saved choice.
 - **Removed the public registry global**: `ui.BG3HOTBAR.registry` is gone. If anything you authored read it, use `ui.BG3HOTBAR.api.getActiveAdapter()` instead. `BG3HUD_API` (`ui.BG3HOTBAR.api`) is now the only supported interface onto adapter/registry state; the underlying `BG3HUD_REGISTRY` object is no longer exported, even internally.
 

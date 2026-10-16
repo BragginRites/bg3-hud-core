@@ -45,6 +45,7 @@ describe('tokens in an Area', () => {
         assert.equal(areaKind('radius'), 'circle');
         assert.equal(areaKind('burst'), 'circle');
         assert.equal(areaKind('cube'), 'square');
+        assert.equal(areaKind('square'), 'square');
         assert.equal(areaKind('cone'), 'cone');
         assert.equal(areaKind('line'), 'line');
         assert.equal(areaKind('emanation'), 'circle');

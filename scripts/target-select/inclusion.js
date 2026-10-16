@@ -118,7 +118,7 @@ function clamp(value, min, max) {
  * @returns {'circle'|'square'|'cone'|'line'|'ring'}
  */
 export function areaKind(type) {
-    if (type === 'cube') return 'square';
+    if (type === 'cube' || type === 'square') return 'square';
     if (type === 'cone') return 'cone';
     if (type === 'line') return 'line';
     if (type === 'ring') return 'ring';
