@@ -20,7 +20,19 @@ function tokenHits(token, shape) {
     if (kind === 'square' || kind === 'cube') return rectHitsSquare(token, shape);
     if (kind === 'cone') return rectHitsCone(token, shape);
     if (kind === 'line') return rectHitsLine(token, shape);
+    if (kind === 'ring') return rectHitsRing(token, shape);
     return rectHitsCircle(token, shape.origin.x, shape.origin.y, shape.size);
+}
+
+function rectHitsRing(rect, shape) {
+    const outer = shape.size;
+    if (!(outer > 0)) return false;
+    const thickness = shape.thickness > 0 ? shape.thickness : 0;
+    const inner = thickness > 0 ? Math.max(0, outer - thickness) : 0;
+    return corners(rect).some((point) => {
+        const dist = Math.hypot(point.x - shape.origin.x, point.y - shape.origin.y);
+        return dist <= outer && dist >= inner;
+    });
 }
 
 function rectHitsCircle(rect, cx, cy, radius) {
@@ -103,11 +115,12 @@ function clamp(value, min, max) {
 /**
  * Map an Adapter template type to a shape kind.
  * @param {string} type
- * @returns {'circle'|'square'|'cone'|'line'}
+ * @returns {'circle'|'square'|'cone'|'line'|'ring'}
  */
 export function areaKind(type) {
     if (type === 'cube') return 'square';
     if (type === 'cone') return 'cone';
     if (type === 'line') return 'line';
+    if (type === 'ring') return 'ring';
     return 'circle';
 }

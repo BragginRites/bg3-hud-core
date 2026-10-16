@@ -47,5 +47,20 @@ describe('tokens in an Area', () => {
         assert.equal(areaKind('cube'), 'square');
         assert.equal(areaKind('cone'), 'cone');
         assert.equal(areaKind('line'), 'line');
+        assert.equal(areaKind('emanation'), 'circle');
+        assert.equal(areaKind('ring'), 'ring');
+    });
+
+    it('includes a Token in a ring band and excludes one in the hole', () => {
+        const hole = { id: 'hole', x: 0, y: 0, w: 20, h: 20, hasActor: true };
+        const band = { id: 'band', x: 160, y: 0, w: 20, h: 20, hasActor: true };
+        const outside = { id: 'out', x: 400, y: 0, w: 20, h: 20, hasActor: true };
+        const inside = tokensInArea([hole, band, outside], {
+            kind: 'ring',
+            origin: { x: 0, y: 0 },
+            size: 200,
+            thickness: 50
+        });
+        assert.deepEqual(inside.map((token) => token.id), ['band']);
     });
 });

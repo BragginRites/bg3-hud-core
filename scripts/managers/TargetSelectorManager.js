@@ -433,8 +433,12 @@ export class TargetSelectorManager {
         const sceneDistance = canvas?.scene?.grid?.distance || 5;
         const feet = Number(template.size ?? template.distance ?? 0);
         const sizePx = feet > 0 ? (feet / sceneDistance) * gridSize : gridSize;
+        const thicknessFeet = Number(template.width ?? 0);
+        const thicknessPx = thicknessFeet > 0 ? (thicknessFeet / sceneDistance) * gridSize : 0;
         const kind = areaKind(template.type);
-        const fromCaster = kind === 'cone' || kind === 'line' || template.type === 'emanation';
+        const fromCaster = kind === 'cone' || kind === 'line'
+            || template.canvas === 'emanation'
+            || template.type === 'emanation';
         const caster = this.sourceToken?.center || point;
         const origin = fromCaster ? { x: caster.x, y: caster.y } : point;
         const tokens = canvas?.tokens?.placeables || [];
@@ -452,7 +456,8 @@ export class TargetSelectorManager {
                 origin,
                 toward: point,
                 size: sizePx,
-                width: gridSize
+                width: gridSize,
+                thickness: thicknessPx
             }
         );
 
