@@ -606,7 +606,7 @@ export function registerSettings() {
         default: false,
         onChange: async () => {
             // Refresh portrait by re-rendering and replacing in DOM
-            const portrait = ui.BG3HUD_APP?.components?.portrait;
+            const portrait = ui.BG3HUD_APP?.getPortraitContainer();
             if (portrait?.element?.parentElement) {
                 const parent = portrait.element.parentElement;
                 const oldElement = portrait.element;
@@ -625,7 +625,7 @@ export function registerSettings() {
         default: [],
         onChange: async () => {
             // Refresh portrait by re-rendering and replacing in DOM
-            const portrait = ui.BG3HUD_APP?.components?.portrait;
+            const portrait = ui.BG3HUD_APP?.getPortraitContainer();
             if (portrait?.element?.parentElement) {
                 const parent = portrait.element.parentElement;
                 const oldElement = portrait.element;
@@ -645,7 +645,7 @@ export function registerSettings() {
         default: false,
         onChange: async () => {
             // Refresh portrait when toggle changes
-            const portrait = ui.BG3HUD_APP?.components?.portrait;
+            const portrait = ui.BG3HUD_APP?.getPortraitContainer();
             if (portrait?.element?.parentElement) {
                 const parent = portrait.element.parentElement;
                 const oldElement = portrait.element;
@@ -666,7 +666,7 @@ export function registerSettings() {
         restricted: true,
         onChange: async () => {
             // Refresh all clients' portraits by re-rendering the whole portrait component
-            const portrait = ui.BG3HUD_APP?.components?.portrait;
+            const portrait = ui.BG3HUD_APP?.getPortraitContainer();
             if (portrait?.element?.parentElement) {
                 const parent = portrait.element.parentElement;
                 const oldElement = portrait.element;
@@ -687,7 +687,7 @@ export function registerSettings() {
         onChange: async () => {
             // Refresh portrait if world config is active
             if (game.settings.get(MODULE_ID, 'useWorldPortraitData')) {
-                const portrait = ui.BG3HUD_APP?.components?.portrait;
+                const portrait = ui.BG3HUD_APP?.getPortraitContainer();
                 if (portrait?.element?.parentElement) {
                     const parent = portrait.element.parentElement;
                     const oldElement = portrait.element;
@@ -884,7 +884,7 @@ export function registerSettings() {
         default: false,
         onChange: () => {
             // Refresh active effects container if hotbar exists
-            ui.BG3HUD_APP?.components?.hotbar?.activeEffectsContainer?.render();
+            ui.BG3HUD_APP?.getActiveEffectsContainer()?.render();
         }
     });
 
@@ -916,7 +916,7 @@ export function registerSettings() {
         type: Boolean,
         default: true,
         onChange: () => {
-            ui.BG3HUD_APP?.components?.portrait?._applyPortraitVisibility?.();
+            ui.BG3HUD_APP?.getPortraitContainer()?._applyPortraitVisibility?.();
         }
     });
 

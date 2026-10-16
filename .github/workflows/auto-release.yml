@@ -77,7 +77,8 @@ jobs:
           zip -r bg3-hud-core.zip . \
             -x "*.git*" \
                ".github*" \
-               "*.vscode*"
+               "*.vscode*" \
+               "*.test.js"
 
       - name: Create GitHub Release
         if: steps.tag.outputs.exists != 'true'

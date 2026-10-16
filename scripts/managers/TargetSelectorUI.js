@@ -4,6 +4,7 @@
  * Manages DOM elements, canvas overlays, and visual feedback.
  */
 import { Logger } from '../utils/logger.js';
+import { TargetSelectorMath } from './TargetSelectorMath.js';
 
 export class TargetSelectorUI {
     /**
@@ -524,7 +525,6 @@ export class TargetSelectorUI {
 
         // Calculate distance
         if (sourceToken) {
-            const { TargetSelectorMath } = await import('./TargetSelectorMath.js');
             info.distance = TargetSelectorMath.calculateTokenDistance(sourceToken, token);
 
             if (requirements.range) {

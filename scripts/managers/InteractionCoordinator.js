@@ -74,7 +74,7 @@ export class InteractionCoordinator {
      */
     _isBlockedByInactiveWeaponSet(cell) {
         if (!ContainerTypeDetector.isWeaponSet(cell)) return false;
-        const weaponContainer = this.hotbarApp.components.weaponSets;
+        const weaponContainer = this.hotbarApp.getWeaponSetContainer();
         const activeSet = weaponContainer ? weaponContainer.getActiveSet() : 0;
         return !ContainerTypeDetector.isActiveWeaponSet(cell, activeSet);
     }
@@ -95,7 +95,7 @@ export class InteractionCoordinator {
             });
         }
 
-        const weaponContainer = this.hotbarApp.components?.weaponSets;
+        const weaponContainer = this.hotbarApp.getWeaponSetContainer();
         if (weaponContainer?.onCellUpdated) {
             const updates = [];
             for (const cell of gridCells) {
@@ -383,7 +383,7 @@ export class InteractionCoordinator {
         }
 
         if (ContainerTypeDetector.isWeaponSet(targetCell)) {
-            const weaponContainer = this.hotbarApp.components.weaponSets;
+            const weaponContainer = this.hotbarApp.getWeaponSetContainer();
             // Check if weapon set container wants to prevent this drop (e.g., locked slots)
             if (weaponContainer?.shouldPreventDrop && weaponContainer.shouldPreventDrop(targetCell)) {
                 return; // Drop prevented

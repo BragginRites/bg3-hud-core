@@ -17,6 +17,34 @@ export const NOTICE_FILLS = Object.freeze({
 const LEGAL_FILLS = new Set(Object.values(NOTICE_FILLS));
 const CORE_FILLED = new Set(['hotbar', 'quickAccess', 'endTurn', 'views']);
 
+/**
+ * Shared by every adapter's notice resolver: `Object.hasOwnProperty` as a free
+ * function, null-safe. Identical in every adapter copy, so it lives here once.
+ * @param {Object|null|undefined} obj
+ * @param {string} key
+ * @returns {boolean}
+ */
+export function hasOwn(obj, key) {
+    return !!obj && Object.prototype.hasOwnProperty.call(obj, key);
+}
+
+/**
+ * Shared by every adapter's notice resolver: normalizes an actor's `items`
+ * across the shapes Foundry (EmbeddedCollection), a plain array, or a bare
+ * `{ contents }` bag can take. Identical in every adapter copy, so it lives
+ * here once.
+ * @param {Object|null|undefined} actor
+ * @returns {Array<Object>}
+ */
+export function itemList(actor) {
+    const items = actor?.items;
+    if (!items) return [];
+    if (typeof items.filter === 'function') return items.filter((item) => item);
+    if (Array.isArray(items)) return items;
+    if (Array.isArray(items.contents)) return items.contents;
+    return [];
+}
+
 export function isEmptyNotice(notice) {
     if (!notice) return true;
     return !notice.fills?.length && !notice.extras?.length && notice.cells == null;

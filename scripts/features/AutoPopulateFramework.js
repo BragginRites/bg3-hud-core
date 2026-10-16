@@ -1,5 +1,6 @@
 import { Logger } from '../utils/logger.js';
 import { alreadyOnUseGrids, occupy, parkMapFromState, writeParkMap } from '../occupancy/occupancy.js';
+import { fillGridRowMajor } from './gridFill.js';
 
 /** Foundry document cell types resolved via fromUuid during populate. */
 const DOCUMENT_CELL_TYPES = new Set(['Item', 'Macro', 'Activity', 'PreparedSpell']);
@@ -228,8 +229,6 @@ export class AutoPopulateFramework {
         enrichedItems.push(...customCellData);
 
         // Occupy empty slots. Skip is alreadyOnUseGrids above, not a uniqueness lock in occupy.
-        let addedCount = 0;
-        let itemIndex = 0;
         const cols = container.cols || 5;
         const rows = container.rows || 3;
         const containerType = container.containerType || 'hotbar';
@@ -242,18 +241,20 @@ export class AutoPopulateFramework {
                 quickAccess: { grids: containerType === 'quickAccess' ? [{ items: { ...(container.items || {}) } }] : [] }
             });
 
-        for (let r = 0; r < rows && itemIndex < enrichedItems.length; r++) {
-            for (let c = 0; c < cols && itemIndex < enrichedItems.length; c++) {
-                const slotKey = `${c}-${r}`;
-                if (container.items[slotKey]) continue;
-
-                const result = occupy(map, { container: containerType, containerIndex, slotKey }, enrichedItems[itemIndex]);
-                if (!result.ok) continue;
+        const { placements, addedCount } = fillGridRowMajor({
+            cols,
+            rows,
+            isOccupied: (slotKey) => Boolean(container.items[slotKey]),
+            canPlace: (slotKey, item) => {
+                const result = occupy(map, { container: containerType, containerIndex, slotKey }, item);
+                if (!result.ok) return false;
                 map = result.map;
-                container.items[slotKey] = enrichedItems[itemIndex];
-                addedCount++;
-                itemIndex++;
+                return true;
             }
+        }, enrichedItems);
+
+        for (const { slotKey, item } of placements) {
+            container.items[slotKey] = item;
         }
 
         if (persistenceManager?.state) writeParkMap(persistenceManager.state, map);
@@ -391,23 +392,24 @@ export class AutoPopulateFramework {
             // Occupy empty slots on this use-grid. Skip already happened via alreadyOnUseGrids.
             const cols = grid.cols || 5;
             const rows = grid.rows || 1;
-            let itemIndex = 0;
             let map = parkMapFromState(state);
 
-            for (let r = 0; r < rows && itemIndex < enrichedItems.length; r++) {
-                for (let c = 0; c < cols && itemIndex < enrichedItems.length; c++) {
-                    const slotKey = `${c}-${r}`;
+            // No isOccupied check needed: alreadyOnUseGrids already filtered these items above.
+            const { addedCount } = fillGridRowMajor({
+                cols,
+                rows,
+                canPlace: (slotKey, item) => {
                     const result = occupy(map, {
                         container: 'hotbar',
                         containerIndex: gridIndex,
                         slotKey
-                    }, enrichedItems[itemIndex]);
-                    if (!result.ok) continue;
+                    }, item);
+                    if (!result.ok) return false;
                     map = result.map;
-                    itemIndex++;
-                    itemsAdded++;
+                    return true;
                 }
-            }
+            }, enrichedItems);
+            itemsAdded += addedCount;
 
             writeParkMap(state, map);
 

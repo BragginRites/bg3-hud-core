@@ -295,6 +295,7 @@
       "OccupancySameSet": "That item is already in this weapon set.",
       "OccupancyReserved": "This slot is used by a two-handed weapon.",
       "OccupancyOccupied": "That slot is already filled.",
+      "SlotOccupiedByTwoHandedWeapon": "This slot is occupied by a two-handed weapon",
       "NoActorSelected": "No actor selected",
       "ItemOwnerMismatch": "This {type} belongs to {owner}, not {current}",
       "MacroNotFound": "Macro not found",

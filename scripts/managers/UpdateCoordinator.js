@@ -97,7 +97,7 @@ export class UpdateCoordinator {
         if (play) {
             if (this.hotbarApp.currentToken?.id === play.id
                 && this.hotbarApp.currentActor?.id === play.actor?.id
-                && this.hotbarApp.components?.hotbar
+                && this.hotbarApp.getHotbarContainer()
                 && this.hotbarApp.rendered
                 && !this.hotbarApp.overrideGMHotbar) {
                 this.hotbarApp.currentToken = play;
@@ -140,7 +140,7 @@ export class UpdateCoordinator {
         // ready() may have already rendered this exact context; skip a second apply.
         if (contextUnchanged
             && this.hotbarApp.rendered
-            && this.hotbarApp.components?.hotbar) {
+            && this.hotbarApp.getHotbarContainer()) {
             return;
         }
 
@@ -242,7 +242,7 @@ export class UpdateCoordinator {
         const extras = notice.extras || [];
 
         if (fills.has(NOTICE_FILLS.FACE)) {
-            const portrait = this.hotbarApp.components?.portrait;
+            const portrait = this.hotbarApp.getPortraitContainer();
             if (portrait && typeof portrait.render === 'function') {
                 await portrait.render();
             }
@@ -258,32 +258,32 @@ export class UpdateCoordinator {
             await this._handleAbilityChange();
         }
         if (fills.has(NOTICE_FILLS.PASSIVES)) {
-            const passives = this.hotbarApp.components?.hotbar?.passivesContainer;
+            const passives = this.hotbarApp.getPassivesContainer();
             if (passives && typeof passives.render === 'function') {
                 await passives.render();
             }
         }
         if (fills.has(NOTICE_FILLS.WEAPON_SET)) {
-            const weaponSets = this.hotbarApp.components?.weaponSets;
+            const weaponSets = this.hotbarApp.getWeaponSetContainer();
             if (weaponSets && typeof weaponSets.render === 'function') {
                 await weaponSets.render();
             }
         }
         if (fills.has(NOTICE_FILLS.ACTIVE_EFFECTS)) {
-            const effects = this.hotbarApp.components?.hotbar?.activeEffectsContainer;
+            const effects = this.hotbarApp.getActiveEffectsContainer();
             if (effects && typeof effects.render === 'function') {
                 await effects.render();
             }
         }
         if (fills.has(NOTICE_FILLS.REST)) {
-            const actionButtons = this.hotbarApp.components?.actionButtons;
+            const actionButtons = this.hotbarApp.getActionButtonsContainer();
             if (actionButtons && typeof actionButtons.render === 'function') {
                 await actionButtons.render();
             }
         }
 
         for (const extraId of extras) {
-            const extra = this.hotbarApp.components?.[extraId];
+            const extra = this.hotbarApp.getRegisteredContainer(extraId);
             if (!extra) continue;
             if (typeof extra.updateButtons === 'function') {
                 extra.updateButtons();
@@ -378,8 +378,8 @@ export class UpdateCoordinator {
         if (!state) return;
 
         // Update hotbar grids (multiple grids)
-        if (this.hotbarApp.components?.hotbar && state.hotbar?.grids) {
-            const hotbar = this.hotbarApp.components.hotbar;
+        if (this.hotbarApp.getHotbarContainer() && state.hotbar?.grids) {
+            const hotbar = this.hotbarApp.getHotbarContainer();
             hotbar.grids = state.hotbar.grids;
 
             for (let i = 0; i < hotbar.grids.length; i++) {
@@ -400,8 +400,8 @@ export class UpdateCoordinator {
         }
 
         // Update weapon sets (multiple grids)
-        if (this.hotbarApp.components?.weaponSets && state.weaponSets?.sets) {
-            const weaponSets = this.hotbarApp.components.weaponSets;
+        if (this.hotbarApp.getWeaponSetContainer() && state.weaponSets?.sets) {
+            const weaponSets = this.hotbarApp.getWeaponSetContainer();
             weaponSets.weaponSets = state.weaponSets.sets;
 
             for (let i = 0; i < weaponSets.weaponSets.length; i++) {
@@ -419,8 +419,8 @@ export class UpdateCoordinator {
         }
 
         // Update quick access (normalised as array of grids)
-        if (this.hotbarApp.components?.quickAccess && state.quickAccess?.grids?.length) {
-            const quickAccess = this.hotbarApp.components.quickAccess;
+        if (this.hotbarApp.getQuickAccessContainer() && state.quickAccess?.grids?.length) {
+            const quickAccess = this.hotbarApp.getQuickAccessContainer();
             quickAccess.grids = state.quickAccess.grids;
 
             const gridData = quickAccess.grids[0];
@@ -441,7 +441,7 @@ export class UpdateCoordinator {
      * @private
      */
     async _handleHealthChange() {
-        const portraitContainer = this.hotbarApp.components?.portrait;
+        const portraitContainer = this.hotbarApp.getPortraitContainer();
         if (portraitContainer) {
             if (typeof portraitContainer.updateHealth === 'function') {
                 await portraitContainer.updateHealth();
@@ -462,7 +462,7 @@ export class UpdateCoordinator {
      * @private
      */
     async _handleResourceChange() {
-        const filters = this.hotbarApp.components?.filters;
+        const filters = this.hotbarApp.getFilterContainer();
         if (filters && typeof filters.update === 'function') {
             await filters.update();
             return true;
@@ -477,7 +477,7 @@ export class UpdateCoordinator {
      * @private
      */
     async _handleAbilityChange() {
-        const infoContainer = this.hotbarApp.components?.info;
+        const infoContainer = this.hotbarApp.getInfoContainer();
         if (infoContainer && typeof infoContainer.update === 'function') {
             await infoContainer.update();
             return true;
@@ -516,7 +516,7 @@ export class UpdateCoordinator {
      * @private
      */
     _updateActionButtonsVisibility() {
-        const actionButtons = this.hotbarApp.components?.actionButtons;
+        const actionButtons = this.hotbarApp.getActionButtonsContainer();
         if (actionButtons && typeof actionButtons.updateVisibility === 'function') {
             actionButtons.updateVisibility();
         }
@@ -528,7 +528,7 @@ export class UpdateCoordinator {
      * @private
      */
     _resetFilters() {
-        const filters = this.hotbarApp.components?.filters;
+        const filters = this.hotbarApp.getFilterContainer();
         if (filters && typeof filters.resetUsedFilters === 'function') {
             filters.resetUsedFilters();
         }
@@ -619,15 +619,15 @@ export class UpdateCoordinator {
     }
 
     *_iterAllCells() {
-        const hotbarGrids = this.hotbarApp.components?.hotbar?.gridContainers || [];
+        const hotbarGrids = this.hotbarApp.getHotbarContainer()?.gridContainers || [];
         for (const grid of hotbarGrids) {
             for (const cell of grid?.cells || []) yield cell;
         }
-        const weaponGrids = this.hotbarApp.components?.weaponSets?.gridContainers || [];
+        const weaponGrids = this.hotbarApp.getWeaponSetContainer()?.gridContainers || [];
         for (const grid of weaponGrids) {
             for (const cell of grid?.cells || []) yield cell;
         }
-        const quickGrids = this.hotbarApp.components?.quickAccess?.gridContainers || [];
+        const quickGrids = this.hotbarApp.getQuickAccessContainer()?.gridContainers || [];
         for (const grid of quickGrids) {
             for (const cell of grid?.cells || []) yield cell;
         }
@@ -648,13 +648,13 @@ export class UpdateCoordinator {
         // Only update if the effect belongs to the current actor
         if (effect.parent === this.hotbarApp.currentActor) {
             // Targeted update: just re-render the active effects container
-            if (this.hotbarApp.components?.hotbar?.activeEffectsContainer) {
-                await this.hotbarApp.components.hotbar.activeEffectsContainer.render();
+            if (this.hotbarApp.getActiveEffectsContainer()) {
+                await this.hotbarApp.getActiveEffectsContainer().render();
             }
             // Also update info container - active effects can change ability scores, skills, etc.
             await this._handleAbilityChange();
 
-            const filters = this.hotbarApp.components?.filters;
+            const filters = this.hotbarApp.getFilterContainer();
             if (filters && typeof filters.syncUsedActionFilters === 'function') {
                 filters.syncUsedActionFilters(effect);
             }
@@ -697,7 +697,7 @@ export class UpdateCoordinator {
      * @private
      */
     async _reconcileHotbarGrids(serverState) {
-        const hotbar = this.hotbarApp.components?.hotbar;
+        const hotbar = this.hotbarApp.getHotbarContainer();
         if (!hotbar || !serverState.hotbar?.grids) return;
 
         const updates = [];
@@ -742,7 +742,7 @@ export class UpdateCoordinator {
      * @private
      */
     async _reconcileWeaponSets(serverState) {
-        const weaponSets = this.hotbarApp.components?.weaponSets;
+        const weaponSets = this.hotbarApp.getWeaponSetContainer();
         if (!weaponSets || !serverState.weaponSets?.sets) return;
 
         const updates = [];
@@ -783,7 +783,7 @@ export class UpdateCoordinator {
      * @private
      */
     async _reconcileQuickAccess(serverState) {
-        const quickAccess = this.hotbarApp.components?.quickAccess;
+        const quickAccess = this.hotbarApp.getQuickAccessContainer();
         if (!quickAccess || !serverState.quickAccess?.grids?.[0]) return;
 
         const serverGrid = serverState.quickAccess.grids[0];

@@ -123,7 +123,7 @@ export class PortraitContainer extends BG3Component {
      * @param {string} border
      */
     static applyBorderToLivePortrait(border) {
-        const portrait = ui.BG3HUD_APP?.components?.portrait;
+        const portrait = ui.BG3HUD_APP?.getPortraitContainer();
         if (portrait?.element) {
             portrait.element.setAttribute('data-border', border);
         }

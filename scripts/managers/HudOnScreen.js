@@ -121,11 +121,10 @@ export class HudOnScreen {
         if (!app.currentToken || !app.currentActor) return false;
         if (app.overrideGMHotbar) return false;
         if (app.canGMHotbar()) return false;
-        const c = app.components;
-        return !!(c?.hotbar?.gridContainers?.length
-            && c?.portrait?.element
-            && c?.weaponSets?.gridContainers?.length
-            && c?.quickAccess?.gridContainers?.length);
+        return !!(app.getHotbarContainer()?.gridContainers?.length
+            && app.getPortraitContainer()?.element
+            && app.getWeaponSetContainer()?.gridContainers?.length
+            && app.getQuickAccessContainer()?.gridContainers?.length);
     }
 
     /**
@@ -134,13 +133,13 @@ export class HudOnScreen {
     _stateMatchesExistingLayout(state) {
         if (!state) return false;
         const app = this.app;
-        const hotbar = app.components?.hotbar;
+        const hotbar = app.getHotbarContainer();
         if (!state.hotbar?.grids || !hotbar?.gridContainers) return false;
         if (state.hotbar.grids.length !== hotbar.gridContainers.length) return false;
-        const weaponSets = app.components?.weaponSets;
+        const weaponSets = app.getWeaponSetContainer();
         if (!state.weaponSets?.sets || !weaponSets?.gridContainers) return false;
         if (state.weaponSets.sets.length !== weaponSets.gridContainers.length) return false;
-        const quickAccess = app.components?.quickAccess;
+        const quickAccess = app.getQuickAccessContainer();
         if (!state.quickAccess?.grids || !quickAccess?.gridContainers) return false;
         if (state.quickAccess.grids.length !== quickAccess.gridContainers.length) return false;
         return true;
@@ -151,7 +150,7 @@ export class HudOnScreen {
      */
     _rebindComponentActors(actor, token) {
         const app = this.app;
-        const hotbar = app.components.hotbar;
+        const hotbar = app.getHotbarContainer();
         if (hotbar && typeof hotbar.setActorToken === 'function') {
             hotbar.setActorToken(actor, token);
         } else if (hotbar) {
@@ -167,36 +166,42 @@ export class HudOnScreen {
             }
         }
 
-        if (app.components.weaponSets) {
-            app.components.weaponSets.actor = actor;
-            app.components.weaponSets.token = token;
+        const weaponSets = app.getWeaponSetContainer();
+        if (weaponSets) {
+            weaponSets.actor = actor;
+            weaponSets.token = token;
         }
-        if (app.components.quickAccess) {
-            app.components.quickAccess.actor = actor;
-            app.components.quickAccess.token = token;
+        const quickAccess = app.getQuickAccessContainer();
+        if (quickAccess) {
+            quickAccess.actor = actor;
+            quickAccess.token = token;
         }
-        if (app.components.info) {
-            app.components.info.actor = actor;
-            app.components.info.token = token;
+        const info = app.getInfoContainer();
+        if (info) {
+            info.actor = actor;
+            info.token = token;
         }
-        if (app.components.portrait) {
-            app.components.portrait.actor = actor;
-            app.components.portrait.token = token;
-            if (app.components.portrait.infoContainer) {
-                app.components.portrait.infoContainer.actor = actor;
-                app.components.portrait.infoContainer.token = token;
+        const portrait = app.getPortraitContainer();
+        if (portrait) {
+            portrait.actor = actor;
+            portrait.token = token;
+            if (portrait.infoContainer) {
+                portrait.infoContainer.actor = actor;
+                portrait.infoContainer.token = token;
             }
         }
-        if (app.components.filters) {
-            app.components.filters.actor = actor;
-            app.components.filters.token = token;
+        const filters = app.getFilterContainer();
+        if (filters) {
+            filters.actor = actor;
+            filters.token = token;
         }
-        if (app.components.actionButtons) {
-            app.components.actionButtons.actor = actor;
-            app.components.actionButtons.token = token;
+        const actionButtons = app.getActionButtonsContainer();
+        if (actionButtons) {
+            actionButtons.actor = actor;
+            actionButtons.token = token;
         }
         for (const id of app.componentFactory.getRegisteredContainerIds('left')) {
-            const comp = app.components[id];
+            const comp = app.getRegisteredContainer(id);
             if (comp) {
                 comp.actor = actor;
                 comp.token = token;
@@ -212,7 +217,7 @@ export class HudOnScreen {
         const isPlayerCharacter = BG3HUD_API.isPlayerCharacter(app.currentActor);
         const minimalistView = game.settings.get('bg3-hud-core', 'minimalistView') === true;
         const showViews = isPlayerCharacter && !minimalistView;
-        const hotbar = app.components.hotbar;
+        const hotbar = app.getHotbarContainer();
         if (!hotbar?.element) return;
 
         if (showViews && !app.components.views) {
@@ -244,32 +249,35 @@ export class HudOnScreen {
         this._rebindComponentActors(app.currentActor, app.currentToken);
         await app.updateCoordinator.applyUnifiedState(state);
 
-        if (app.components.hotbar?.activeEffectsContainer) {
-            await app.components.hotbar.activeEffectsContainer.render();
+        if (app.getActiveEffectsContainer()) {
+            await app.getActiveEffectsContainer().render();
         }
-        if (app.components.hotbar?.passivesContainer) {
-            await app.components.hotbar.passivesContainer.render();
+        if (app.getPassivesContainer()) {
+            await app.getPassivesContainer().render();
         }
 
-        if (app.components.portrait && typeof app.components.portrait.swapTokenContext === 'function') {
-            await app.components.portrait.swapTokenContext(app.currentActor, app.currentToken);
+        const portrait = app.getPortraitContainer();
+        if (portrait && typeof portrait.swapTokenContext === 'function') {
+            await portrait.swapTokenContext(app.currentActor, app.currentToken);
         }
 
         await this._syncHotbarViewsForActor();
 
-        if (app.components.filters && typeof app.components.filters.update === 'function') {
-            await app.components.filters.update();
+        const filters = app.getFilterContainer();
+        if (filters && typeof filters.update === 'function') {
+            await filters.update();
         }
 
         for (const id of app.componentFactory.getRegisteredContainerIds('left')) {
-            const comp = app.components[id];
+            const comp = app.getRegisteredContainer(id);
             if (comp && typeof comp.render === 'function') {
                 await comp.render();
             }
         }
 
-        if (app.components.actionButtons && typeof app.components.actionButtons.render === 'function') {
-            await app.components.actionButtons.render();
+        const actionButtons = app.getActionButtonsContainer();
+        if (actionButtons && typeof actionButtons.render === 'function') {
+            await actionButtons.render();
         }
 
         app.updateDisplaySettings();

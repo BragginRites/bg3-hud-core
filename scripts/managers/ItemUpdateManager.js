@@ -385,7 +385,7 @@ export class ItemUpdateManager {
      * @private
      */
     async _updateGridContainer(gridIndex) {
-        if (!this.hotbarApp?.rendered || !this.hotbarApp?.components?.hotbar) return;
+        if (!this.hotbarApp?.rendered || !this.hotbarApp?.getHotbarContainer()) return;
 
         try {
             // Load persisted layout, then hydrate from live documents so uses / quantity /
@@ -399,7 +399,7 @@ export class ItemUpdateManager {
             const gridData = state.hotbar.grids[gridIndex];
             if (!gridData) return;
 
-            const hotbar = this.hotbarApp.components.hotbar;
+            const hotbar = this.hotbarApp.getHotbarContainer();
             const gridContainer = hotbar.gridContainers[gridIndex];
 
             if (gridContainer) {

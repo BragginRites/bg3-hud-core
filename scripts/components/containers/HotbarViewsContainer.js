@@ -42,8 +42,8 @@ export class HotbarViewsContainer extends BG3Component {
         this.viewButtons = [];
 
         // Get views from persistence manager
-        const views = this.persistenceManager?.getViews() || [];
-        const activeViewId = this.persistenceManager?.getActiveViewId();
+        const views = this.persistenceManager?.views.getViews() || [];
+        const activeViewId = this.persistenceManager?.views.getActiveViewId();
 
         // Create view buttons
         for (const view of views) {
@@ -114,12 +114,12 @@ export class HotbarViewsContainer extends BG3Component {
     async _switchToView(viewId) {
         if (!this.persistenceManager) return;
 
-        const currentViewId = this.persistenceManager.getActiveViewId();
+        const currentViewId = this.persistenceManager.views.getActiveViewId();
         if (currentViewId === viewId) return; // Already active
 
         try {
             // Switch view in persistence manager (this loads the view's state)
-            await this.persistenceManager.switchView(viewId);
+            await this.persistenceManager.views.switchView(viewId);
 
             // Update only the grid containers with new items (no full refresh)
             await this._updateHotbarContainers();
@@ -147,8 +147,8 @@ export class HotbarViewsContainer extends BG3Component {
         const updates = [];
 
         // Update hotbar grids only (views don't affect weapon sets or quick access)
-        if (this.hotbarApp.components.hotbar) {
-            const hotbarContainer = this.hotbarApp.components.hotbar;
+        if (this.hotbarApp.getHotbarContainer()) {
+            const hotbarContainer = this.hotbarApp.getHotbarContainer();
 
             // Also update the parent container's grids array
             hotbarContainer.grids = state.hotbar.grids;
@@ -184,7 +184,7 @@ export class HotbarViewsContainer extends BG3Component {
      */
     async _showCreateViewDialog() {
         // Check if already at max views
-        const views = this.persistenceManager?.getViews() || [];
+        const views = this.persistenceManager?.views.getViews() || [];
         if (views.length >= HotbarViewsContainer.MAX_VIEWS) {
             ui.notifications.warn(game.i18n.format('bg3-hud-core.Views.MaxViewsReached', { max: HotbarViewsContainer.MAX_VIEWS }));
             return;
@@ -206,7 +206,7 @@ export class HotbarViewsContainer extends BG3Component {
         if (!this.persistenceManager) return;
 
         try {
-            await this.persistenceManager.createView(name, icon);
+            await this.persistenceManager.views.createView(name, icon);
 
             // Update hotbar containers to show empty state
             await this._updateHotbarContainers();
@@ -233,7 +233,7 @@ export class HotbarViewsContainer extends BG3Component {
 
         const { ContextMenu } = await import('../ui/ContextMenu.js');
 
-        const views = this.persistenceManager?.getViews() || [];
+        const views = this.persistenceManager?.views.getViews() || [];
         const canDelete = views.length > 1; // Can't delete if it's the only view
 
         const menuItems = [
@@ -295,7 +295,7 @@ export class HotbarViewsContainer extends BG3Component {
         if (!this.persistenceManager) return;
 
         try {
-            await this.persistenceManager.renameView(viewId, newName, newIcon);
+            await this.persistenceManager.views.renameView(viewId, newName, newIcon);
 
             // Refresh the views container
             await this.render();
@@ -314,10 +314,10 @@ export class HotbarViewsContainer extends BG3Component {
         if (!this.persistenceManager) return;
 
         try {
-            const originalView = this.persistenceManager.getView(viewId);
+            const originalView = this.persistenceManager.views.getView(viewId);
             const newName = `${originalView?.name} (Copy)`;
 
-            await this.persistenceManager.duplicateView(viewId, newName);
+            await this.persistenceManager.views.duplicateView(viewId, newName);
 
             // Refresh the views container
             await this.render();
@@ -335,7 +335,7 @@ export class HotbarViewsContainer extends BG3Component {
     async _deleteView(viewId) {
         if (!this.persistenceManager) return;
 
-        const view = this.persistenceManager.getView(viewId);
+        const view = this.persistenceManager.views.getView(viewId);
 
         // Confirm deletion using Foundry's DialogV2
         const confirmed = await foundry.applications.api.DialogV2.confirm({
@@ -347,9 +347,9 @@ export class HotbarViewsContainer extends BG3Component {
         if (!confirmed) return;
 
         try {
-            const wasActive = this.persistenceManager.getActiveViewId() === viewId;
+            const wasActive = this.persistenceManager.views.getActiveViewId() === viewId;
 
-            await this.persistenceManager.deleteView(viewId);
+            await this.persistenceManager.views.deleteView(viewId);
 
             // If we deleted the active view, update the hotbar containers
             if (wasActive) {

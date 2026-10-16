@@ -129,9 +129,9 @@ export class ContainerTypeDetector {
      */
     static getGridContainer(hotbarApp, containerType, containerIndex) {
         const containerMap = {
-            [this.TYPES.HOTBAR]: hotbarApp?.components?.hotbar?.gridContainers,
-            [this.TYPES.WEAPON_SET]: hotbarApp?.components?.weaponSets?.gridContainers,
-            [this.TYPES.QUICK_ACCESS]: hotbarApp?.components?.quickAccess?.gridContainers
+            [this.TYPES.HOTBAR]: hotbarApp?.getHotbarContainer()?.gridContainers,
+            [this.TYPES.WEAPON_SET]: hotbarApp?.getWeaponSetContainer()?.gridContainers,
+            [this.TYPES.QUICK_ACCESS]: hotbarApp?.getQuickAccessContainer()?.gridContainers
         };
         return containerMap[containerType]?.[containerIndex] || null;
     }

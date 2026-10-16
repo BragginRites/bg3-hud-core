@@ -1,6 +1,43 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { resolveDefaultNotice, resolveNotice } from './resolveNotice.js';
+import { resolveDefaultNotice, resolveNotice, hasOwn, itemList } from './resolveNotice.js';
+
+describe('hasOwn', () => {
+    it('is true for an own key', () => {
+        assert.equal(hasOwn({ a: 1 }, 'a'), true);
+    });
+
+    it('is false for a missing key', () => {
+        assert.equal(hasOwn({ a: 1 }, 'b'), false);
+    });
+
+    it('is false for a null or undefined object', () => {
+        assert.equal(hasOwn(null, 'a'), false);
+        assert.equal(hasOwn(undefined, 'a'), false);
+    });
+});
+
+describe('itemList', () => {
+    it('returns an empty array when the actor has no items', () => {
+        assert.deepEqual(itemList(null), []);
+        assert.deepEqual(itemList({}), []);
+    });
+
+    it('filters a Foundry-style EmbeddedCollection via its filter method', () => {
+        const items = { filter: (fn) => ['a', 'b'].filter(fn) };
+        assert.deepEqual(itemList({ items }), ['a', 'b']);
+    });
+
+    it('passes through a plain array', () => {
+        const items = [{ id: 1 }];
+        assert.deepEqual(itemList({ items }), items);
+    });
+
+    it('reads a bare { contents } bag', () => {
+        const contents = [{ id: 1 }];
+        assert.deepEqual(itemList({ items: { contents } }), contents);
+    });
+});
 
 describe('resolveDefaultNotice', () => {
     it('maps HP change to Portrait Vitals only', () => {

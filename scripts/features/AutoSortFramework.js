@@ -1,4 +1,60 @@
 import { Logger } from '../utils/logger.js';
+import { fillGridRowMajor } from './gridFill.js';
+
+/**
+ * Build a comparator for `Array.prototype.sort` that orders items by a type-priority list,
+ * then (on a type tie) by an optional per-type secondary key, then alphabetically by name.
+ *
+ * This is the shape every adapter's `sortItems()` hand-wrote independently: look up each
+ * item's type in a priority list (unknown types sort last), break ties within a type using
+ * type-specific data (a number like spell level/action cost, or a string like feature
+ * category), and finally fall back to `localeCompare` on name.
+ *
+ * @param {Array<string>} typeOrder - Type values in priority order. A type not in this list
+ *   sorts after every listed type (both adapters' original hand-written comparators treated
+ *   an unknown type as "last", and this preserves that).
+ * @param {Object<string, (item: Object) => (number|string)>} [secondaryKeyFns] - Optional map
+ *   of type -> function extracting a comparable secondary-sort value for items of that type.
+ *   Numeric values are compared numerically; anything else is compared via `localeCompare`.
+ *   Types without an entry here fall straight through to the name comparison.
+ * @param {Object} [options]
+ * @param {(item: Object) => string} [options.getType] - Extracts the type to look up in
+ *   `typeOrder`. Defaults to `item.type`.
+ * @param {(item: Object) => string} [options.getName] - Extracts the name used for the final
+ *   alphabetical fallback (and ties within a secondary key). Defaults to `item.name || ''`.
+ * @returns {(a: Object, b: Object) => number}
+ */
+export function compareByTypeThenKey(typeOrder, secondaryKeyFns = {}, options = {}) {
+    const getType = options.getType || ((item) => item.type);
+    const getName = options.getName || ((item) => item.name || '');
+
+    return (a, b) => {
+        const typeA = getType(a);
+        const typeB = getType(b);
+        const indexA = typeOrder.indexOf(typeA);
+        const indexB = typeOrder.indexOf(typeB);
+
+        if (indexA !== indexB) {
+            if (indexA === -1) return 1;  // Unknown types go to the end
+            if (indexB === -1) return -1;
+            return indexA - indexB;
+        }
+
+        const secondaryKeyFn = secondaryKeyFns[typeA];
+        if (secondaryKeyFn) {
+            const secondaryA = secondaryKeyFn(a);
+            const secondaryB = secondaryKeyFn(b);
+            if (secondaryA !== secondaryB) {
+                if (typeof secondaryA === 'number' && typeof secondaryB === 'number') {
+                    return secondaryA - secondaryB;
+                }
+                return String(secondaryA).localeCompare(String(secondaryB));
+            }
+        }
+
+        return getName(a).localeCompare(getName(b));
+    };
+}
 
 /**
  * Auto Sort Framework
@@ -102,29 +158,18 @@ export class AutoSortFramework {
         // Clear container items
         container.items = {};
 
-        // Re-add items in sorted order
-        let r = 0;
-        let c = 0;
         const cols = container.cols || 5;
         const rows = container.rows || 3;
 
-        for (const item of items) {
-            // Stop if we've run out of grid space
-            if (r >= rows) break;
-            
-            const slotKey = `${c}-${r}`;
+        // Container was just cleared, so every slot is free: no isOccupied/canPlace hook needed.
+        const { placements } = fillGridRowMajor({ cols, rows }, items);
+
+        for (const { slotKey, item } of placements) {
             if (item.uuid) {
                 // Preserve ALL original item data, just update the position
                 // Remove internal properties used for sorting
                 const { key, sortData, ...cellData } = item;
                 container.items[slotKey] = cellData;
-            }
-
-            // Move to next position (left to right, then down)
-            c++;
-            if (c >= cols) {
-                c = 0;
-                r++;
             }
         }
 

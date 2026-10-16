@@ -120,6 +120,162 @@ export class WeaponSetContainer extends BG3Component {
     }
 
     /**
+     * Whether this item should occupy both carousel slots (two-handed weapon).
+     * Override in subclass with system-specific detection.
+     * @param {Item} item
+     * @returns {boolean}
+     * @private
+     */
+    _itemOccupiesBothSlots(item) {
+        return false;
+    }
+
+    /**
+     * Check if cell data points at an item that should fill both slots
+     * @param {Object} cellData - Cell data object with uuid
+     * @returns {Promise<boolean>}
+     * @private
+     */
+    async _isTwoHandedWeapon(cellData) {
+        if (!cellData?.uuid) return false;
+
+        try {
+            const item = await fromUuid(cellData.uuid);
+            return this._itemOccupiesBothSlots(item);
+        } catch (error) {
+            Logger.warn('WeaponSetContainer | Error checking two-handed weapon:', error);
+            return false;
+        }
+    }
+
+    /**
+     * i18n key used by shouldPreventDrop() when warning about a locked slot.
+     * Override in subclass to use the adapter's existing translated key.
+     * @returns {string}
+     * @private
+     */
+    _lockedSlotWarningKey() {
+        return 'bg3-hud-core.Notifications.SlotOccupiedByTwoHandedWeapon';
+    }
+
+    /**
+     * Wrap GridContainer render methods to ensure two-handed weapon display
+     * is updated after any render (including those triggered by UpdateCoordinator).
+     * This fixes the bug where offhand slot disappears after attacking with
+     * two-handed weapons, due to actor updates triggering GridContainer.render()
+     * which bypasses our _updateTwoHandedWeapons() override.
+     * @private
+     */
+    _wrapGridContainerRenders() {
+        for (let setIndex = 0; setIndex < this.gridContainers.length; setIndex++) {
+            const gridContainer = this.gridContainers[setIndex];
+
+            // Skip if already wrapped
+            if (gridContainer._bg3TwoHandedWrapped) continue;
+
+            // Store reference to this WeaponSetContainer and the original render
+            const weaponSetContainer = this;
+            const index = setIndex;
+            const originalRender = gridContainer.render.bind(gridContainer);
+
+            // Wrap the render method
+            gridContainer.render = async function () {
+                const result = await originalRender();
+                // After render completes, update two-handed weapon display for this set
+                await weaponSetContainer._updateSetTwoHandedWeapons(this, index);
+                return result;
+            };
+
+            // Mark as wrapped to prevent re-wrapping
+            gridContainer._bg3TwoHandedWrapped = true;
+        }
+    }
+
+    /**
+     * Update all weapon sets to show two-handed weapon duplicates
+     * @private
+     */
+    async _updateTwoHandedWeapons() {
+        for (let setIndex = 0; setIndex < this.gridContainers.length; setIndex++) {
+            await this._updateSetTwoHandedWeapons(this.gridContainers[setIndex], setIndex);
+        }
+    }
+
+    /**
+     * Update a single weapon set for two-handed weapons.
+     * Base default: left-slot-only duplicate+lock. Override in subclass for
+     * richer behavior (e.g. grip memory, stash, bidirectional checks).
+     * @param {GridContainer} gridContainer
+     * @param {number} [setIndex]
+     * @private
+     */
+    async _updateSetTwoHandedWeapons(gridContainer, setIndex = null) {
+        // Only process if this is a 2-slot weapon set (1 row, 2 cols)
+        if (gridContainer.rows !== 1 || gridContainer.cols !== 2) return;
+
+        const leftCell = gridContainer.getCell(0, 0);  // Left slot (col 0, row 0)
+        const rightCell = gridContainer.getCell(1, 0); // Right slot (col 1, row 0)
+
+        if (!leftCell || !rightCell) return;
+
+        // Check left slot for two-handed weapon
+        if (leftCell.data && await this._isTwoHandedWeapon(leftCell.data)) {
+            // Duplicate to right slot with special marker
+            const duplicateData = {
+                ...leftCell.data,
+                isTwoHandedDuplicate: true,
+                sourceSlot: '0-0'
+            };
+            await rightCell.setData(duplicateData, { skipSave: true });
+            rightCell.element.classList.add('two-handed-duplicate');
+            rightCell.element.dataset.locked = 'true';
+        } else {
+            // Clear duplicate marker if right cell was previously a duplicate
+            if (rightCell.data?.isTwoHandedDuplicate) {
+                await rightCell.setData(null, { skipSave: true });
+            }
+            rightCell.element.classList.remove('two-handed-duplicate');
+            delete rightCell.element.dataset.locked;
+        }
+    }
+
+    /**
+     * Check if a cell is locked (occupied by two-handed weapon duplicate)
+     * @param {GridCell} cell
+     * @returns {boolean}
+     */
+    isCellLocked(cell) {
+        return cell.element?.dataset?.locked === 'true';
+    }
+
+    /**
+     * Handle drop on a cell - prevent drops on locked cells
+     * This method is called by the interaction coordinator
+     * @param {GridCell} targetCell
+     * @returns {boolean} - true if drop should be prevented
+     */
+    shouldPreventDrop(targetCell) {
+        // Prevent drop on locked cells (two-handed duplicates)
+        if (this.isCellLocked(targetCell)) {
+            ui.notifications.warn(game.i18n.localize(this._lockedSlotWarningKey()));
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * After a cell is updated, check if we need to update two-handed weapon display
+     * @param {number} setIndex
+     * @param {string} slotKey
+     */
+    async onCellUpdated(setIndex, slotKey) {
+        const gridContainer = this.gridContainers[setIndex];
+        if (gridContainer) {
+            await this._updateSetTwoHandedWeapons(gridContainer, setIndex);
+        }
+    }
+
+    /**
      * Render the weapon set container
      * @returns {Promise<HTMLElement>}
      */
@@ -199,6 +355,11 @@ export class WeaponSetContainer extends BG3Component {
         this.element.dataset.activeSet = activeIndex;
         this._updateSetTooltips(activeIndex);
 
+        // Wrap grid container render methods to ensure two-handed weapons update,
+        // then process each weapon set for two-handed weapons
+        this._wrapGridContainerRenders();
+        await this._updateTwoHandedWeapons();
+
         return this.element;
     }
 
@@ -247,6 +408,7 @@ export class WeaponSetContainer extends BG3Component {
         gridContainer.cols = newData.cols;
         gridContainer.items = newData.items || {};
         await gridContainer.render();
+        await this._updateSetTwoHandedWeapons(gridContainer, setIndex);
     }
 
     /**

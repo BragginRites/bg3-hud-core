@@ -607,6 +607,22 @@ export class BG3Hotbar extends foundry.applications.api.HandlebarsApplicationMix
     }
 
     /**
+     * Named accessors for `this.components` fields. These replace direct `components` reads so
+     * callers never hold a stale reference across the bag's full rebuild in `_initializeComponents()`/
+     * `_destroyComponents()` — each read is live and uncached, so it can never go stale.
+     */
+    getHotbarContainer() { return this.components?.hotbar; }
+    getWeaponSetContainer() { return this.components?.weaponSets; }
+    getQuickAccessContainer() { return this.components?.quickAccess; }
+    getPortraitContainer() { return this.components?.portrait; }
+    getInfoContainer() { return this.components?.info; }
+    getFilterContainer() { return this.components?.filters; }
+    getActionButtonsContainer() { return this.components?.actionButtons; }
+    getPassivesContainer() { return this.components?.hotbar?.passivesContainer; }
+    getActiveEffectsContainer() { return this.components?.hotbar?.activeEffectsContainer; }
+    getRegisteredContainer(id) { return this.components?.[id]; }
+
+    /**
      * Clean up when closing
      */
     async close(options = {}) {

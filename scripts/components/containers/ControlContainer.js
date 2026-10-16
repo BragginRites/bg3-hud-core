@@ -190,12 +190,12 @@ export class ControlContainer extends BG3Component {
     async _applyRowDelta(delta) {
         if (this._rowOpInProgress) return;
 
-        if (!this.hotbarApp?.components?.hotbar) {
+        if (!this.hotbarApp?.getHotbarContainer()) {
             Logger.warn('No hotbar to change row count');
             return;
         }
 
-        const hotbarContainer = this.hotbarApp.components.hotbar;
+        const hotbarContainer = this.hotbarApp.getHotbarContainer();
 
         if (delta < 0) {
             const minRows = Math.min(...hotbarContainer.grids.map(g => g.rows ?? 0));
@@ -480,7 +480,7 @@ export class ControlContainer extends BG3Component {
     async _resetLayout() {
         if (!this.hotbarApp) return;
 
-        const hotbarContainer = this.hotbarApp.components.hotbar;
+        const hotbarContainer = this.hotbarApp.getHotbarContainer();
 
         // Get default configuration from persistence manager
         const defaultConfig = this.hotbarApp.persistenceManager.DEFAULT_GRID_CONFIG;
@@ -525,7 +525,7 @@ export class ControlContainer extends BG3Component {
             const updates = [];
 
             // Clear hotbar grids
-            const hotbarContainer = this.hotbarApp.components.hotbar;
+            const hotbarContainer = this.hotbarApp.getHotbarContainer();
             if (hotbarContainer) {
                 for (let i = 0; i < hotbarContainer.gridContainers.length; i++) {
                     const gridContainer = hotbarContainer.gridContainers[i];
@@ -535,7 +535,7 @@ export class ControlContainer extends BG3Component {
             }
 
             // Clear weapon sets
-            const weaponSetsContainer = this.hotbarApp.components.weaponSets;
+            const weaponSetsContainer = this.hotbarApp.getWeaponSetContainer();
             if (weaponSetsContainer) {
                 for (let i = 0; i < weaponSetsContainer.gridContainers.length; i++) {
                     const gridContainer = weaponSetsContainer.gridContainers[i];
@@ -545,7 +545,7 @@ export class ControlContainer extends BG3Component {
             }
 
             // Clear quick access
-            const quickAccessContainer = this.hotbarApp.components.quickAccess;
+            const quickAccessContainer = this.hotbarApp.getQuickAccessContainer();
             if (quickAccessContainer?.gridContainers[0]) {
                 const gridContainer = quickAccessContainer.gridContainers[0];
                 gridContainer.items = {};
@@ -715,7 +715,7 @@ export class ControlContainer extends BG3Component {
         }
 
         // Update grids data
-        const hotbarContainer = this.hotbarApp.components.hotbar;
+        const hotbarContainer = this.hotbarApp.getHotbarContainer();
         hotbarContainer.grids = layout;
 
         // Update each grid container individually

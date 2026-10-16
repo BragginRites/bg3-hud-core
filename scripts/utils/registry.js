@@ -1,4 +1,5 @@
 import { Logger } from './logger.js';
+import { TargetSelectorMath } from '../managers/TargetSelectorMath.js';
 
 /**
  * BG3 HUD Component Registry
@@ -301,12 +302,31 @@ export const BG3HUD_API = {
 
     /**
      * Get the live WeaponSetContainer component instance for the on-screen HUD, if any.
-     * Pure redirection onto `ui.BG3HUD_APP?.components?.weaponSets` so adapters don't reach
-     * into the hotbar app's internal component tree directly.
+     * Delegates to `BG3Hotbar.getWeaponSetContainer()` so adapters don't reach into the hotbar
+     * app's internal component tree directly.
      * @returns {Object|null|undefined} The WeaponSetContainer instance, or null/undefined if unavailable
      */
     getWeaponSetComponent() {
-        return ui.BG3HUD_APP?.components?.weaponSets;
+        return ui.BG3HUD_APP?.getWeaponSetContainer();
+    },
+
+    /**
+     * Get the live FilterContainer component instance for the on-screen HUD, if any.
+     * Delegates to `BG3Hotbar.getFilterContainer()`.
+     * @returns {Object|null|undefined} The FilterContainer instance, or null/undefined if unavailable
+     */
+    getFilterContainer() {
+        return ui.BG3HUD_APP?.getFilterContainer();
+    },
+
+    /**
+     * Get a registered adapter-extra container instance by id, if any.
+     * Delegates to `BG3Hotbar.getRegisteredContainer(id)`.
+     * @param {string} id - Stable container id passed to `registerContainer`
+     * @returns {Object|null|undefined} The container instance, or null/undefined if unavailable
+     */
+    getRegisteredContainer(id) {
+        return ui.BG3HUD_APP?.getRegisteredContainer(id);
     },
 
     /**
@@ -427,6 +447,27 @@ export const BG3HUD_API = {
      */
     getTargetSelectorManager() {
         return BG3HUD_REGISTRY.targetSelectorManager;
+    },
+
+    /**
+     * Calculate distance between two tokens using edge-to-edge grid-based measurement.
+     * Delegates to `TargetSelectorMath.calculateTokenDistance`.
+     * @param {Token} tokenA - The source token
+     * @param {Token} tokenB - The target token
+     * @returns {number} Distance in GRID SQUARES (not feet/meters)
+     */
+    calculateTokenDistance(tokenA, tokenB) {
+        return TargetSelectorMath.calculateTokenDistance(tokenA, tokenB);
+    },
+
+    /**
+     * Get token bounds in grid coordinates.
+     * Delegates to `TargetSelectorMath.getTokenGridBounds`.
+     * @param {Token} token - The token to get bounds for
+     * @returns {Object} Bounds object with left, right, top, bottom in grid squares
+     */
+    getTokenGridBounds(token) {
+        return TargetSelectorMath.getTokenGridBounds(token);
     },
 
     /**
