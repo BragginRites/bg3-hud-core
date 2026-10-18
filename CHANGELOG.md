@@ -1,10 +1,14 @@
+## [0.8.1] - 2026-10-19
+
+### Changed
+- **Internal cleanup**: Continued tidying up how the HUD talks to the game-system add-ons (dnd5e, Pathfinder, DC20) and how it tracks its own on-screen pieces internally, removed some leftover unused code, and added more automated tests. Nothing about how the HUD looks, feels, or plays has changed.
+
 ## [0.8.0] - 2026-10-16
 
 ### Changed
 - **Area placement**: An emanation is drawn from the caster when the game says that shape is attached to them. A ring counts tokens in the band, not the hole. A square counts the square. Other blasts still place where you click.
 - **Greyed settings**: A settings section can be shown turned off, with a hint, without wiping the saved choice.
 - **Removed the public registry global**: `ui.BG3HOTBAR.registry` is gone. If anything you authored read it, use `ui.BG3HOTBAR.api.getActiveAdapter()` instead. `BG3HUD_API` (`ui.BG3HOTBAR.api`) is now the only supported interface onto adapter/registry state; the underlying `BG3HUD_REGISTRY` object is no longer exported, even internally.
-- **Internal cleanup**: Continued tidying up how the HUD talks to the game-system add-ons (dnd5e, Pathfinder, DC20) and how it tracks its own on-screen pieces internally, removed some leftover unused code, and added more automated tests. Nothing about how the HUD looks, feels, or plays has changed.
 
 ## [0.7.1] - 2026-10-05
 
