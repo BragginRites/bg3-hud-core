@@ -1,13 +1,35 @@
-## [Unreleased]
+## [0.8.0] - 2026-10-16
 
 ### Changed
-- **Selecting more than one token**: The HUD follows the one token you have selected. If you select two or more (a group plus a creature still counts as two), it behaves like nothing is selected: GMs see the GM Hotbar if that setting is on, players see nothing.
+- **Area placement**: An emanation is drawn from the caster when the game says that shape is attached to them. A ring counts tokens in the band, not the hole. A square counts the square. Other blasts still place where you click.
+- **Greyed settings**: A settings section can be shown turned off, with a hint, without wiping the saved choice.
+- **Removed the public registry global**: `ui.BG3HOTBAR.registry` is gone. If anything you authored read it, use `ui.BG3HOTBAR.api.getActiveAdapter()` instead. `BG3HUD_API` (`ui.BG3HOTBAR.api`) is now the only supported interface onto adapter/registry state; the underlying `BG3HUD_REGISTRY` object is no longer exported, even internally.
+
+## [0.7.1] - 2026-10-05
 
 ### Fixed
-- **GM Hotbar toggle**: You can still switch to the GM Hotbar while a token is selected. Clicking a token brings that creature's HUD back instead of leaving you on the GM bar.
-- **Deselecting Token lock**: With that lock on, clicking empty canvas still keeps the HUD. Selecting a second token hides it.
-- **Minimalist View**: Picking a token when nothing was selected no longer flashes the floating layout before the docked HUD shows.
-- **HUD flicker**: The HUD no longer flashes half-drawn when it appears.
+- **Item hover cards**: The card that appears when you hover an item on the HUD keeps its own layout. Another module's tooltip style no longer changes how that card is built.
+
+## [0.7.0] - 2026-10-05
+
+The HUD follows the creature you have selected, keeps up during a fight without rebuilding itself, and lets you choose targets yourself when that option is on.
+
+### Added
+- **Polish**: Thanks to @Lioheart. A Polish translation is included, as far as their last pass. Phrases added since then still show in English.
+
+### Changed
+- **Selecting a token**: The HUD appears when that creature is ready. It fades only after it has been up and the pointer is off it. A right-click menu from the HUD keeps it on screen.
+- **One creature at a time**: The HUD follows the single token you have selected. Select more than one and it steps aside. GMs then see the GM Hotbar when that option is on. Players see nothing.
+- **Updates during play**: Damage, spell slots, potions, and similar changes move the numbers and icons that changed. The rest of the bar stays where it is.
+- **What you can place**: The Hotbar can hold as many copies of an ability as you like. Weapon sets are for what that creature is holding. Dragging on the HUD moves or swaps. Auto-fill will not add another copy of something already placed, and it will not fill a weapon set.
+- **Choosing targets**: With Target Select on, you pick creatures yourself, and an area spell places with one click. A spell attack no longer starts with you already selected ([#40](https://github.com/BragginRites/bg3-hud-core/issues/40)). Which tokens are legal is decided by that game. D&D and Pathfinder now use their own target types for this. With the setting off, Foundry's own targeting is unchanged.
+- **End turn**: End turn works the same in every game. Rest buttons still come from that game.
+
+### Fixed
+- **A steadier HUD**: It no longer waits invisible after you click a token, flashes half-drawn, or fades while one of its menus is open.
+- **GM Hotbar and Minimalist View**: Switching to the GM Hotbar and back, and selecting a token in Minimalist View, no longer leave you on the wrong layout.
+- **Games without passives**: Those games no longer show an empty passives row.
+- **Brazilian Portuguese**: Thanks to @Kharmans. Includes their latest pass, including Minimalist View. Phrases added since that pass still show in English.
 
 
 ## [0.6.0] - 2026-08-25

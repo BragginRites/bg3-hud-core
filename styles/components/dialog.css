@@ -499,3 +499,21 @@
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 6px;
 }
+
+/* Third-party settings that this HUD does not run on the current Foundry or system. */
+.bg3-settings-submenu fieldset.is-unavailable {
+    opacity: 0.55;
+}
+
+.bg3-settings-submenu .form-group.is-unavailable {
+    opacity: 0.55;
+}
+
+.bg3-settings-submenu fieldset.is-unavailable input,
+.bg3-settings-submenu fieldset.is-unavailable select,
+.bg3-settings-submenu fieldset.is-unavailable button,
+.bg3-settings-submenu .form-group.is-unavailable input,
+.bg3-settings-submenu .form-group.is-unavailable select,
+.bg3-settings-submenu .form-group.is-unavailable button {
+    cursor: not-allowed;
+}

@@ -2,6 +2,7 @@ import { TargetSelectorUI } from './TargetSelectorUI.js';
 import { TargetSelectorMath } from './TargetSelectorMath.js';
 import { TargetSelectorEvents } from './TargetSelectorEvents.js';
 import { Logger } from '../utils/logger.js';
+import { areaKind, tokensInArea } from '../target-select/inclusion.js';
 
 /**
  * BG3 Target Selector Manager
@@ -63,20 +64,67 @@ export class TargetSelectorManager {
         this.item = item;
         this.activity = activity;
 
-        // Get targeting requirements from adapter
+        // Get targeting requirements from adapter.
+        // Creature-pick always opens. Existing Foundry targets are not a choice.
         this.requirements = this._getTargetRequirements();
-
-        // Check if we should skip the selector
-        if (this._shouldSkipSelector()) {
-            const existingTargets = Array.from(game.user.targets);
-            return existingTargets;
-        }
 
         return new Promise((resolve, reject) => {
             this._resolvePromise = resolve;
             this._rejectPromise = reject;
             this._activate();
         });
+    }
+
+    // ========== Interface for UI/Events Components ==========
+    //
+    // TargetSelectorUI and TargetSelectorEvents hold a reference to this
+    // manager, but they must not read or write its mutable properties
+    // directly. They go through the methods below (for state) and the
+    // existing action methods such as confirmSelection()/cancel()/
+    // adjustMaxTargets()/toggleTarget() (for behavior).
+
+    /**
+     * Get a read-only snapshot of the current selection state.
+     * @returns {{
+     *   sourceToken: Token|null,
+     *   item: Item|null,
+     *   activity: Object|null,
+     *   requirements: Object,
+     *   selectedTargets: Token[],
+     *   adapter: Object|null
+     * }}
+     */
+    getSelectionState() {
+        return {
+            sourceToken: this.sourceToken,
+            item: this.item,
+            activity: this.activity,
+            requirements: this.requirements,
+            selectedTargets: [...this.selectedTargets],
+            adapter: this.adapter
+        };
+    }
+
+    /**
+     * Check whether the target selector is currently active.
+     * Lightweight alternative to getSelectionState() for checks that run
+     * on every input event (mousemove, click, keydown).
+     * @returns {boolean}
+     */
+    isSelectionActive() {
+        return this.isActive;
+    }
+
+    /**
+     * Forward a mouse position update to the UI layer.
+     * Lets TargetSelectorEvents notify the UI without reaching into
+     * manager.ui directly.
+     * @param {number} x
+     * @param {number} y
+     */
+    updateMousePosition(x, y) {
+        if (!this.ui) return;
+        this.ui.updateMousePosition(x, y);
     }
 
     /**
@@ -125,7 +173,7 @@ export class TargetSelectorManager {
 
     /**
      * Validate if a token is a valid target.
-     * Only: exists, target type (self/enemy unless overridden), and range (if enabled).
+     * Exists, the game's own target rule (unless overridden), and range (if enabled).
      * @param {Token} token - The token to validate
      * @returns {{valid: boolean, reason: string|null}} Validation result
      */
@@ -134,7 +182,7 @@ export class TargetSelectorManager {
             return { valid: false, reason: game.i18n.localize('bg3-hud-core.TargetSelector.InvalidTarget') };
         }
 
-        // Target type: self / enemy (skippable via override setting)
+        // Who is legal is decided by the system adapter.
         const ignoreType = game.settings.get('bg3-hud-core', 'ignoreTargetTypeRestrictions') ?? false;
         if (!ignoreType && this.adapter?.targetingRules?.isValidTargetType) {
             const adapterValidation = this.adapter.targetingRules.isValidTargetType({
@@ -300,23 +348,10 @@ export class TargetSelectorManager {
         // Store for debugging
         window.bg3TargetSelector = this;
 
-        // Auto-target self if enabled and valid
-        if (this._shouldAutoTargetSelf()) {
-            const validation = this.validateTarget(this.sourceToken);
-            if (validation.valid) {
-                this.toggleTarget(this.sourceToken);
-            }
-        }
-
         // Switch to target tool
         this._switchToTargetTool();
 
         // Activate UI
-        Logger.warn('Manager: Calling UI.activate with:', {
-            range: this.requirements.range,
-            sourceToken: this.sourceToken?.name,
-            requirements: this.requirements
-        });
         this.ui.activate(this.requirements);
 
         // Register events (includes targetToken hook for real-time sync)
@@ -382,51 +417,87 @@ export class TargetSelectorManager {
     }
 
     /**
-     * Check if selector should be skipped.
-     * @returns {boolean} True if should skip
-     * @private
+     * Area-fill: this click places the Area and confirms.
+     * @param {{x:number,y:number}} point Canvas coordinates
      */
-    _shouldSkipSelector() {
-        // Check setting
-        const skipWithValidTarget = game.settings.get('bg3-hud-core', 'skipSelectorWithValidTarget') ?? true;
-        if (!skipWithValidTarget) {
-            return false;
+    placeArea(point) {
+        if (!this.isActive || !this.requirements?.hasTemplate || !point) return;
+
+        if (this._isRangeCheckingEnabled() && this._pointOutOfRange(point)) {
+            ui.notifications.warn(game.i18n.localize('bg3-hud-core.TargetSelector.OutOfRange'));
+            return;
         }
 
-        // Only skip for single-target
-        const maxTargets = this.requirements.maxTargets || 1;
-        if (maxTargets !== 1) {
-            return false;
-        }
+        const template = this.requirements.template || {};
+        const gridSize = canvas?.grid?.size || 100;
+        const sceneDistance = canvas?.scene?.grid?.distance || 5;
+        const feet = Number(template.size ?? template.distance ?? 0);
+        const sizePx = feet > 0 ? (feet / sceneDistance) * gridSize : gridSize;
+        const thicknessFeet = Number(template.width ?? 0);
+        const thicknessPx = thicknessFeet > 0 ? (thicknessFeet / sceneDistance) * gridSize : 0;
+        const kind = areaKind(template.type);
+        const fromCaster = kind === 'cone' || kind === 'line'
+            || template.canvas === 'emanation'
+            || template.type === 'emanation';
+        const caster = this.sourceToken?.center || point;
+        const origin = fromCaster ? { x: caster.x, y: caster.y } : point;
+        const tokens = canvas?.tokens?.placeables || [];
+        const hits = tokensInArea(
+            tokens.map((token) => ({
+                token,
+                x: token.x,
+                y: token.y,
+                w: token.w,
+                h: token.h,
+                hasActor: !!token.actor
+            })),
+            {
+                kind,
+                origin,
+                toward: point,
+                size: sizePx,
+                width: gridSize,
+                thickness: thicknessPx
+            }
+        );
 
-        // Check if exactly one valid target exists
-        const currentTargets = Array.from(game.user.targets);
-        if (currentTargets.length !== 1) {
-            return false;
+        const selected = hits.map((hit) => hit.token);
+        if (!selected.length) {
+            for (const token of Array.from(game.user?.targets || [])) {
+                token.setTarget(false, { user: game.user, releaseOthers: false, groupSelection: true });
+            }
         }
+        selected.forEach((token, index) => {
+            token.setTarget(true, {
+                user: game.user,
+                releaseOthers: index === 0,
+                groupSelection: true
+            });
+        });
+        this.selectedTargets = selected;
+        this._deactivate();
 
-        // Validate the current target
-        const validation = this.validateTarget(currentTargets[0]);
-        return validation.valid;
+        if (this._resolvePromise) {
+            const result = selected.slice();
+            result.placed = true;
+            this._resolvePromise(result);
+            this._resolvePromise = null;
+            this._rejectPromise = null;
+        }
     }
 
     /**
-     * Check if should auto-target self.
+     * @param {{x:number,y:number}} point
      * @returns {boolean}
      * @private
      */
-    _shouldAutoTargetSelf() {
-        const autoTargetSelf = game.settings.get('bg3-hud-core', 'autoTargetSelf') ?? false;
-        if (!autoTargetSelf) {
-            return false;
-        }
-
-        // Don't auto-target self if target type is 'other'
-        if (this.requirements.targetType === 'other') {
-            return false;
-        }
-
-        return true;
+    _pointOutOfRange(point) {
+        const range = this.requirements?.range;
+        if (!range || !this.sourceToken || !canvas?.grid?.size) return false;
+        const gridSize = canvas.grid.size;
+        const dx = Math.abs(point.x - this.sourceToken.center.x) / gridSize;
+        const dy = Math.abs(point.y - this.sourceToken.center.y) / gridSize;
+        return Math.max(dx, dy) > range;
     }
 
     /**

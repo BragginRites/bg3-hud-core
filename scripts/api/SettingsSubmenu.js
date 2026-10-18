@@ -8,19 +8,23 @@ const { FormDataExtended } = foundry.applications.ux;
  * @param {object} options
  * @param {string} options.moduleId - Settings namespace.
  * @param {string} options.titleKey - i18n key for window title.
- * @param {Array<{ legend: string, keys: string[], buttons?: Array<{id: string, label: string, icon: string, hint?: string, onClick: Function}> }>} options.sections - Section legend + setting keys + optional action buttons.
+ * @param {Array<{ legend: string, keys: string[], disabled?: boolean, disabledHint?: string, buttons?: Array<{id: string, label: string, icon: string, hint?: string, onClick: Function}> }>} options.sections - Section legend + setting keys + optional action buttons. A disabled section is greyed out, its controls cannot be changed, and its stored values are left alone on save.
  * @returns {typeof BG3Dialog}
  */
 export function createSettingsSubmenu({ moduleId, titleKey, sections }) {
     const legendTemplate = legend => `<legend>${game.i18n.localize(legend)}</legend>`;
 
-    const renderField = ({ key, setting, value }) => {
+    const renderField = ({ key, setting, value, disabled = false, disabledHint = '' }) => {
         const label = game.i18n.localize(setting.name);
-        const hint = setting.hint ? game.i18n.localize(setting.hint) : '';
+        const hint = disabled && disabledHint
+            ? disabledHint
+            : (setting.hint ? game.i18n.localize(setting.hint) : '');
+        const disabledAttr = disabled ? ' disabled' : '';
+        const tooltip = disabled && disabledHint ? ` data-tooltip="${escapeAttr(disabledHint)}"` : '';
 
         const renderInput = () => {
             if (setting.type === Boolean || setting.type instanceof BooleanField) {
-                return `<input type="checkbox" name="${key}" ${value ? 'checked' : ''}>`;
+                return `<input type="checkbox" name="${key}" ${value ? 'checked' : ''}${disabledAttr}>`;
             }
 
             if (setting.choices) {
@@ -30,7 +34,7 @@ export function createSettingsSubmenu({ moduleId, titleKey, sections }) {
                         return `<option value="${val}" ${selected}>${game.i18n.localize(lbl)}</option>`;
                     })
                     .join('');
-                return `<select name="${key}">${opts}</select>`;
+                return `<select name="${key}"${disabledAttr}>${opts}</select>`;
             }
 
             const isNumber = setting.type === Number || setting.type instanceof NumberField;
@@ -39,11 +43,11 @@ export function createSettingsSubmenu({ moduleId, titleKey, sections }) {
             const attrs = isNumber
                 ? ` min="${range.min ?? ''}" max="${range.max ?? ''}" step="${range.step ?? ''}"`
                 : '';
-            return `<input type="${type}" name="${key}" value="${value}"${attrs}>`;
+            return `<input type="${type}" name="${key}" value="${value}"${attrs}${disabledAttr}>`;
         };
 
         return `
-      <div class="form-group">
+      <div class="form-group${disabled ? ' is-unavailable' : ''}"${tooltip}>
         <label for="${key}">${label}</label>
         ${renderInput()}
         ${hint ? `<p class="hint">${hint}</p>` : ''}
@@ -61,14 +65,14 @@ export function createSettingsSubmenu({ moduleId, titleKey, sections }) {
      * @param {string} [button.hint] - Optional i18n key for hint text
      * @returns {string} HTML string
      */
-    const renderButton = (button) => {
+    const renderButton = (button, disabled = false) => {
         const name = button.name ? game.i18n.localize(button.name) : '';
         const label = game.i18n.localize(button.label);
         const hint = button.hint ? game.i18n.localize(button.hint) : '';
         return `
       <div class="form-group">
         <label>${name}</label>
-        <button type="button" class="submenu-action-btn" data-action="${button.id}">
+        <button type="button" class="submenu-action-btn" data-action="${button.id}"${disabled ? ' disabled' : ''}>
           <i class="${button.icon}"></i> ${label}
         </button>
         ${hint ? `<p class="hint">${hint}</p>` : ''}
@@ -76,7 +80,19 @@ export function createSettingsSubmenu({ moduleId, titleKey, sections }) {
     `;
     };
 
+    const escapeAttr = (value) => String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/</g, '&lt;');
+
+    const keyIsDisabled = (section, key) => Boolean(section.disabled)
+        || (section.disabledKeys ?? []).includes(key);
+
     const buildSection = section => {
+        const unavailable = Boolean(section.disabled)
+            || (section.keys.length > 0 && section.keys.every(key => keyIsDisabled(section, key)));
+        const unavailableHint = section.disabledHint ? game.i18n.localize(section.disabledHint) : '';
+        const sectionHint = unavailable ? unavailableHint : '';
         const fields = section.keys.map(key => {
             const setting = game.settings.settings.get(`${moduleId}.${key}`);
             if (!setting) throw new Error(`[${moduleId}] Unknown setting ${key}`);
@@ -85,13 +101,22 @@ export function createSettingsSubmenu({ moduleId, titleKey, sections }) {
             const needsGM = setting.scope === 'world' || setting.restricted;
             if (needsGM && !game.user.isGM) return '';
             const value = game.settings.get(moduleId, key);
-            return renderField({ key, setting, value });
+            const disabled = keyIsDisabled(section, key);
+            return renderField({
+                key,
+                setting,
+                value,
+                disabled,
+                disabledHint: disabled ? unavailableHint : ''
+            });
         }).join('');
 
         // Render action buttons if present
-        const buttons = (section.buttons || []).map(renderButton).join('');
+        const buttons = (section.buttons || []).map(button => renderButton(button, unavailable)).join('');
+        const tooltip = sectionHint ? ` data-tooltip="${escapeAttr(sectionHint)}"` : '';
+        const unavailableClass = unavailable ? ' class="is-unavailable"' : '';
 
-        return `<fieldset>${legendTemplate(section.legend)}${fields}${buttons}</fieldset>`;
+        return `<fieldset${unavailableClass}${tooltip}>${legendTemplate(section.legend)}${sectionHint ? `<p class="hint unavailable-hint">${sectionHint}</p>` : ''}${fields}${buttons}</fieldset>`;
     };
 
     return class SettingsSubmenu extends BG3Dialog {
@@ -133,6 +158,7 @@ export function createSettingsSubmenu({ moduleId, titleKey, sections }) {
             this.element?.querySelectorAll('.submenu-action-btn').forEach(btn => {
                 btn.addEventListener('click', (event) => {
                     event.preventDefault();
+                    if (btn.disabled) return;
                     const actionId = btn.dataset.action;
                     const callback = callbacks.get(actionId);
                     if (callback) callback();
@@ -168,8 +194,13 @@ export function createSettingsSubmenu({ moduleId, titleKey, sections }) {
 
             // IMPORTANT: unchecked checkboxes do not appear in FormData, so boolean settings would
             // otherwise never be saved as false after being enabled once.
+            const disabledKeys = new Set(sections.flatMap(section => {
+                if (section.disabled) return section.keys;
+                return section.disabledKeys ?? [];
+            }));
             const allKeys = sections.flatMap(section => section.keys);
             for (const key of allKeys) {
+                if (disabledKeys.has(key)) continue;
                 const setting = game.settings.settings.get(`${moduleId}.${key}`);
                 if (!setting) continue;
 

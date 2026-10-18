@@ -163,13 +163,13 @@
     /* Gaps handled by regions or internal margins */
     padding: 0px;
     padding-bottom: var(--position-bottom, 10px);
-    transition: transform .3s ease-in-out, opacity .3s ease-in-out var(--bg3-faded-delay);
+    transition: transform .3s ease-in-out, opacity .3s ease-in-out;
     width: 100%;
     /* Default floats above the bottom; Minimalist View can set --bg3-hud-bottom to 0 */
     bottom: var(--bg3-hud-bottom, 30px);
     left: 0;
     right: 0;
-    opacity: var(--bg3-faded-opacity, var(--bg3-normal-opacity));
+    opacity: var(--bg3-normal-opacity);
     pointer-events: none;
     /* Allow clicking through empty spaces */
     overflow: visible;
@@ -215,29 +215,29 @@
     align-items: flex-end;
 }
 
-/* Hide HUD during initialization. Must beat #bg3-hotbar-container opacity,
-   and must not fade, or the assembling chrome is visible for a frame. */
+/* Hide HUD while assembling. Keep opacity at full so lifting this class
+   does not inherit the idle fade delay (that delay is hover-out only). */
 .bg3-hud.bg3-hud-building,
 .bg3-hud.bg3-hud-hidden,
 .bg3-hud.bg3-hud-building #bg3-hotbar-container,
 .bg3-hud.bg3-hud-hidden #bg3-hotbar-container {
     visibility: hidden !important;
-    opacity: 0 !important;
+    opacity: var(--bg3-normal-opacity, 1) !important;
     pointer-events: none !important;
     transition: none !important;
 }
 
-/* Fade-out state for smooth transitions */
-.bg3-hud.bg3-hud-fading-out {
-    opacity: 0 !important;
-    pointer-events: none;
-    transition: opacity 0.3s ease-in-out;
+/* Idle fade: after fadeOutDelay with no pointer over the HUD, dim to faded
+   opacity. Hover restores immediately. Do not use this delay for Token show. */
+#bg3-hotbar-container:not(:hover) {
+    opacity: var(--bg3-faded-opacity, var(--bg3-normal-opacity));
+    transition: transform .3s ease-in-out, opacity .3s ease-in-out var(--bg3-faded-delay);
 }
 
-/* Smooth fade-in when HUD is ready */
+/* Smooth fade-in when HUD is ready (no idle delay) */
 .bg3-hud.bg3-hud-visible {
     opacity: var(--bg3-normal-opacity, 1);
-    transition: opacity 0.3s ease-in-out;
+    transition: opacity 0.15s ease-in-out;
 }
 
 #bg3-hotbar-container[data-under-pause="true"] {
@@ -274,8 +274,9 @@
    ========================================================================== */
 
 #bg3-hotbar-container:hover,
-#bg3-hotbar-container[data-master-lock="true"][data-lock-settings*="opacity"] {
-    transition-delay: 0s;
+#bg3-hotbar-container[data-master-lock="true"][data-lock-settings*="opacity"],
+#bg3-hotbar-container.bg3-hud-menu-open {
+    transition: transform .3s ease-in-out, opacity .3s ease-in-out;
     opacity: var(--bg3-normal-opacity);
 }
 

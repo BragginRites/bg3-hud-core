@@ -64,8 +64,11 @@ export class GridContainer extends BG3Component {
             // Clear existing cells
             this.element.innerHTML = '';
             
-            // Create new cells
+            // Create new cells, then render them together. Serial await per Slot
+            // waits on decorate/fromUuid for every filled Cell before the next
+            // starts, which is the main cost of the first Token-select paint.
             this.cells = [];
+            const fragment = document.createDocumentFragment();
             for (let row = 0; row < this.rows; row++) {
                 for (let col = 0; col < this.cols; col++) {
                     const cellKey = `${col}-${row}`;
@@ -92,10 +95,13 @@ export class GridContainer extends BG3Component {
                     });
 
                     this.cells.push(cell);
-                    await cell.render();
-                    this.element.appendChild(cell.element);
                 }
             }
+            await Promise.all(this.cells.map((cell) => cell.render()));
+            for (const cell of this.cells) {
+                fragment.appendChild(cell.element);
+            }
+            this.element.appendChild(fragment);
         } else {
             // Update existing cells in place; only update changed cells, in parallel
             const updates = [];
@@ -173,17 +179,18 @@ export class GridContainer extends BG3Component {
      */
     async updateItems(newItems) {
         this.items = newItems;
-        
-        // Update each cell
+
+        const updates = [];
         for (let row = 0; row < this.rows; row++) {
             for (let col = 0; col < this.cols; col++) {
                 const cellKey = `${col}-${row}`;
                 const cell = this.getCell(col, row);
                 if (cell) {
-                    await cell.setData(this.items[cellKey] || null, { decorateCellElement: this.decorateCellElement });
+                    updates.push(cell.setData(this.items[cellKey] || null, { decorateCellElement: this.decorateCellElement }));
                 }
             }
         }
+        if (updates.length) await Promise.all(updates);
     }
 
     /**

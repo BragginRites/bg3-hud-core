@@ -1,10 +1,10 @@
-import { BG3HUD_API, BG3HUD_REGISTRY } from '../utils/registry.js';
+import { BG3HUD_API } from '../utils/registry.js';
 import { applyAppearanceSettings, applyMacrobarCollapseSetting } from '../utils/settings.js';
 import { HotbarViewsContainer } from '../components/containers/HotbarViewsContainer.js';
 import { Logger } from '../utils/logger.js';
 
 /**
- * Switch unit: what the HUD is on screen for (ADR-0002).
+ * What the HUD is on screen for.
  * Callers say show this Token, or not exactly one Token, or GM Hotbar override.
  * Soft vs full rebuild stays inside.
  */
@@ -23,7 +23,7 @@ export class HudOnScreen {
     static isCompatible(token) {
         const actor = token?.actor;
         if (!actor) return false;
-        const adapter = BG3HUD_REGISTRY.activeAdapter;
+        const adapter = BG3HUD_API.getActiveAdapter();
         if (adapter && typeof adapter.isCompatible === 'function') {
             return adapter.isCompatible(actor);
         }
@@ -89,9 +89,11 @@ export class HudOnScreen {
      * @private
      */
     async _apply() {
+        const startedAt = performance.now();
         const app = this.app;
         if (!app.rendered) {
             await app.refresh();
+            Logger.info(`HUD show (first render) ${Math.round(performance.now() - startedAt)}ms`);
             return;
         }
 
@@ -102,10 +104,12 @@ export class HudOnScreen {
             } finally {
                 app._refreshGeneration++;
             }
+            Logger.info(`HUD show (soft swap) ${Math.round(performance.now() - startedAt)}ms`);
             return;
         }
 
         await app.refresh();
+        Logger.info(`HUD show (full refresh) ${Math.round(performance.now() - startedAt)}ms`);
     }
 
     /**
@@ -271,16 +275,6 @@ export class HudOnScreen {
         app.updateDisplaySettings();
         applyMacrobarCollapseSetting(app.isVisible);
         applyAppearanceSettings();
-
-        const adapter = BG3HUD_API.getActiveAdapter();
-        if (adapter?.updateCellDepletionStates && app.currentActor) {
-            queueMicrotask(() => {
-                try {
-                    adapter.updateCellDepletionStates(app.currentActor, { _force: true });
-                } catch (e) {
-                    Logger.warn('updateCellDepletionStates after Token switch failed:', e);
-                }
-            });
-        }
+        app._finalizeRenderVisibility();
     }
 }

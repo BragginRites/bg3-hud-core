@@ -4,16 +4,38 @@ import { Logger } from './logger.js';
  * BG3 HUD Component Registry
  * Central storage for system adapter registrations
  */
-export const BG3HUD_REGISTRY = {
-    // Main container classes registered by adapters
+/** Named HUD parts an Adapter may fill. Core-filled parts (Hotbar, Quick Access, End turn, Views) are not in this set. */
+export const NAMED_HUD_PART_KEYS = Object.freeze([
+    'portrait',
+    'passives',
+    'weaponSet',
+    'filter',
+    'characterInfo',
+    'activeEffects',
+    'rest'
+]);
+
+const NAMED_PART_CLASS_SLOT = Object.freeze({
+    portrait: 'portraitContainer',
+    passives: 'passivesContainer',
+    weaponSet: 'weaponSetContainer',
+    filter: 'filterContainer',
+    characterInfo: 'infoContainer',
+    activeEffects: 'activeEffectsContainer'
+});
+
+const BG3HUD_REGISTRY = {
+    // Fills from registerNamedHudParts (and the old per-part wrappers)
+    namedHudParts: {},
+
+    // Class slots mirrored from named fills (internal; extras stay on containers)
     portraitContainer: null,
     passivesContainer: null,
-    actionContainer: null,
-    abilityContainer: null,
     actionButtonsContainer: null,
     filterContainer: null,
     weaponSetContainer: null,
     infoContainer: null,
+    activeEffectsContainer: null,
 
     // Additional containers registered by adapters (id → { ContainerClass, region, order })
     containers: {},
@@ -41,8 +63,11 @@ export const BG3HUD_REGISTRY = {
  * @property {Function} [resolveExternalDragData] Parsed drag payload from `JSON.parse(transfer)`. Return a
  *   result to consume the drop; return `null` to let core handle Item/Macro/Activity only.
  *   @returns {Promise<null|BG3HudDragResolution>}
- * @property {Function} [onAdapterFlagsChanged] Respond to Foundry deltas under `changes.flags[MODULE_ID]` for the active actor.
- *   @returns {Promise<boolean>} `true` if the adapter handled targeted UI updates for this delta.
+ * @property {Function} [resolveNotice] Map an `updateActor` changes object to a play-sheet notice.
+ *   Core unions this with a system-agnostic default. Do not walk the HUD tree.
+ *   @param {Object} changes
+ *   @param {Actor} [actor]
+ *   @returns {{ fills?: string[], extras?: string[], cells?: 'all' | { parked: string[] } }}
  * @property {Function} [resolveHotbarMembershipOnItemUpdate] Decide whether an item update should add/remove
  *   the item from hotbar membership. System-specific (e.g. spell preparation). Return `'add'`, `'remove'`,
  *   or `null` for no membership change (core still refreshes cell data when present).
@@ -52,22 +77,12 @@ export const BG3HUD_REGISTRY = {
  * @property {Function} [isPlayerCharacter] Whether actor should get PC-only HUD chrome (views, etc.).
  *   @param {Actor} actor
  *   @returns {boolean}
- * @property {Function} [resolveActorUpdatePlan] Map an `updateActor` changes object to targeted HUD refresh
- *   actions. Core executes the plan; adapters own system document paths (e.g. `system.spells`).
- *   @param {Object} changes
- *   @returns {BG3HudActorUpdatePlan}
- */
-
-/**
- * @typedef {Object} BG3HudActorUpdatePlan
- * @property {boolean} [health] Refresh portrait health / death UI
- * @property {boolean} [attributes] Refresh portrait data badges (AC, speed, etc.)
- * @property {boolean} [resources] Refresh filter / resource strip
- * @property {boolean} [abilities] Refresh info panel (abilities / skills)
- * @property {boolean} [items] Handle shallow `changes.items` indicator
- * @property {boolean} [depletion] Run adapter.updateCellDepletionStates after handlers
- * @property {boolean} [stop] Stop after applying this plan (no further default fallthrough)
- * @property {boolean} [lateDepletion] Run depletion at end when stop was not set
+ * @property {Function} [isHeldItem] Whether cell data is a held item for a Weapon set Slot.
+ *   @param {Object} cell
+ *   @returns {boolean}
+ * @property {Function} [isTwoHanded] Whether a held item occupies both hands (off-hand reserved).
+ *   @param {Object} cell
+ *   @returns {boolean}
  */
 
 /**
@@ -77,7 +92,7 @@ export const BG3HUD_REGISTRY = {
  * @property {'Item'|'Macro'|'Activity'} [type]
  * @property {Record<string, unknown>} [augment] Merged onto cell data after adapter `transform*` (e.g. strike metadata).
  * @property {Object} [cellData] Pre-built cell data for entries with no backing document (e.g. system actions).
- *   Include `actorUuid` for ownership validation and a stable `uuid` for duplicate detection.
+ *   Include `actorUuid` for ownership validation and a stable `uuid` for occupancy identity.
  */
 
 /**
@@ -86,75 +101,100 @@ export const BG3HUD_REGISTRY = {
  */
 export const BG3HUD_API = {
     /**
-     * Register a portrait container class
-     * @param {Class} containerClass - Class that extends PortraitContainer
+     * Fill named HUD parts for this game. One call; omit a key when the game has no such concept.
+     * Class swap stays inside. Adapter extras use registerContainer (second list).
+     * @param {Object} fills
+     * @param {Class} [fills.portrait]
+     * @param {Class} [fills.passives]
+     * @param {Class} [fills.weaponSet]
+     * @param {Class} [fills.filter]
+     * @param {Class} [fills.characterInfo]
+     * @param {Class} [fills.activeEffects]
+     * @param {Function} [fills.rest] `({ actor, token }) => rest button defs[]`
+     */
+    registerNamedHudParts(fills = {}) {
+        if (!fills || typeof fills !== 'object') {
+            Logger.error('registerNamedHudParts requires an object of fills');
+            return;
+        }
+
+        for (const [key, fill] of Object.entries(fills)) {
+            if (!NAMED_HUD_PART_KEYS.includes(key)) {
+                Logger.warn(`registerNamedHudParts: ignoring unknown named HUD part '${key}'`);
+                continue;
+            }
+            if (fill == null) continue;
+
+            if (key === 'rest') {
+                if (typeof fill !== 'function') {
+                    Logger.error('registerNamedHudParts: rest fill must be a function ({ actor, token }) => defs');
+                    continue;
+                }
+                BG3HUD_REGISTRY.namedHudParts.rest = fill;
+                Logger.info('Registered rest fill');
+                continue;
+            }
+
+            if (typeof fill !== 'function') {
+                Logger.error(`registerNamedHudParts: '${key}' fill must be a class`);
+                continue;
+            }
+            BG3HUD_REGISTRY.namedHudParts[key] = fill;
+            const slot = NAMED_PART_CLASS_SLOT[key];
+            if (slot) BG3HUD_REGISTRY[slot] = fill;
+            Logger.info(`Registered named HUD part '${key}':`, fill.name);
+        }
+    },
+
+    /**
+     * Fill for a named HUD part, or null if the Adapter omitted it.
+     * @param {string} key
+     * @returns {Class|Function|null}
+     */
+    getNamedHudPart(key) {
+        return BG3HUD_REGISTRY.namedHudParts[key] ?? null;
+    },
+
+    /**
+     * @deprecated Use registerNamedHudParts({ portrait })
      */
     registerPortraitContainer(containerClass) {
-        Logger.info('Registering portrait container:', containerClass.name);
-        BG3HUD_REGISTRY.portraitContainer = containerClass;
+        this.registerNamedHudParts({ portrait: containerClass });
     },
 
     /**
-     * Register a passives container class
-     * @param {Class} containerClass - Class that extends PassivesContainer
+     * @deprecated Use registerNamedHudParts({ passives })
      */
     registerPassivesContainer(containerClass) {
-        Logger.info('Registering passives container:', containerClass.name);
-        BG3HUD_REGISTRY.passivesContainer = containerClass;
+        this.registerNamedHudParts({ passives: containerClass });
     },
 
     /**
-     * Register an action container class
-     * @param {Class} containerClass - Class that extends ActionContainer
+     * @deprecated Use registerNamedHudParts({ rest }). Core owns End turn housing.
      */
-    registerActionContainer(containerClass) {
-        Logger.info('Registering action container:', containerClass.name);
-        BG3HUD_REGISTRY.actionContainer = containerClass;
+    registerActionButtonsContainer() {
+        Logger.warn('registerActionButtonsContainer is ignored. Use registerNamedHudParts({ rest }).');
     },
 
     /**
-     * Register an ability container class
-     * @param {Class} containerClass - Class that extends AbilityContainer
-     */
-    registerAbilityContainer(containerClass) {
-        Logger.info('Registering ability container:', containerClass.name);
-        BG3HUD_REGISTRY.abilityContainer = containerClass;
-    },
-
-    /**
-     * Register an action buttons container class
-     * @param {Class} containerClass - Class that extends ActionButtonsContainer
-     */
-    registerActionButtonsContainer(containerClass) {
-        Logger.info('Registering action buttons container:', containerClass.name);
-        BG3HUD_REGISTRY.actionButtonsContainer = containerClass;
-    },
-
-    /**
-     * Register a filter container class
-     * @param {Class} containerClass - Class that extends FilterContainer
+     * @deprecated Use registerNamedHudParts({ filter })
      */
     registerFilterContainer(containerClass) {
-        Logger.info('Registering filter container:', containerClass.name);
-        BG3HUD_REGISTRY.filterContainer = containerClass;
+        this.registerNamedHudParts({ filter: containerClass });
     },
 
     /**
-     * Register a weapon set container class
-     * @param {Class} containerClass - Class that extends WeaponSetContainer
+     * @deprecated Use registerNamedHudParts({ weaponSet })
      */
     registerWeaponSetContainer(containerClass) {
-        Logger.info('Registering weapon set container:', containerClass.name);
-        BG3HUD_REGISTRY.weaponSetContainer = containerClass;
+        this.registerNamedHudParts({ weaponSet: containerClass });
     },
 
     /**
-     * Register an info container class
-     * @param {Class} containerClass - Class that extends InfoContainer
+     * @deprecated Use registerNamedHudParts({ characterInfo })
      */
     registerInfoContainer(containerClass) {
-        Logger.info('Registering info container:', containerClass.name);
-        BG3HUD_REGISTRY.infoContainer = containerClass;
+        this.registerNamedHudParts({ characterInfo: containerClass });
     },
 
     /**
@@ -190,10 +230,6 @@ export const BG3HUD_API = {
     getRegisteredContainers(region = 'left') {
         return Object.entries(BG3HUD_REGISTRY.containers)
             .map(([id, entry]) => {
-                // Back-compat: plain class registrations from older adapters
-                if (typeof entry === 'function') {
-                    return { id, ContainerClass: entry, region: 'left', order: 0 };
-                }
                 return {
                     id,
                     ContainerClass: entry?.ContainerClass,
@@ -261,6 +297,28 @@ export const BG3HUD_API = {
      */
     getActiveAdapter() {
         return BG3HUD_REGISTRY.activeAdapter;
+    },
+
+    /**
+     * Get the live WeaponSetContainer component instance for the on-screen HUD, if any.
+     * Pure redirection onto `ui.BG3HUD_APP?.components?.weaponSets` so adapters don't reach
+     * into the hotbar app's internal component tree directly.
+     * @returns {Object|null|undefined} The WeaponSetContainer instance, or null/undefined if unavailable
+     */
+    getWeaponSetComponent() {
+        return ui.BG3HUD_APP?.components?.weaponSets;
+    },
+
+    /**
+     * Get shared HUD display settings for a module.
+     * @param {string} moduleId - The module id to read settings from (`game.settings.get(moduleId, ...)`)
+     * @returns {{showItemNames: boolean, showItemUses: boolean}} The display settings
+     */
+    getDisplaySettings(moduleId) {
+        return {
+            showItemNames: game.settings.get(moduleId, 'showItemNames'),
+            showItemUses: game.settings.get(moduleId, 'showItemUses')
+        };
     },
 
     /**

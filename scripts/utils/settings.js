@@ -199,7 +199,7 @@ export function registerSettings() {
 
     game.settings.register(MODULE_ID, 'debugLogging', {
         name: 'Debug Logging',
-        hint: 'Print verbose diagnostic messages from the BG3 HUD (and its system adapters) to the browser console. Warnings and errors always show regardless of this setting.',
+        hint: 'Print verbose diagnostic messages from the BG3 HUD (and its system adapters) to the browser console as normal log lines. Warnings and errors always show regardless of this setting.',
         scope: 'client',
         config: true,
         type: Boolean,

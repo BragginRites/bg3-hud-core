@@ -10,6 +10,76 @@
  * - _lastSaveTimestamp prevents self-triggered hook reloads
  */
 import { Logger } from '../utils/logger.js';
+import { ViewManager, generateViewId } from './ViewManager.js';
+
+/**
+ * Resolve a UUID from documents already in memory (actor items, loaded packs).
+ * Returns null when the pack is not loaded or the UUID is gone.
+ * @param {string} uuid
+ * @returns {Document|null}
+ */
+function resolveUuidSync(uuid) {
+    if (!uuid || typeof fromUuidSync !== 'function') return null;
+    try {
+        return fromUuidSync(uuid) || null;
+    } catch {
+        return null;
+    }
+}
+
+/**
+ * Resolve a parked Cell's document from the current Actor without fromUuid.
+ * Actor-owned Items and Activities are already in memory; fromUuid on every
+ * Slot is what made Token-select wait several seconds.
+ * @param {string} uuid
+ * @param {Actor|null} actor
+ * @returns {Document|null}
+ */
+function resolveHudDocument(uuid, actor = null) {
+    if (!uuid) return null;
+
+    if (actor) {
+        const itemMarker = '.Item.';
+        const itemIdx = uuid.lastIndexOf(itemMarker);
+        if (itemIdx !== -1) {
+            const rest = uuid.slice(itemIdx + itemMarker.length);
+            const activityMarker = '.Activity.';
+            const activityIdx = rest.indexOf(activityMarker);
+            const itemId = activityIdx === -1 ? rest : rest.slice(0, activityIdx);
+            const item = actor.items.get(itemId);
+            if (item) {
+                if (activityIdx === -1) return item;
+                const activityId = rest.slice(activityIdx + activityMarker.length);
+                const activities = item.system?.activities;
+                if (activities?.get) return activities.get(activityId) || null;
+                if (Array.isArray(activities?.contents)) {
+                    return activities.contents.find((a) => a.id === activityId) || null;
+                }
+                return null;
+            }
+        }
+    }
+
+    return resolveUuidSync(uuid);
+}
+
+/**
+ * Prefer a document already on the Actor, then a cached lookup, then Foundry's
+ * async pack load only when the UUID is not in memory.
+ * @param {string} uuid
+ * @param {Actor|null} actor
+ * @returns {Promise<Document|null>}
+ */
+async function resolveUuid(uuid, actor = null) {
+    if (!uuid) return null;
+    const cached = resolveHudDocument(uuid, actor);
+    if (cached) return cached;
+    try {
+        return await fromUuid(uuid);
+    } catch {
+        return null;
+    }
+}
 
 export class PersistenceManager {
     /**
@@ -38,6 +108,10 @@ export class PersistenceManager {
             cols: 5,
             gridCount: 3
         };
+
+        // View CRUD subsystem (create/delete/switch/rename/duplicate/update views).
+        // Depends on this manager's loadState/saveState/state/DEFAULT_GRID_CONFIG.
+        this.views = new ViewManager(this);
     }
 
     /**
@@ -159,7 +233,7 @@ export class PersistenceManager {
      * @returns {Promise<Object>} Hydrated state
      */
     async hydrateState(state) {
-        const adapter = ui.BG3HOTBAR?.registry?.activeAdapter;
+        const adapter = ui.BG3HOTBAR?.api?.getActiveAdapter();
         if (!adapter || typeof adapter.transformItemToCellData !== 'function') {
             Logger.warn('PersistenceManager: No adapter or transform method available for hydration');
             return state;
@@ -243,7 +317,7 @@ export class PersistenceManager {
                         return;
                     }
 
-                    const doc = await fromUuid(cellData.uuid);
+                    const doc = await resolveUuid(cellData.uuid, this.currentActor);
                     if (!doc) {
                         Logger.warn(`✗ Could not resolve UUID for ${containerPath}[${slotKey}]:`, cellData.uuid);
                         return;
@@ -315,6 +389,7 @@ export class PersistenceManager {
             Logger.error('PersistenceManager: Error saving state:', error);
             throw error;
         } finally {
+            this._lastSaveTimestamp = Date.now();
             this._saveInProgress = false;
         }
     }
@@ -781,7 +856,7 @@ export class PersistenceManager {
             }
         };
 
-        const defaultViewId = this._generateViewId();
+        const defaultViewId = generateViewId();
 
         return {
             version: this.VERSION,
@@ -894,7 +969,7 @@ export class PersistenceManager {
      * @returns {boolean} True if we should skip reload
      */
     shouldSkipReload() {
-        // Skip if we saved in the last 500ms (generous window for Foundry's async hooks)
+        if (this._saveInProgress) return true;
         const timeSinceLastSave = Date.now() - this._lastSaveTimestamp;
         return timeSinceLastSave < 500;
     }
@@ -909,6 +984,9 @@ export class PersistenceManager {
 
     /* ==========================================================================
        VIEW MANAGEMENT METHODS
+       Delegated to ViewManager (this.views) - see scripts/managers/ViewManager.js.
+       Kept as thin pass-throughs so existing callers (persistenceManager.createView(),
+       .switchView(), etc.) keep working without changes.
        ========================================================================== */
 
     /**
@@ -918,35 +996,7 @@ export class PersistenceManager {
      * @returns {Promise<string>} New view ID
      */
     async createView(name, icon = null) {
-        const state = await this.loadState();
-
-        // Generate new view ID
-        const viewId = this._generateViewId();
-
-        // Create empty hotbar state for new view
-        const emptyHotbarState = this._getEmptyHotbarState();
-
-        // Create new view
-        const newView = {
-            id: viewId,
-            name: name,
-            icon: icon || 'fa-bookmark',
-            hotbarState: emptyHotbarState
-        };
-
-        // Add view to list
-        state.views.list.push(newView);
-
-        // Switch to new view (this will load the empty state)
-        state.views.activeViewId = viewId;
-
-        // Load the new view's empty hotbar state into current state
-        state.hotbar = foundry.utils.deepClone(emptyHotbarState.hotbar);
-
-        await this.saveState(state);
-
-        Logger.debug('PersistenceManager: Created empty view:', name);
-        return viewId;
+        return this.views.createView(name, icon);
     }
 
     /**
@@ -955,38 +1005,7 @@ export class PersistenceManager {
      * @returns {Promise<void>}
      */
     async deleteView(viewId) {
-        let state = await this.loadState();
-
-        // Can't delete if it's the only view
-        if (state.views.list.length <= 1) {
-            Logger.warn('PersistenceManager: Cannot delete the only view');
-            return;
-        }
-
-        // Find view index
-        const viewIndex = state.views.list.findIndex(v => v.id === viewId);
-        if (viewIndex === -1) {
-            Logger.warn('PersistenceManager: View not found:', viewId);
-            return;
-        }
-
-        // If deleting active view, switch to another view first
-        if (state.views.activeViewId === viewId) {
-            // Switch to first available view that's not this one
-            const newActiveView = state.views.list.find(v => v.id !== viewId);
-            if (newActiveView) {
-                await this.switchView(newActiveView.id);
-                // Reload state after switch
-                state = await this.loadState();
-            }
-        }
-
-        // Remove view from list
-        state.views.list.splice(viewIndex, 1);
-
-        await this.saveState(state);
-
-        Logger.debug('PersistenceManager: Deleted view:', viewId);
+        return this.views.deleteView(viewId);
     }
 
     /**
@@ -995,26 +1014,7 @@ export class PersistenceManager {
      * @returns {Promise<void>}
      */
     async switchView(viewId) {
-        const state = await this.loadState();
-
-        // Find the view
-        const view = state.views.list.find(v => v.id === viewId);
-        if (!view) {
-            Logger.warn('PersistenceManager: View not found:', viewId);
-            return;
-        }
-
-        // Update active view ID
-        state.views.activeViewId = viewId;
-
-        // Load the view's hotbar state into current state (views only affect hotbar)
-        state.hotbar = foundry.utils.deepClone(view.hotbarState.hotbar);
-        if (view.hotbarState.autoPopulateComplete === true) {
-            state.autoPopulateComplete = true;
-        }
-
-        await this.saveState(state);
-
+        return this.views.switchView(viewId);
     }
 
     /**
@@ -1025,24 +1025,7 @@ export class PersistenceManager {
      * @returns {Promise<void>}
      */
     async renameView(viewId, newName, newIcon = null) {
-        const state = await this.loadState();
-
-        // Find the view
-        const view = state.views.list.find(v => v.id === viewId);
-        if (!view) {
-            Logger.warn('PersistenceManager: View not found:', viewId);
-            return;
-        }
-
-        // Update name and icon
-        view.name = newName;
-        if (newIcon !== null) {
-            view.icon = newIcon;
-        }
-
-        await this.saveState(state);
-
-        Logger.debug('PersistenceManager: Renamed view to:', newName);
+        return this.views.renameView(viewId, newName, newIcon);
     }
 
     /**
@@ -1052,33 +1035,7 @@ export class PersistenceManager {
      * @returns {Promise<string>} New view ID
      */
     async duplicateView(viewId, newName = null) {
-        const state = await this.loadState();
-
-        // Find the view to duplicate
-        const sourceView = state.views.list.find(v => v.id === viewId);
-        if (!sourceView) {
-            Logger.warn('PersistenceManager: View not found:', viewId);
-            return null;
-        }
-
-        // Generate new view ID
-        const newViewId = this._generateViewId();
-
-        // Create duplicate view
-        const duplicateView = {
-            id: newViewId,
-            name: newName || `${sourceView.name} (Copy)`,
-            icon: sourceView.icon,
-            hotbarState: foundry.utils.deepClone(sourceView.hotbarState)
-        };
-
-        // Add to list
-        state.views.list.push(duplicateView);
-
-        await this.saveState(state);
-
-        Logger.debug('PersistenceManager: Duplicated view:', duplicateView.name);
-        return newViewId;
+        return this.views.duplicateView(viewId, newName);
     }
 
     /**
@@ -1087,28 +1044,7 @@ export class PersistenceManager {
      * @returns {Promise<void>}
      */
     async updateView(viewId = null) {
-        const state = await this.loadState();
-
-        // Default to active view if not specified
-        const targetViewId = viewId || state.views.activeViewId;
-
-        // Find the view
-        const view = state.views.list.find(v => v.id === targetViewId);
-        if (!view) {
-            Logger.warn('PersistenceManager: View not found:', targetViewId);
-            return;
-        }
-
-        // Update view's hotbar state with current state
-        view.hotbarState = {
-            hotbar: foundry.utils.deepClone(state.hotbar),
-            weaponSets: foundry.utils.deepClone(state.weaponSets),
-            quickAccess: foundry.utils.deepClone(state.quickAccess)
-        };
-
-        await this.saveState(state);
-
-        Logger.debug('PersistenceManager: Updated view:', view.name);
+        return this.views.updateView(viewId);
     }
 
     /**
@@ -1116,8 +1052,7 @@ export class PersistenceManager {
      * @returns {Array<Object>} List of views
      */
     getViews() {
-        if (!this.state?.views?.list) return [];
-        return foundry.utils.deepClone(this.state.views.list);
+        return this.views.getViews();
     }
 
     /**
@@ -1125,7 +1060,7 @@ export class PersistenceManager {
      * @returns {string|null} Active view ID
      */
     getActiveViewId() {
-        return this.state?.views?.activeViewId || null;
+        return this.views.getActiveViewId();
     }
 
     /**
@@ -1134,8 +1069,7 @@ export class PersistenceManager {
      * @returns {Object|null} View data or null
      */
     getView(viewId) {
-        const view = this.state?.views?.list?.find(v => v.id === viewId);
-        return view ? foundry.utils.deepClone(view) : null;
+        return this.views.getView(viewId);
     }
 
     /**
@@ -1143,21 +1077,7 @@ export class PersistenceManager {
      * @returns {Object|null} Active view data or null
      */
     getActiveView() {
-        const activeViewId = this.getActiveViewId();
-        return activeViewId ? this.getView(activeViewId) : null;
-    }
-
-    /* ==========================================================================
-       HELPER METHODS FOR VIEWS
-       ========================================================================== */
-
-    /**
-     * Generate a unique view ID
-     * @returns {string} Unique view ID
-     * @private
-     */
-    _generateViewId() {
-        return `view-${foundry.utils.randomID(16)}`;
+        return this.views.getActiveView();
     }
 
     /**
@@ -1200,13 +1120,18 @@ export class PersistenceManager {
     async reconcileStaleItemUuids(state) {
         if (!state || !this.currentActor) return false;
 
-        const adapter = ui.BG3HOTBAR?.registry?.activeAdapter;
+        const adapter = ui.BG3HOTBAR?.api?.getActiveAdapter();
         const itemMaps = this._collectAllItemMaps(state);
         let changed = false;
 
-        for (const items of itemMaps) {
-            for (const [slotKey, cellData] of Object.entries(items)) {
-                const result = await this._reconcileCellData(cellData, adapter);
+        await Promise.all(itemMaps.map(async (items) => {
+            const results = await Promise.all(
+                Object.entries(items).map(async ([slotKey, cellData]) => {
+                    const result = await this._reconcileCellData(cellData, adapter);
+                    return [slotKey, result];
+                })
+            );
+            for (const [slotKey, result] of results) {
                 if (result.action === 'update') {
                     items[slotKey] = result.data;
                     changed = true;
@@ -1215,7 +1140,7 @@ export class PersistenceManager {
                     changed = true;
                 }
             }
-        }
+        }));
 
         return changed;
     }
@@ -1262,7 +1187,7 @@ export class PersistenceManager {
 
         if (!cellData.uuid) return { action: 'keep' };
 
-        const resolved = await fromUuid(cellData.uuid);
+        const resolved = resolveHudDocument(cellData.uuid, this.currentActor);
         if (resolved) return { action: 'keep' };
 
         const actor = this.currentActor;
@@ -1309,13 +1234,14 @@ export class PersistenceManager {
             changed = true;
         }
 
-        if (await this.reconcileStaleItemUuids(state)) {
-            changed = true;
-        }
+        const reconciled = await this.reconcileStaleItemUuids(state);
+        if (reconciled) changed = true;
 
         if (changed) {
             this._syncCurrentStateToActiveView(state);
-            await this.saveState(state);
+            // Never setFlag during Token-select load. A large hudState write
+            // stalls the main thread and the updateActor hook can rebuild the
+            // HUD after Foundry's skip window expires.
         }
     }
 
@@ -1339,28 +1265,6 @@ export class PersistenceManager {
     }
 
     /**
-     * Get empty hotbar state (for new views)
-     * @returns {Object} Empty hotbar state
-     * @private
-     */
-    _getEmptyHotbarState() {
-        const grids = [];
-        for (let i = 0; i < this.DEFAULT_GRID_CONFIG.gridCount; i++) {
-            grids.push({
-                rows: this.DEFAULT_GRID_CONFIG.rows,
-                cols: this.DEFAULT_GRID_CONFIG.cols,
-                items: {}
-            });
-        }
-
-        return {
-            hotbar: {
-                grids: grids
-            }
-        };
-    }
-
-    /**
      * Ensure views structure exists in state
      * @param {Object} state - HUD state
      * @private
@@ -1369,7 +1273,7 @@ export class PersistenceManager {
         if (!state.views) {
             // Create default view from current hotbar state only
             const defaultView = {
-                id: this._generateViewId(),
+                id: generateViewId(),
                 name: 'Default',
                 icon: 'fa-bookmark',
                 hotbarState: {
@@ -1396,7 +1300,7 @@ export class PersistenceManager {
     _migrateToVersion2(oldState) {
         // Create default view from existing hotbar state only
         const defaultView = {
-            id: this._generateViewId(),
+            id: generateViewId(),
             name: 'Default',
             icon: 'fa-bookmark',
             hotbarState: {

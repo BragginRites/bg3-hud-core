@@ -33,24 +33,22 @@ export class TargetSelectorUI {
      * @param {Object} requirements - Targeting requirements
      */
     activate(requirements) {
-        Logger.warn('UI: Activate called', requirements);
-
         this._createInstructionsDisplay(requirements);
         this._createMouseDisplay(requirements);
         this._setTargetingCursor();
 
-        // Show the target list dialog immediately
-        this.showTargetList();
+        // Show the creature-pick list. Area-fill is a canvas click, not that list.
+        if (!requirements.hasTemplate) {
+            this.showTargetList();
+        }
 
-        if (requirements.range && this.manager.sourceToken) {
-            Logger.warn('UI: Attempting to show range indicator', { range: requirements.range, token: this.manager.sourceToken.name });
+        const { sourceToken } = this.manager.getSelectionState();
+        if (requirements.range && sourceToken) {
             try {
-                this.showRangeIndicator(this.manager.sourceToken, requirements.range);
+                this.showRangeIndicator(sourceToken, requirements.range);
             } catch (e) {
                 Logger.error('Error showing range indicator:', e);
             }
-        } else {
-            Logger.warn('UI: Skipping range indicator', { range: requirements.range, hasSourceToken: !!this.manager.sourceToken });
         }
 
         // Add targeting class to body
@@ -371,9 +369,7 @@ export class TargetSelectorUI {
             return;
         }
 
-        const targets = this.manager.selectedTargets;
-        const requirements = this.manager.requirements;
-        const adapter = this.manager.adapter;
+        const { selectedTargets: targets, requirements, adapter } = this.manager.getSelectionState();
 
         let html = `
             <div class="bg3-target-list-header">
@@ -524,13 +520,15 @@ export class TargetSelectorUI {
             details: []
         };
 
-        // Calculate distance
-        if (this.manager.sourceToken) {
-            const { TargetSelectorMath } = await import('./TargetSelectorMath.js');
-            info.distance = TargetSelectorMath.calculateTokenDistance(this.manager.sourceToken, token);
+        const { sourceToken, requirements, item, activity } = this.manager.getSelectionState();
 
-            if (this.manager.requirements.range) {
-                info.inRange = info.distance <= this.manager.requirements.range;
+        // Calculate distance
+        if (sourceToken) {
+            const { TargetSelectorMath } = await import('./TargetSelectorMath.js');
+            info.distance = TargetSelectorMath.calculateTokenDistance(sourceToken, token);
+
+            if (requirements.range) {
+                info.inRange = info.distance <= requirements.range;
                 if (!info.inRange) {
                     info.details.push(game.i18n.localize('bg3-hud-core.TargetSelector.OutOfRange'));
                 }
@@ -541,10 +539,10 @@ export class TargetSelectorUI {
         if (adapter?.targetingRules?.getTargetInfo) {
             try {
                 const adapterInfo = adapter.targetingRules.getTargetInfo({
-                    sourceToken: this.manager.sourceToken,
+                    sourceToken,
                     targetToken: token,
-                    item: this.manager.item,
-                    activity: this.manager.activity
+                    item,
+                    activity
                 });
                 if (adapterInfo.distance != null && info.distance == null) {
                     info.distance = adapterInfo.distance;

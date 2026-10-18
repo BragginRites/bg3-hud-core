@@ -165,15 +165,18 @@ export class WeaponSetContainer extends BG3Component {
                 gridContainer.cols = setData.cols;
                 gridContainer.items = setData.items || {};
             }
+        }
 
-            await gridContainer.render();
+        await Promise.all(this.gridContainers.map((gridContainer) => gridContainer.render()));
+
+        for (let i = 0; i < this.weaponSets.length; i++) {
+            const gridContainer = this.gridContainers[i];
             gridContainer.element.classList.add('bg3-weapon-set');
             gridContainer.element.dataset.containerIndex = i;
             gridContainer.element.dataset.setId = i;
-            // Mark as HUD UI — native/system rich tooltips are suppressed here
+            // Mark as HUD UI - native/system rich tooltips are suppressed here
             gridContainer.element.dataset.bg3Ui = 'true';
-            
-            // Add click handler to switch sets
+
             if (!this._setClickListeners.has(i)) {
                 const listener = async (event) => {
                     const activeIndex = this.getActiveSet();

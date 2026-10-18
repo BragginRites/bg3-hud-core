@@ -1,4 +1,4 @@
-import { BG3HUD_API, BG3HUD_REGISTRY } from '../utils/registry.js';
+import { BG3HUD_API } from '../utils/registry.js';
 
 /**
  * Component Factory
@@ -21,6 +21,19 @@ export class ComponentFactory {
     }
 
     /**
+     * Resolve the active adapter's decorateCellElement, bound to maintain adapter context.
+     * Centralizes the lookup shared by every container that supports cell decoration.
+     * @returns {Function|undefined}
+     * @private
+     */
+    _resolveDecorateCellElement() {
+        const adapter = BG3HUD_API.getActiveAdapter();
+        return adapter?.decorateCellElement
+            ? adapter.decorateCellElement.bind(adapter)
+            : undefined;
+    }
+
+    /**
      * Create portrait container
      * Uses adapter implementation if available, otherwise base
      * @returns {Promise<PortraitContainer>}
@@ -28,8 +41,7 @@ export class ComponentFactory {
     async createPortraitContainer() {
         const { PortraitContainer } = await import('../components/containers/PortraitContainer.js');
         
-        // Use adapter portrait if available (follows Argon pattern)
-        const PortraitClass = BG3HUD_REGISTRY.portraitContainer || PortraitContainer;
+        const PortraitClass = BG3HUD_API.getNamedHudPart('portrait') || PortraitContainer;
         
         return new PortraitClass({
             actor: this.hotbarApp.currentActor,
@@ -47,15 +59,10 @@ export class ComponentFactory {
     async createWeaponSetsContainer(weaponSetsData, handlers) {
         const { WeaponSetContainer } = await import('../components/containers/WeaponSetContainer.js');
         
-        // Use adapter weapon set container if available (follows Argon pattern)
-        const WeaponSetClass = BG3HUD_REGISTRY.weaponSetContainer || WeaponSetContainer;
-        
-        // Bind decorateCellElement to maintain adapter context
-        const adapter = BG3HUD_REGISTRY.activeAdapter;
-        const decorateCellElement = adapter?.decorateCellElement 
-            ? adapter.decorateCellElement.bind(adapter) 
-            : undefined;
-        
+        const WeaponSetClass = BG3HUD_API.getNamedHudPart('weaponSet') || WeaponSetContainer;
+
+        const decorateCellElement = this._resolveDecorateCellElement();
+
         return new WeaponSetClass({
             actor: this.hotbarApp.currentActor,
             token: this.hotbarApp.currentToken,
@@ -75,13 +82,9 @@ export class ComponentFactory {
      */
     async createQuickAccessContainer(quickAccessData, handlers) {
         const { QuickAccessContainer } = await import('../components/containers/QuickAccessContainer.js');
-        
-        // Bind decorateCellElement to maintain adapter context
-        const adapter = BG3HUD_REGISTRY.activeAdapter;
-        const decorateCellElement = adapter?.decorateCellElement 
-            ? adapter.decorateCellElement.bind(adapter) 
-            : undefined;
-        
+
+        const decorateCellElement = this._resolveDecorateCellElement();
+
         return new QuickAccessContainer({
             actor: this.hotbarApp.currentActor,
             token: this.hotbarApp.currentToken,
@@ -100,46 +103,59 @@ export class ComponentFactory {
      */
     async createHotbarContainer(gridsData, handlers) {
         const { HotbarContainer } = await import('../components/containers/HotbarContainer.js');
-        
-        // Bind decorateCellElement to maintain adapter context
-        const adapter = BG3HUD_REGISTRY.activeAdapter;
-        const decorateCellElement = adapter?.decorateCellElement 
-            ? adapter.decorateCellElement.bind(adapter) 
-            : undefined;
+
+        const decorateCellElement = this._resolveDecorateCellElement();
+
+        const actor = this.hotbarApp.currentActor;
+        const token = this.hotbarApp.currentToken;
+        const housed = actor ? await this._createHotbarHousedParts(actor, token) : {};
         
         return new HotbarContainer({
             grids: gridsData,
-            actor: this.hotbarApp.currentActor,
-            token: this.hotbarApp.currentToken,
+            actor,
+            token,
             hotbarApp: this.hotbarApp,
             decorateCellElement: decorateCellElement,
+            ...housed,
             ...handlers
         });
     }
 
     /**
-     * Create action buttons container
-     * Uses adapter implementation if available, otherwise returns null
+     * Passives and Active effects: named HUD parts Core may house on the Hotbar.
+     * @private
+     */
+    async _createHotbarHousedParts(actor, token) {
+        const ActiveEffectsClass = BG3HUD_API.getNamedHudPart('activeEffects');
+        const PassivesClass = BG3HUD_API.getNamedHudPart('passives');
+
+        return {
+            activeEffectsContainer: ActiveEffectsClass ? new ActiveEffectsClass({ actor, token }) : null,
+            passivesContainer: PassivesClass ? new PassivesClass({ actor, token }) : null
+        };
+    }
+
+    /**
+     * Housing for Rest and End turn. Core fills End turn. Adapter rest fill is optional.
      * @returns {Promise<ActionButtonsContainer|null>}
      */
     async createActionButtonsContainer() {
         const { ActionButtonsContainer } = await import('../components/containers/ActionButtonsContainer.js');
         
-        // Check if adapter provides an action buttons container class
-        const ActionButtonsClass = BG3HUD_REGISTRY.actionButtonsContainer || ActionButtonsContainer;
-        
-        // Only create if we have an actor and either:
-        // 1. Adapter registered a custom class, or
-        // 2. Adapter provides a getActionButtons method
-        const adapter = BG3HUD_REGISTRY.activeAdapter;
-        if (!this.hotbarApp.currentActor) return null;
-        if (!adapter?.getActionButtons && ActionButtonsClass === ActionButtonsContainer) return null;
-        
-        return new ActionButtonsClass({
-            actor: this.hotbarApp.currentActor,
+        const actor = this.hotbarApp.currentActor;
+        if (!actor) return null;
+
+        const restFill = BG3HUD_API.getNamedHudPart('rest');
+        return new ActionButtonsContainer({
+            actor,
             token: this.hotbarApp.currentToken,
             hotbarApp: this.hotbarApp,
-            getButtons: adapter?.getActionButtons ? () => adapter.getActionButtons() : undefined
+            getRests: typeof restFill === 'function'
+                ? () => restFill({
+                    actor: this.hotbarApp.currentActor,
+                    token: this.hotbarApp.currentToken
+                }) || []
+                : () => []
         });
     }
 
@@ -149,10 +165,7 @@ export class ComponentFactory {
      * @returns {Promise<FilterContainer|null>}
      */
     async createFilterContainer() {
-        const { FilterContainer } = await import('../components/containers/FilterContainer.js');
-        
-        // Check if adapter provides a filter container class
-        const FilterClass = BG3HUD_REGISTRY.filterContainer;
+        const FilterClass = BG3HUD_API.getNamedHudPart('filter');
         
         // Only create if adapter registered a custom class and we have an actor
         if (!this.hotbarApp.currentActor || !FilterClass) return null;
@@ -181,10 +194,7 @@ export class ComponentFactory {
      * @returns {Promise<InfoContainer|null>}
      */
     async createInfoContainer() {
-        const { InfoContainer } = await import('../components/containers/InfoContainer.js');
-        
-        // Check if adapter provides an info container class
-        const InfoClass = BG3HUD_REGISTRY.infoContainer;
+        const InfoClass = BG3HUD_API.getNamedHudPart('characterInfo');
         
         // Only create if adapter registered a custom class and we have an actor
         if (!this.hotbarApp.currentActor || !InfoClass) return null;

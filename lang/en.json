@@ -52,7 +52,7 @@
       },
       "FadeOutDelay": {
         "Name": "Fade Out Delay (seconds)",
-        "Hint": "How long to wait before fading out the HUD (1 to 30 seconds)"
+        "Hint": "How long after the HUD is shown (and the pointer is not over it) before it fades to Faded Opacity"
       },
       "AutoScale": {
         "Name": "Auto Scale",
@@ -291,6 +291,10 @@
       "DuplicateItem": "This item already exists elsewhere in the HUD",
       "DuplicateSpellSlot": "This resource entry is already in the HUD",
       "DuplicateInHud": "This {label} is already in the HUD",
+      "OccupancyWrongKind": "Only held items belong on a weapon set.",
+      "OccupancySameSet": "That item is already in this weapon set.",
+      "OccupancyReserved": "This slot is used by a two-handed weapon.",
+      "OccupancyOccupied": "That slot is already filled.",
       "NoActorSelected": "No actor selected",
       "ItemOwnerMismatch": "This {type} belongs to {owner}, not {current}",
       "MacroNotFound": "Macro not found",
@@ -337,6 +341,7 @@
       "ContextDuplicate": "Duplicate View",
       "ContextDelete": "Delete View"
     },
+    "EndTurn": "End Turn",
     "MaxSelectionsReached": "Maximum of {max} selections reached"
   }
 }

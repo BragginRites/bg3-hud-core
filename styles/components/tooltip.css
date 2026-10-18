@@ -69,7 +69,8 @@
 }
 
 /* Ensure content is visible */
-.bg3-tooltip.visible .content {
+.bg3-tooltip.visible .content,
+.bg3-tooltip.visible .bg3-tt-card {
     display: block !important;
 }
 
@@ -78,7 +79,8 @@
     min-height: 50px; /* Ensure tooltip has minimum height */
 }
 
-.bg3-tooltip.rich-tooltip.visible .content {
+.bg3-tooltip.rich-tooltip.visible .content,
+.bg3-tooltip.rich-tooltip.visible .bg3-tt-card {
     display: block !important;
     visibility: visible !important;
 }
@@ -166,7 +168,12 @@
     pointer-events: auto;
 }
 
-/* Dismiss hint for locked tooltips - system adapters should override this */
+.bg3-tooltip.locked-tooltip .bg3-tt-hint {
+    display: none;
+}
+
+/* Dismiss hint for locked tooltips */
+.bg3-tooltip.locked-tooltip .bg3-tt-card::after,
 .bg3-tooltip.locked-tooltip .content::after {
     content: "Middle-click to dismiss";
     display: block;

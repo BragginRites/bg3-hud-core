@@ -1,9 +1,6 @@
 import { BG3Component } from '../BG3Component.js';
 import { GridContainer } from './GridContainer.js';
 import { DragBar } from '../ui/DragBar.js';
-import { ActiveEffectsContainer } from './ActiveEffectsContainer.js';
-import { PassivesContainer } from './PassivesContainer.js';
-import { BG3HUD_REGISTRY } from '../../utils/registry.js';
 
 /**
  * Hotbar Container
@@ -27,8 +24,8 @@ export class HotbarContainer extends BG3Component {
         this.token = options.token;
         this.gridContainers = [];
         this.dragBars = [];
-        this.activeEffectsContainer = null;
-        this.passivesContainer = null;
+        this.activeEffectsContainer = options.activeEffectsContainer || null;
+        this.passivesContainer = options.passivesContainer || null;
         this._dragPreviewFrame = null;
         this._pendingDragPreview = null;
         this._dragRenderInFlight = false;
@@ -99,60 +96,40 @@ export class HotbarContainer extends BG3Component {
             this.gridContainers = [];
             this.dragBars = [];
 
-            // Create active effects container if actor exists
-            if (this.actor) {
-                this.activeEffectsContainer = new ActiveEffectsContainer({
-                    actor: this.actor,
-                    token: this.token
-                });
-                const activeEffectsElement = await this.activeEffectsContainer.render();
-                this.element.appendChild(activeEffectsElement);
+            if (this.activeEffectsContainer) {
+                this.element.appendChild(await this.activeEffectsContainer.render());
+            }
+            if (this.passivesContainer) {
+                this.element.appendChild(await this.passivesContainer.render());
             }
 
-            // Create passives container if actor exists and adapter registered one
-            if (this.actor) {
-                const PassivesClass = BG3HUD_REGISTRY.passivesContainer || PassivesContainer;
-                this.passivesContainer = new PassivesClass({
-                    actor: this.actor,
-                    token: this.token
-                });
-                const passivesElement = await this.passivesContainer.render();
-                this.element.appendChild(passivesElement);
-            }
+            // Create every grid first, render them together, then append in order.
+            const created = this.grids.map((gridData, i) => new GridContainer({
+                rows: gridData.rows,
+                cols: gridData.cols,
+                items: gridData.items || {},
+                id: 'hotbar',
+                index: i,
+                containerType: 'hotbar',
+                containerIndex: i,
+                persistenceManager: this.options.hotbarApp?.persistenceManager,
+                onCellClick: this.options.onCellClick,
+                onCellRightClick: this.options.onCellRightClick,
+                onCellDragStart: this.options.onCellDragStart,
+                onCellDragEnd: this.options.onCellDragEnd,
+                onCellDrop: this.options.onCellDrop,
+                decorateCellElement: this.options.decorateCellElement
+            }));
+            this.gridContainers.push(...created);
+            const gridElements = await Promise.all(created.map((gridContainer) => gridContainer.render()));
 
-            // Create new grid containers and drag bars
             for (let i = 0; i < this.grids.length; i++) {
-                const gridData = this.grids[i];
-                
-                // Create GridContainer
-                const gridContainer = new GridContainer({
-                    rows: gridData.rows,
-                    cols: gridData.cols,
-                    items: gridData.items || {},
-                    id: 'hotbar',
-                    index: i,
-                    containerType: 'hotbar',
-                    containerIndex: i,
-                    persistenceManager: this.options.hotbarApp?.persistenceManager,
-                    onCellClick: this.options.onCellClick,
-                    onCellRightClick: this.options.onCellRightClick,
-                    onCellDragStart: this.options.onCellDragStart,
-                    onCellDragEnd: this.options.onCellDragEnd,
-                    onCellDrop: this.options.onCellDrop,
-                    decorateCellElement: this.options.decorateCellElement
-                });
-
-                this.gridContainers.push(gridContainer);
-                const gridElement = await gridContainer.render();
-                
-                // Hide container if cols is 0
-                if (gridData.cols === 0) {
+                const gridElement = gridElements[i];
+                if (this.grids[i].cols === 0) {
                     gridElement.style.display = 'none';
                 }
-                
                 this.element.appendChild(gridElement);
 
-                // Add DragBar between grids (except after last grid)
                 if (i < this.grids.length - 1) {
                     const dragBar = new DragBar({
                         index: i,
@@ -160,8 +137,7 @@ export class HotbarContainer extends BG3Component {
                         onDragEnd: (bar, deltaX) => this._onDragBarEnd(bar, deltaX)
                     });
                     this.dragBars.push(dragBar);
-                    const dragBarElement = await dragBar.render();
-                    this.element.appendChild(dragBarElement);
+                    this.element.appendChild(await dragBar.render());
                 }
             }
         } else {

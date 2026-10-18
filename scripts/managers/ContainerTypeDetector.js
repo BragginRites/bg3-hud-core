@@ -117,5 +117,23 @@ export class ContainerTypeDetector {
     static isCrossContainer(sourceCell, targetCell) {
         return !this.areSameContainer(sourceCell, targetCell);
     }
+
+    /**
+     * Resolve the live GridContainer instance for a container type/index from the hotbar
+     * app's component tree. Single source of truth for the hotbar/weaponSet/quickAccess
+     * -> gridContainers lookup shared by coordinators that mutate runtime grid state.
+     * @param {Object} hotbarApp - The hotbar application instance (expects `.components`)
+     * @param {string} containerType - 'hotbar'|'weaponSet'|'quickAccess' (see TYPES)
+     * @param {number} containerIndex - Index into that container type's gridContainers array
+     * @returns {Object|null} The GridContainer instance, or null if not found
+     */
+    static getGridContainer(hotbarApp, containerType, containerIndex) {
+        const containerMap = {
+            [this.TYPES.HOTBAR]: hotbarApp?.components?.hotbar?.gridContainers,
+            [this.TYPES.WEAPON_SET]: hotbarApp?.components?.weaponSets?.gridContainers,
+            [this.TYPES.QUICK_ACCESS]: hotbarApp?.components?.quickAccess?.gridContainers
+        };
+        return containerMap[containerType]?.[containerIndex] || null;
+    }
 }
 
