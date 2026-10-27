@@ -121,8 +121,9 @@ Hooks.on('getSceneControlButtons', (controls) => {
 // ========================================
 
 Hooks.on('createToken', async (tokenDocument, options, userId) => {
-    // Only run for GMs or if the user created the token
-    if (!game.user.isGM && game.userId !== userId) return;
+    // Only run for the user who created the token: every client receives this hook, and letting every GM through
+    // made each connected GM write the same HUD data to the actor.
+    if (game.userId !== userId) return;
 
     // Get actor directly from tokenDocument (more reliable than tokenDocument.object.actor
     // since the canvas token object may not exist yet during async token creation)

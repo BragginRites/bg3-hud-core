@@ -1,3 +1,8 @@
+## [Unreleased]
+
+### Fixed
+- **Auto-populate on token creation**: Only the user who drops a token fills its HUD. Before, every connected GM did it too, writing the same data to the actor several times; a token deleted right after creation then raised "does not exist in the EmbeddedCollection" errors on the other GMs.
+
 ## [0.8.0] - 2026-10-16
 
 ### Changed
